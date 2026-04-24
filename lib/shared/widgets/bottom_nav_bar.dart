@@ -26,19 +26,19 @@ class NaruBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 88,
+      height: 62,
       decoration: BoxDecoration(
         color: AppColors.bgWhite,
         border: const Border(top: BorderSide(color: AppColors.separator)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.22),
-            blurRadius: 14.4,
-            offset: const Offset(0, -5),
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 6,
+            offset: const Offset(0, -1),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       child: Row(
         children: List.generate(_items.length, (i) {
           final item = _items[i];
@@ -55,10 +55,10 @@ class NaruBottomNavBar extends StatelessWidget {
                 children: [
                   Icon(
                     item.icon,
-                    size: 24,
+                    size: 16,
                     color: active ? AppColors.dark : AppColors.inactive,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
                     child: SizedBox(
@@ -70,8 +70,10 @@ class NaruBottomNavBar extends StatelessWidget {
                           maxLines: 1,
                           softWrap: false,
                           style: AppTextStyles.caption.copyWith(
+                            fontSize: 8,
                             color: active ? AppColors.dark : AppColors.inactive,
                             fontWeight: FontWeight.w500,
+                            height: 1.1,
                           ),
                         ),
                       ),
