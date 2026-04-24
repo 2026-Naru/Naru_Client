@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
+import '../../../likes/presentation/pages/favorites_page.dart';
+import '../../../lists/presentation/pages/order_history_page.dart';
 
 class MyPage extends StatelessWidget {
   const MyPage({super.key});
@@ -15,125 +17,207 @@ class MyPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Text('MY Naru', style: AppTextStyles.h3),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Text(
+                'MY Naru',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  height: 1.2,
+                ),
+              ),
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                padding: const EdgeInsets.fromLTRB(16, 18, 16, 22),
                 child: Column(
                   children: [
-                    // Profile
                     Center(
                       child: Column(
                         children: [
                           Container(
-                            width: 83,
-                            height: 83,
+                            width: 96,
+                            height: 96,
                             decoration: BoxDecoration(
-                              color: AppColors.profileBg,
+                              color: const Color(0xFFFFEAB2),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                  color: AppColors.primary, width: 2),
+                                color: const Color(0xFF9D8752),
+                                width: 1.6,
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFFFD03C)
-                                      .withValues(alpha: 0.32),
-                                  blurRadius: 27.9,
-                                  spreadRadius: 4,
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.person_outline,
-                                size: 40, color: AppColors.primary),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Image.asset(
+                                'assets/images/mypage_profile.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 8),
-                          Text('Baegopa', style: AppTextStyles.h3),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Baegopa',
+                            style: AppTextStyles.body.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                              height: 1.2,
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Text('d2434@e-mirim.hs.kr',
-                              style: AppTextStyles.body
-                                  .copyWith(color: AppColors.textGray)),
+                              style: AppTextStyles.caption.copyWith(
+                                fontSize: 11,
+                                color: AppColors.textGray,
+                                height: 1.2,
+                              )),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    // Address card
+                    const SizedBox(height: 18),
                     _InfoCard(
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.location_on_outlined,
-                              size: 16, color: AppColors.primary),
-                          const SizedBox(width: 4),
+                          const Padding(
+                            padding: EdgeInsets.only(top: 1),
+                            child: Icon(
+                              Icons.location_on_outlined,
+                              size: 17,
+                              color: AppColors.brandOrange,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Seoul Bangyidong Parkdream',
-                                    style: AppTextStyles.title),
-                                const SizedBox(height: 4),
-                                Text('2102 - 39gil', style: AppTextStyles.body),
+                                Text(
+                                  'Seoul Bangyidong Parkdream',
+                                  style: AppTextStyles.caption.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimary,
+                                    height: 1.25,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  '2102 - 39gil',
+                                  style: AppTextStyles.caption.copyWith(
+                                    fontSize: 10.5,
+                                    color: AppColors.textSecondary,
+                                    height: 1.25,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    // Coupon & Point card
-                    _InfoCard(
+                    const SizedBox(height: 12),
+                    const _InfoCard(
                       child: Column(
                         children: [
                           _InfoRow(label: 'Coupon Box', value: '0'),
-                          const Divider(color: AppColors.border),
+                          Divider(
+                            color: AppColors.border,
+                            height: 14,
+                            thickness: 1,
+                          ),
                           _InfoRow(label: 'Point', value: '0'),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    // Exchanged amount card (with fold effect)
-                    Stack(
-                      children: [
-                        Positioned(
-                          bottom: 0,
-                          left: 16,
-                          right: 16,
-                          child: Container(
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: AppColors.border.withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(14),
+                    const SizedBox(height: 12),
+                    _InfoCard(
+                      child: SizedBox(
+                        height: 86,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Exchanged amount',
+                                  style: AppTextStyles.caption.copyWith(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textPrimary,
+                                    height: 1.2,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Image.asset(
+                                  'assets/images/exchangeimg.png',
+                                  width: 52,
+                                  height: 34,
+                                  fit: BoxFit.contain,
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            const Divider(
+                              color: AppColors.border,
+                              height: 1,
+                              thickness: 0.9,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Spacer(),
+                                Text(
+                                  '₩123,000',
+                                  style: AppTextStyles.caption.copyWith(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                    height: 1.1,
+                                  ),
+                                ),
+                                const SizedBox(width: 2),
+                                const Icon(
+                                  Icons.chevron_right,
+                                  size: 18,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _InfoCard(
+                      child: SizedBox(
+                        height: 34,
+                        child: Center(
+                          child: _InfoRow(
+                            label: 'Total Orders',
+                            value: '2',
+                            showArrow: true,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const OrderHistoryPage(isStandalone: true),
+                              ),
                             ),
                           ),
                         ),
-                        _InfoCard(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Exchanged amount',
-                                  style: AppTextStyles.title),
-                              Row(
-                                children: [
-                                  Text('₩123,000', style: AppTextStyles.h2),
-                                  const SizedBox(width: 4),
-                                  const Icon(Icons.chevron_right, size: 20),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    // Total orders
-                    _InfoCard(
-                      child: _InfoRow(
-                        label: 'Total Orders',
-                        value: '2',
-                        showArrow: true,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    // Liked stores
+                    const SizedBox(height: 12),
                     _InfoCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,29 +226,48 @@ class MyPage extends StatelessWidget {
                             label: 'Stores you liked',
                             value: '2',
                             showArrow: true,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const FavoritesPage(),
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
+                          const SizedBox(height: 12),
+                          const Row(
                             children: [
-                              _StoreThumb(label: 'Kyochon Chicken···'),
-                              const SizedBox(width: 8),
-                              _StoreThumb(label: 'Yupki Ddukbokki···'),
+                              Expanded(
+                                child: _StoreThumb(
+                                  label: 'Kyochon Chicken',
+                                  imagePath:
+                                      'assets/images/cat_chicken_single.png',
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: _StoreThumb(
+                                  label: 'Yupki Ddukbokki',
+                                  imagePath:
+                                      'assets/images/food_tteokbokki.png',
+                                ),
+                              ),
                             ],
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    // Promo banner
+                    const SizedBox(height: 14),
                     Container(
-                      constraints: const BoxConstraints(minHeight: 94),
+                      height: 94,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFF140806)),
+                        color: const Color(0xFF2B2B2B),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF1A1A1A)),
                       ),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 18, vertical: 14),
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -178,39 +281,49 @@ class MyPage extends StatelessWidget {
                                   'Get on the promo',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: AppTextStyles.caption
-                                      .copyWith(color: Colors.white),
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    height: 1.2,
+                                  ),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 6),
                                 Text(
                                   'Order Right Now and',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: AppTextStyles.title
-                                      .copyWith(color: Colors.white),
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.2,
+                                  ),
                                 ),
                                 Text(
                                   'Get 20% Off',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: AppTextStyles.title
-                                      .copyWith(color: Colors.white),
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.2,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Container(
-                            width: 68,
-                            height: 68,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                          Image.asset(
+                            'assets/images/delivery_mascot.png',
+                            width: 74,
+                            height: 74,
+                            fit: BoxFit.contain,
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
@@ -233,10 +346,10 @@ class _InfoCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.bgWhite,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF6E6E6E), width: 0.95),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 17),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: child,
     );
   }
@@ -246,51 +359,89 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
   final bool showArrow;
+  final VoidCallback? onTap;
 
   const _InfoRow({
     required this.label,
     required this.value,
     this.showArrow = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: AppTextStyles.title),
-        Row(
-          children: [
-            Text(value, style: AppTextStyles.title),
-            if (showArrow) const Icon(Icons.chevron_right, size: 20),
-          ],
-        ),
-      ],
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+              height: 1.2,
+            ),
+          ),
+          Row(
+            children: [
+              Text(
+                value,
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                  height: 1.2,
+                ),
+              ),
+              if (showArrow)
+                const Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _StoreThumb extends StatelessWidget {
   final String label;
-  const _StoreThumb({required this.label});
+  final String imagePath;
+  const _StoreThumb({required this.label, required this.imagePath});
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 110,
-          height: 110,
+          clipBehavior: Clip.hardEdge,
+          width: double.infinity,
+          constraints: const BoxConstraints(minHeight: 88),
           decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: const Color(0xFF7B7B7B), width: 0.8),
             color: AppColors.bgLight,
-            borderRadius: BorderRadius.circular(14),
           ),
+          child: Image.asset(imagePath, fit: BoxFit.cover),
         ),
-        const SizedBox(height: 8),
-        Text(label,
-            style: AppTextStyles.caption,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: AppTextStyles.caption.copyWith(
+            fontSize: 10.5,
+            color: AppColors.textSecondary,
+            height: 1.2,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }

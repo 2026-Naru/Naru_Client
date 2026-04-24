@@ -3,30 +3,115 @@ import '../../../../core/constants/app_colors.dart';
 import '../widgets/order_card.dart';
 
 class OrderHistoryPage extends StatelessWidget {
-  const OrderHistoryPage({super.key});
+  final bool isStandalone;
+
+  const OrderHistoryPage({super.key, this.isStandalone = false});
+
+  static const List<_OrderItem> _orders = [
+    _OrderItem(
+      title: 'Sinmigwan MALATANG',
+      subtitle: 'Custom Mala Xiang Guo',
+      price: '₩12,500',
+      date: '26.04.01',
+      imagePath: 'assets/images/cat_chicken_single.png',
+    ),
+    _OrderItem(
+      title: 'TangHwa MALATANG',
+      subtitle: 'Chef’s Choice Mala Tang',
+      price: '₩28,500',
+      date: '26.04.01',
+      imagePath: 'assets/images/food_tteokbokki.png',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isStandalone) {
+      return const _OrderList(orders: _orders);
+    }
+
+    return Scaffold(
+      backgroundColor: AppColors.bgLight,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.maybePop(context),
+                    behavior: HitTestBehavior.opaque,
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
+                        size: 18,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const Expanded(
+                    child: Text(
+                      'Total Orders',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        height: 1.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 30),
+                ],
+              ),
+            ),
+            const Expanded(child: _OrderList(orders: _orders)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderList extends StatelessWidget {
+  final List<_OrderItem> orders;
+  const _OrderList({required this.orders});
 
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-      itemCount: 2,
-      separatorBuilder: (_, __) => Column(
-        children: const [
-          SizedBox(height: 20),
-          Divider(color: AppColors.border, height: 1),
-          SizedBox(height: 20),
-        ],
-      ),
-      itemBuilder: (_, i) => OrderCard(
-        date: i == 0 ? '4.5 SUN' : '3.2 SUN',
-        status: 'Upcoming',
-        storeName: i == 0
-            ? 'Hongik University Rice Noodles'
-            : 'A Twosome Place',
-        queueInfo: i == 0
-            ? 'Queue Number 317 | 2 guests'
-            : 'Queue Number 245 | 7 guests',
-      ),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
+      itemCount: orders.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (_, index) {
+        final item = orders[index];
+        return OrderCard(
+          title: item.title,
+          subtitle: item.subtitle,
+          price: item.price,
+          date: item.date,
+          imagePath: item.imagePath,
+        );
+      },
     );
   }
+}
+
+class _OrderItem {
+  final String title;
+  final String subtitle;
+  final String price;
+  final String date;
+  final String imagePath;
+
+  const _OrderItem({
+    required this.title,
+    required this.subtitle,
+    required this.price,
+    required this.date,
+    required this.imagePath,
+  });
 }

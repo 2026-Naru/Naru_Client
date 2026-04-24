@@ -3,69 +3,107 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 
 class OrderCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String price;
   final String date;
-  final String status;
-  final String storeName;
-  final String queueInfo;
-  final String? imageUrl;
+  final String imagePath;
 
   const OrderCard({
     super.key,
+    required this.title,
+    required this.subtitle,
+    required this.price,
     required this.date,
-    required this.status,
-    required this.storeName,
-    required this.queueInfo,
-    this.imageUrl,
+    required this.imagePath,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(date, style: AppTextStyles.captionMedium),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.borderDark),
-                color: AppColors.bgLight,
-              ),
-              child: imageUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(imageUrl!, fit: BoxFit.cover),
-                    )
-                  : null,
+    return Container(
+      height: 96,
+      padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: AppColors.bgWhite,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF747474), width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF8B8B8B), width: 0.9),
+              color: AppColors.bgLight,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(status,
-                      style: AppTextStyles.captionMedium.copyWith(
-                          color: AppColors.textSecondary)),
-                  const SizedBox(height: 4),
-                  Text(storeName,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textPrimary),
+            child: Image.asset(imagePath, fit: BoxFit.cover),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 2),
-                  Text(queueInfo,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.body.copyWith(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.caption.copyWith(
-                          color: AppColors.accentOrange)),
-                ],
+                        fontSize: 10,
+                        color: const Color(0xFF8D8D8D),
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  price,
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 10.8,
+                    color: AppColors.textPrimary,
+                    height: 1.1,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                date,
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 9.3,
+                  color: const Color(0xFFA0A0A0),
+                  height: 1.1,
+                ),
               ),
             ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }
