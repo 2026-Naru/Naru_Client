@@ -3,6 +3,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
 import 'order_history_page.dart';
+import 'pending_orders_page.dart';
+import 'completed_orders_page.dart';
 
 class ListsPage extends StatefulWidget {
   const ListsPage({super.key});
@@ -75,8 +77,8 @@ class _ListsPageState extends State<ListsPage>
                 controller: _tabController,
                 children: const [
                   OrderHistoryPage(),
-                  _EmptyState(label: 'No pending orders'),
-                  _EmptyState(label: 'No completed orders'),
+                  PendingOrdersPage(),
+                  CompletedOrdersPage(),
                 ],
               ),
             ),
@@ -84,19 +86,6 @@ class _ListsPageState extends State<ListsPage>
         ),
       ),
       bottomNavigationBar: const NaruBottomNavBar(currentIndex: 3),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final String label;
-  const _EmptyState({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(label,
-          style: AppTextStyles.body.copyWith(color: AppColors.textMuted)),
     );
   }
 }
