@@ -66,7 +66,6 @@ class _MapViewState extends State<MapView> {
     final blueDot = await _buildSmallDotDescriptor(
       fillColor: const Color(0xFF46A8FF),
       radius: 6.5,
-      withShadow: false,
     );
 
     if (!mounted) return;
@@ -100,25 +99,25 @@ class _MapViewState extends State<MapView> {
         markerId: const MarkerId('food_1'),
         position: const LatLng(37.55588, 126.92055),
         icon: _foodPins['assets/images/food_cafe.png']!,
-        anchor: const Offset(0.5, 0.96),
+        anchor: const Offset(0.5, 0.93),
       ),
       Marker(
         markerId: const MarkerId('food_2'),
         position: const LatLng(37.55658, 126.92135),
         icon: _foodPins['assets/images/food_jokbal.png']!,
-        anchor: const Offset(0.5, 0.96),
+        anchor: const Offset(0.5, 0.93),
       ),
       Marker(
         markerId: const MarkerId('food_3'),
         position: const LatLng(37.55628, 126.92255),
         icon: _foodPins['assets/images/food_tteokbokki.png']!,
-        anchor: const Offset(0.5, 0.96),
+        anchor: const Offset(0.5, 0.93),
       ),
       Marker(
         markerId: const MarkerId('food_4'),
         position: const LatLng(37.55598, 126.92305),
         icon: _foodPins['assets/images/banner_food.png']!,
-        anchor: const Offset(0.5, 0.96),
+        anchor: const Offset(0.5, 0.93),
       ),
       Marker(
         markerId: const MarkerId('dot_orange_1'),
@@ -185,40 +184,28 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Future<BitmapDescriptor> _buildFoodPinDescriptor(
-      String imageAssetPath) async {
+  Future<BitmapDescriptor> _buildFoodPinDescriptor(String imageAssetPath) async {
     try {
-      final ui.Image sourceImage = await _loadAssetImage(
-        imageAssetPath,
-        targetSize: 88,
-      );
+      final sourceImage = await _loadAssetImage(imageAssetPath, targetSize: 56);
 
-      const double canvasWidth = 104;
-      const double canvasHeight = 124;
+      const double canvasWidth = 40;
+      const double canvasHeight = 52;
+      const innerRect = Rect.fromLTWH(5.6, 5.6, 28.8, 28.8);
+      final innerRRect =
+          RRect.fromRectAndRadius(innerRect, const Radius.circular(9.4));
+
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
-      const center = Offset(52, 46);
+      final pinPath = _buildPinPath();
 
-      final shadowPaint = Paint()
-        ..color = Colors.black.withValues(alpha: 0.19)
-        ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 4);
-      final pinShadowPath = _buildPinPath().shift(const Offset(0, 2));
-      canvas.drawPath(pinShadowPath, shadowPaint);
-
-      final pinPaint = Paint()..color = AppColors.accentOrange;
-      canvas.drawPath(_buildPinPath(), pinPaint);
-
-      canvas.drawCircle(center, 30.8, Paint()..color = Colors.white);
-      canvas.drawCircle(center, 29.2, Paint()..color = AppColors.accentOrange);
-      canvas.drawCircle(center, 27.0, Paint()..color = Colors.white);
+      canvas.drawPath(pinPath, Paint()..color = AppColors.accentOrange);
+      canvas.drawRRect(innerRRect, Paint()..color = const Color(0xFFE9E9E9));
 
       canvas.save();
-      canvas.clipPath(
-        Path()..addOval(Rect.fromCircle(center: center, radius: 25.7)),
-      );
+      canvas.clipRRect(innerRRect);
       paintImage(
         canvas: canvas,
-        rect: Rect.fromCircle(center: center, radius: 25.7),
+        rect: innerRect,
         image: sourceImage,
         fit: BoxFit.cover,
       );
@@ -229,8 +216,7 @@ class _MapViewState extends State<MapView> {
           .toImage(canvasWidth.toInt(), canvasHeight.toInt());
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) {
-        return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange);
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
       }
       return BitmapDescriptor.bytes(byteData.buffer.asUint8List());
     } catch (_) {
@@ -241,23 +227,12 @@ class _MapViewState extends State<MapView> {
   Future<BitmapDescriptor> _buildSmallDotDescriptor({
     required Color fillColor,
     required double radius,
-    bool withShadow = true,
   }) async {
     try {
       const double canvasSize = 34;
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
       const center = Offset(canvasSize / 2, canvasSize / 2);
-
-      if (withShadow) {
-        canvas.drawCircle(
-          center + const Offset(0, 1),
-          radius + 1.8,
-          Paint()
-            ..color = Colors.black.withValues(alpha: 0.16)
-            ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 3),
-        );
-      }
 
       canvas.drawCircle(center, radius + 2, Paint()..color = Colors.white);
       canvas.drawCircle(center, radius, Paint()..color = fillColor);
@@ -267,8 +242,7 @@ class _MapViewState extends State<MapView> {
           .toImage(canvasSize.toInt(), canvasSize.toInt());
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) {
-        return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange);
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
       }
       return BitmapDescriptor.bytes(byteData.buffer.asUint8List());
     } catch (_) {
@@ -277,18 +251,17 @@ class _MapViewState extends State<MapView> {
   }
 
   Path _buildPinPath() {
-    final path = Path()
+    return Path()
       ..addRRect(
         RRect.fromRectAndRadius(
-          const Rect.fromLTWH(12, 8, 80, 78),
-          const Radius.circular(24),
+          const Rect.fromLTWH(2.5, 2.5, 35, 35),
+          const Radius.circular(10.8),
         ),
       )
-      ..moveTo(44, 84)
-      ..lineTo(60, 84)
-      ..lineTo(52, 102)
+      ..moveTo(15, 34.5)
+      ..lineTo(25, 34.5)
+      ..lineTo(20, 55.0)
       ..close();
-    return path;
   }
 
   Future<ui.Image> _loadAssetImage(String assetPath,

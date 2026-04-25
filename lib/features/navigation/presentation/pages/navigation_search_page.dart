@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_text_styles.dart';
+import 'navigation_route_results_page.dart';
 
 class NavigationSearchPage extends StatefulWidget {
   const NavigationSearchPage({super.key});
@@ -10,129 +11,227 @@ class NavigationSearchPage extends StatefulWidget {
 }
 
 class _NavigationSearchPageState extends State<NavigationSearchPage> {
-  final TextEditingController _controller = TextEditingController();
+  final _fromController = TextEditingController();
+  final _toController = TextEditingController();
+  final _fromFocus = FocusNode();
+  final _toFocus = FocusNode();
 
-  static const List<String> _recents = [
-    'Sillim Station Exit 2',
+  bool _fromActive = false;
+  bool _toActive = false;
+
+  static const _suggestions = [
     'Hongdae',
+    'Hongdaesterrt',
+    'HongJjimdak',
     'Sinchon Station',
-    'Hongik University',
+    'Sillim Station Exit 2',
   ];
+
+  List<String> get _filtered {
+    final query = _fromActive
+        ? _fromController.text
+        : _toController.text;
+    if (query.isEmpty) return _suggestions;
+    return _suggestions
+        .where((s) => s.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fromFocus.addListener(() => setState(() => _fromActive = _fromFocus.hasFocus));
+    _toFocus.addListener(() => setState(() => _toActive = _toFocus.hasFocus));
+    _fromController.addListener(() => setState(() {}));
+    _toController.addListener(() => setState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fromFocus.requestFocus());
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _fromController.dispose();
+    _toController.dispose();
+    _fromFocus.dispose();
+    _toFocus.dispose();
     super.dispose();
+  }
+
+  void _fillSuggestion(String val) {
+    if (_fromActive) {
+      _fromController.text = val;
+      _fromFocus.unfocus();
+      Future.delayed(const Duration(milliseconds: 100), () => _toFocus.requestFocus());
+    } else {
+      _toController.text = val;
+      _toFocus.unfocus();
+      _tryNavigate();
+    }
+  }
+
+  void _tryNavigate() {
+    final from = _fromController.text.trim();
+    final to = _toController.text.trim();
+    if (from.isNotEmpty && to.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => NavigationRouteResultsPage(from: from, to: to),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final showSuggestions = _fromActive || _toActive;
+
     return Scaffold(
-      backgroundColor: AppColors.bgLight,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
+            const SizedBox(height: 12),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    behavior: HitTestBehavior.opaque,
-                    child: const Padding(
-                      padding: EdgeInsets.all(6),
-                      child: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 18,
-                        color: AppColors.textPrimary,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F5F7),
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Row(
+                  children: [
+                    SvgPicture.asset(
+                      'assets/icons/pin.svg',
+                      width: 20,
+                      height: 20,
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.textPrimary,
+                        BlendMode.srcIn,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Container(
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: AppColors.bgWhite,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.search,
-                            size: 16,
-                            color: AppColors.inactive,
+                          _InlineField(
+                            controller: _fromController,
+                            focusNode: _fromFocus,
+                            hint: 'From',
+                            onSubmitted: (_) => _toFocus.requestFocus(),
                           ),
-                          const SizedBox(width: 7),
-                          Expanded(
-                            child: TextField(
-                              controller: _controller,
-                              autofocus: true,
-                              style: AppTextStyles.body.copyWith(
-                                fontSize: 13,
-                                color: AppColors.textPrimary,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'Search name of place',
-                                hintStyle: AppTextStyles.body.copyWith(
-                                  fontSize: 13,
-                                  color: AppColors.textMuted,
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 4),
+                            child: Divider(height: 1, color: Color(0xFFDDDDDD)),
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _InlineField(
+                                  controller: _toController,
+                                  focusNode: _toFocus,
+                                  hint: 'To',
+                                  onSubmitted: (_) => _tryNavigate(),
                                 ),
-                                border: InputBorder.none,
-                                isCollapsed: true,
                               ),
-                            ),
+                              SvgPicture.asset(
+                                'assets/icons/arrow.svg',
+                                width: 18,
+                                height: 18,
+                                colorFilter: const ColorFilter.mode(
+                                  AppColors.textSecondary,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Divider(height: 1, color: AppColors.separator),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
-              child: Row(
-                children: [
-                  Text(
-                    'Recent searches',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                itemCount: _recents.length,
-                separatorBuilder: (_, __) =>
-                    const Divider(color: AppColors.separator, height: 1),
-                itemBuilder: (_, i) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  minLeadingWidth: 24,
-                  leading: const Icon(
-                    Icons.history_rounded,
-                    color: AppColors.textMuted,
-                    size: 18,
-                  ),
-                  title: Text(
-                    _recents[i],
-                    style: AppTextStyles.body.copyWith(
-                      fontSize: 13,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  ],
                 ),
               ),
             ),
+            const SizedBox(height: 8),
+            if (showSuggestions)
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  itemCount: _filtered.length,
+                  itemBuilder: (_, i) {
+                    final s = _filtered[i];
+                    return InkWell(
+                      onTap: () => _fillSuggestion(s),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.north_west_rounded,
+                              size: 16,
+                              color: Color(0xFFBBBBBB),
+                            ),
+                            const SizedBox(width: 14),
+                            Text(
+                              s,
+                              style: const TextStyle(
+                                fontFamily: 'Pretendard',
+                                fontSize: 15,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            else
+              const Expanded(child: SizedBox()),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _InlineField extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String hint;
+  final ValueChanged<String>? onSubmitted;
+
+  const _InlineField({
+    required this.controller,
+    required this.focusNode,
+    required this.hint,
+    this.onSubmitted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      onSubmitted: onSubmitted,
+      textInputAction: TextInputAction.next,
+      style: const TextStyle(
+        fontFamily: 'Pretendard',
+        fontSize: 15,
+        color: AppColors.textPrimary,
+      ),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(
+          fontFamily: 'Pretendard',
+          fontSize: 15,
+          color: Color(0xFFBBBBBB),
+        ),
+        border: InputBorder.none,
+        isCollapsed: true,
+        contentPadding: EdgeInsets.zero,
       ),
     );
   }
