@@ -25,30 +25,26 @@ class NaruBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final safeBottom = MediaQuery.of(context).padding.bottom;
-    const selectedColor = Color(0xFF151515);
-    const unselectedColor = Color(0xFFB9B9B9);
-
     return Container(
+      height: 88,
       decoration: BoxDecoration(
         color: AppColors.bgWhite,
-        border: const Border(top: BorderSide(color: Color(0xFFE7E7E7))),
+        border: const Border(top: BorderSide(color: AppColors.separator)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 6,
-            offset: const Offset(0, -1),
+            color: Colors.black.withValues(alpha: 0.22),
+            blurRadius: 14.4,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
-      padding: EdgeInsets.fromLTRB(12, 8, 12, 6 + safeBottom),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         children: List.generate(_items.length, (i) {
           final item = _items[i];
           final active = i == currentIndex;
           return Expanded(
             child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
               onTap: () {
                 if (!active) {
                   Navigator.pushReplacementNamed(context, item.route);
@@ -59,25 +55,24 @@ class NaruBottomNavBar extends StatelessWidget {
                 children: [
                   Icon(
                     item.icon,
-                    size: 21,
-                    color: active ? selectedColor : unselectedColor,
+                    size: 24,
+                    color: active ? AppColors.dark : AppColors.inactive,
                   ),
                   const SizedBox(height: 4),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
                     child: SizedBox(
                       width: double.infinity,
-                      child: Text(
-                        item.label,
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        softWrap: false,
-                        style: AppTextStyles.caption.copyWith(
-                          fontSize: 9,
-                          color: active ? selectedColor : unselectedColor,
-                          fontWeight:
-                              active ? FontWeight.w500 : FontWeight.w400,
-                          height: 1.15,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          item.label,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: AppTextStyles.caption.copyWith(
+                            color: active ? AppColors.dark : AppColors.inactive,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
