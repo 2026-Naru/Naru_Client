@@ -18,15 +18,19 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgLight,
-      body: _tabIndex == 0
-          ? HomeDeliveryPage(
-              selectedIndex: _tabIndex,
-              onTabChanged: (i) => setState(() => _tabIndex = i),
-            )
-          : HomePickupPage(
-              selectedIndex: _tabIndex,
-              onTabChanged: (i) => setState(() => _tabIndex = i),
-            ),
+      body: IndexedStack(
+        index: _tabIndex,
+        children: [
+          HomeDeliveryPage(
+            selectedIndex: _tabIndex,
+            onTabChanged: (i) => setState(() => _tabIndex = i),
+          ),
+          HomePickupPage(
+            selectedIndex: _tabIndex,
+            onTabChanged: (i) => setState(() => _tabIndex = i),
+          ),
+        ],
+      ),
       bottomNavigationBar: const NaruBottomNavBar(currentIndex: 0),
     );
   }

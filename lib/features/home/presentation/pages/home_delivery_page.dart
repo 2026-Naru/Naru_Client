@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../widgets/delivery_pickup_tab.dart';
+import 'search_page.dart';
 
 class HomeDeliveryPage extends StatefulWidget {
   final int selectedIndex;
@@ -29,6 +30,11 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   void initState() {
     super.initState();
     _bannerTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted ||
+          !_pageController.hasClients ||
+          widget.selectedIndex != 0) {
+        return;
+      }
       final next = (_bannerPage + 1) % 3;
       _pageController.animateToPage(
         next,
@@ -47,6 +53,8 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isPickupMode = widget.selectedIndex == 1;
+
     return ListView(
       physics: const BouncingScrollPhysics(),
       children: [
@@ -96,28 +104,38 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
-                  child: Container(
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: AppColors.primary),
-                      borderRadius: BorderRadius.circular(39),
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SearchPage(
+                          initialTabIndex: widget.selectedIndex,
+                        ),
+                      ),
                     ),
-                    padding: const EdgeInsets.fromLTRB(24, 0, 16, 0),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Search name of food',
-                          style: AppTextStyles.body
-                              .copyWith(color: const Color(0xFF7B7B7B)),
-                        ),
-                        const Spacer(),
-                        SvgPicture.asset(
-                          'assets/images/ic_search_bar.svg',
-                          width: 24,
-                          height: 24,
-                        ),
-                      ],
+                    child: Container(
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(39),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(24, 0, 16, 0),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Search name of food',
+                            style: AppTextStyles.body
+                                .copyWith(color: const Color(0xFF7B7B7B)),
+                          ),
+                          const Spacer(),
+                          SvgPicture.asset(
+                            'assets/images/ic_search_bar.svg',
+                            width: 24,
+                            height: 24,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -160,7 +178,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
         Container(
           decoration: const BoxDecoration(
             color: AppColors.bgWhite,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,10 +188,11 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                 onChanged: widget.onTabChanged,
               ),
               const SizedBox(height: 16),
-              // Category grid
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: _CategoryGrid(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: isPickupMode
+                    ? const _PickupBrandGrid()
+                    : const _CategoryGrid(),
               ),
               const SizedBox(height: 16),
               Container(height: 10, color: AppColors.bgLight),
@@ -435,13 +454,14 @@ class _CategoryGrid extends StatelessWidget {
     _CategoryData(label: 'Street', imagePath: 'assets/images/cat_street.png'),
     _CategoryData(label: 'BBQ', imagePath: 'assets/images/cat_chicken.png'),
     _CategoryData(label: 'Asian', imagePath: 'assets/images/cat_asian.png'),
-    _CategoryData(label: 'Desserts', imagePath: 'assets/images/cat_korean.png'),
+    _CategoryData(
+        label: 'Desserts', imagePath: 'assets/images/cat_desserts.png'),
     _CategoryData(label: 'Coffee', imagePath: 'assets/images/cat_coffee.png'),
     _CategoryData(
         label: 'Fast Food', imagePath: 'assets/images/cat_fastfood.png'),
     _CategoryData(label: 'Healthy', imagePath: 'assets/images/cat_healthy.png'),
     _CategoryData(
-        label: 'Late Night', imagePath: 'assets/images/cat_healthy.png'),
+        label: 'Late Night', imagePath: 'assets/images/cat_late_night.png'),
   ];
 
   @override
@@ -465,6 +485,132 @@ class _CategoryGrid extends StatelessWidget {
               .toList(),
         );
       },
+    );
+  }
+}
+
+class _PickupBrandGrid extends StatelessWidget {
+  const _PickupBrandGrid();
+
+  static const _columns = 5;
+  static const _columnGap = 10.0;
+  static const _rowGap = 16.0;
+  static const _items = [
+    _PickupBrandData(label: 'BHC', imagePath: 'assets/images/cat_bhc.png'),
+    _PickupBrandData(label: 'BBQ', imagePath: 'assets/images/cat_bbq.png'),
+    _PickupBrandData(label: 'Gupne', imagePath: 'assets/images/cat_goobne.png'),
+    _PickupBrandData(
+        label: 'Bongus', imagePath: 'assets/images/cat_bongus.png'),
+    _PickupBrandData(label: 'Bback', imagePath: 'assets/images/cat_Bback.png'),
+    _PickupBrandData(
+        label: 'Bombom', imagePath: 'assets/images/cat_bombom.png'),
+    _PickupBrandData(
+        label: 'Puradak', imagePath: 'assets/images/cat_puradak.png'),
+    _PickupBrandData(label: 'Ediya', imagePath: 'assets/images/cat_ediya.png'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final rawItemWidth =
+            (constraints.maxWidth - (_columnGap * (_columns - 1))) / _columns;
+        final itemWidth = rawItemWidth > 0 ? rawItemWidth : 0.0;
+        final nearMeWidth = (itemWidth * 2) + _columnGap;
+
+        return Wrap(
+          spacing: _columnGap,
+          runSpacing: _rowGap,
+          children: [
+            SizedBox(
+              width: nearMeWidth,
+              child: _PickupNearMeItem(height: itemWidth),
+            ),
+            ..._items.map(
+              (item) => SizedBox(
+                width: itemWidth,
+                child: _PickupBrandItem(
+                    label: item.label, imagePath: item.imagePath),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _PickupBrandData {
+  final String label;
+  final String imagePath;
+
+  const _PickupBrandData({required this.label, required this.imagePath});
+}
+
+class _PickupNearMeItem extends StatelessWidget {
+  final double height;
+
+  const _PickupNearMeItem({required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.primary),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Image.asset(
+        'assets/images/cat_near_me.png',
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+}
+
+class _PickupBrandItem extends StatelessWidget {
+  final String label;
+  final String imagePath;
+
+  const _PickupBrandItem({required this.label, required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.bgWhite,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.primary),
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.contain,
+                alignment: Alignment.center,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: AppTextStyles.title.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: AppColors.textPrimary,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }
