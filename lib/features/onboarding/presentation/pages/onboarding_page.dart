@@ -35,10 +35,12 @@ class _OnboardingPageState extends State<OnboardingPage>
     _colorAnim = ColorTween(
       begin: _colors[0],
       end: _colors[1],
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: Curves.easeInOut,
+      ),
+    );
 
     _timer = Timer.periodic(const Duration(milliseconds: 1000), (_) {
       _advance();
@@ -59,13 +61,17 @@ class _OnboardingPageState extends State<OnboardingPage>
     _colorAnim = ColorTween(
       begin: _colors[_current],
       end: _colors[next],
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: Curves.easeInOut,
+      ),
+    );
 
     _animController.forward(from: 0).then((_) {
-      if (mounted) setState(() => _current = next);
+      if (mounted) {
+        setState(() => _current = next);
+      }
     });
   }
 
@@ -82,51 +88,79 @@ class _OnboardingPageState extends State<OnboardingPage>
       animation: _animController,
       builder: (context, _) {
         final bg = _colorAnim.value ?? _colors[_current];
+
         return Scaffold(
           backgroundColor: bg,
-          body: SafeArea(
-            child: Column(
-              children: [
-                const Spacer(),
-                // 브릿지 로고
-                Image.asset(
-                  'assets/images/naru_bridge.png',
-                  width: 134,
-                  height: 117,
-                ),
-                const SizedBox(height: 10),
-                // NARU 텍스트
-                SvgPicture.asset(
-                  'assets/images/naru_text.svg',
-                  width: 106,
-                  height: 30,
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white,
-                    BlendMode.srcIn,
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: SafeArea(
+                  child: Column(
+                    children: [
+                      const Spacer(),
+
+                      // 브릿지 로고
+                      Image.asset(
+                        'assets/images/naru_bridge.png',
+                        width: 134,
+                        height: 117,
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // NARU 텍스트
+                      SvgPicture.asset(
+                        'assets/images/naru_text.svg',
+                        width: 106,
+                        height: 30,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+
+                      const Spacer(),
+
+                      // 페이지 인디케이터
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(_colors.length, (i) {
+                          final active = i == _current;
+
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: active ? 53 : 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(
+                                alpha: active ? 1.0 : 0.45,
+                              ),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                          );
+                        }),
+                      ),
+
+                      const SizedBox(height: 40),
+                    ],
                   ),
                 ),
-                const Spacer(),
-                // 페이지 인디케이터
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(_colors.length, (i) {
-                    final active = i == _current;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: active ? 53 : 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color:
-                            Colors.white.withValues(alpha: active ? 1.0 : 0.45),
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                    );
-                  }),
+              ),
+
+              // 상단 지붕 이미지
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Image.asset(
+                  'assets/images/onbording.png',
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
+                  alignment: Alignment.topCenter,
                 ),
-                const SizedBox(height: 40),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
