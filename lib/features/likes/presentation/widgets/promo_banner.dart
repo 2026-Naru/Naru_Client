@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 
 class PromoBanner extends StatelessWidget {
   final String promoText;
   final String title;
-  final String subtitle;
 
   const PromoBanner({
     super.key,
-    this.promoText = 'Get on the promo',
-    this.title = 'Order Right Now and',
-    this.subtitle = 'Get 20% Off',
+    this.promoText = 'Delivery with NARU',
+    this.title = 'Check your food easily\non the map',
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 94),
+      constraints: const BoxConstraints(minHeight: 50),
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF140806)),
+        gradient: const LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [Color(0xFFD47459), Color(0xFFC8664F)],
+        ),
+        borderRadius: BorderRadius.circular(6),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -37,31 +37,49 @@ class PromoBanner extends StatelessWidget {
                   promoText,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption.copyWith(color: Colors.white),
+                  style: AppTextStyles.caption.copyWith(
+                    color: Colors.white,
+                    fontSize: 5.4,
+                    height: 1.1,
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 2),
                 Text(
                   title,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.title.copyWith(color: Colors.white),
-                ),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.title.copyWith(color: Colors.white),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: Colors.white,
+                    fontSize: 7.8,
+                    height: 1.2,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 12),
-          Container(
-            width: 68,
-            height: 68,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8),
+          const SizedBox(width: 6),
+          // TODO: Replace with exact Figma delivery illustration asset when available.
+          SizedBox(
+            width: 44,
+            height: 30,
+            child: ClipRect(
+              child: Align(
+                alignment: Alignment.centerRight,
+                widthFactor: 0.74,
+                child: ColorFiltered(
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF97B7F2),
+                    BlendMode.modulate,
+                  ),
+                  child: Image.asset(
+                    'assets/images/delivery_mascot.png',
+                    width: 46,
+                    height: 46,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
