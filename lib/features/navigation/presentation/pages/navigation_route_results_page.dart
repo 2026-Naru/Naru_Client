@@ -650,7 +650,7 @@ class _SpecCard extends StatelessWidget {
                 fontFamily: 'Pretendard',
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
-                color: dark ? Colors.white : AppColors.textPrimary,
+                  color: dark ? Colors.white : AppColors.textPrimary,
               ),
             ),
           ),
