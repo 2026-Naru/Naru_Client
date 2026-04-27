@@ -91,7 +91,7 @@ class AuthSelectionPage extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 177),
+          const Spacer(),
         ],
       ),
     );
