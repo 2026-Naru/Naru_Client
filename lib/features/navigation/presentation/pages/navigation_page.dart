@@ -218,7 +218,7 @@ class NavigationPage extends StatelessWidget {
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(20)),
                   ),
-                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 18),
+                  padding: const EdgeInsets.fromLTRB(14, 28, 14, 18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -238,7 +238,7 @@ class NavigationPage extends StatelessWidget {
                         ),
                         subtitle: 'Updated 9 min ago',
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 14),
                       SizedBox(
                         height: 168,
                         child: ListView.separated(
