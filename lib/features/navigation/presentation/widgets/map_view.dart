@@ -16,12 +16,25 @@ class MapView extends StatefulWidget {
   State<MapView> createState() => _MapViewState();
 }
 
+// 마커 descriptor를 앱 생명주기 동안 한 번만 생성
+class _MarkerCache {
+  static Map<String, BitmapDescriptor>? foodPins;
+  static BitmapDescriptor? orangeDotPin;
+  static BitmapDescriptor? blueDotPin;
+  static bool isLoading = false;
+}
+
+const _minimalMapStyle = '''[
+  {"featureType":"poi","stylers":[{"visibility":"off"}]},
+  {"featureType":"transit","stylers":[{"visibility":"off"}]},
+  {"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]}
+]''';
+
 class _MapViewState extends State<MapView> {
   Map<String, BitmapDescriptor> _foodPins = {};
   BitmapDescriptor? _orangeDotPin;
   BitmapDescriptor? _blueDotPin;
   Set<Marker> _markers = const {};
-
   static const CameraPosition _navigationCamera = CameraPosition(
     target: LatLng(37.55645, 126.92245),
     zoom: 16.35,
@@ -46,34 +59,56 @@ class _MapViewState extends State<MapView> {
     }
   }
 
+
   Future<void> _initializeMarkerDescriptors() async {
-    final foodAssets = <String>[
+    // 캐시가 있으면 바로 사용
+    if (_MarkerCache.foodPins != null &&
+        _MarkerCache.orangeDotPin != null &&
+        _MarkerCache.blueDotPin != null) {
+      if (!mounted) return;
+      setState(() {
+        _foodPins = _MarkerCache.foodPins!;
+        _orangeDotPin = _MarkerCache.orangeDotPin;
+        _blueDotPin = _MarkerCache.blueDotPin;
+      });
+      _rebuildMarkers();
+      return;
+    }
+
+    if (_MarkerCache.isLoading) return;
+    _MarkerCache.isLoading = true;
+
+    const foodAssets = <String>[
       'assets/images/food_jokbal.png',
       'assets/images/food_tteokbokki.png',
       'assets/images/banner_food.png',
       'assets/images/food_cafe.png',
     ];
 
-    final descriptors = <String, BitmapDescriptor>{};
-    for (final asset in foodAssets) {
-      descriptors[asset] = await _buildFoodPinDescriptor(asset);
-    }
+    // 모든 descriptor를 병렬로 생성
+    final results = await Future.wait([
+      ...foodAssets.map(_buildFoodPinDescriptor),
+      _buildSmallDotDescriptor(fillColor: AppColors.accentOrange, radius: 7.5),
+      _buildSmallDotDescriptor(
+          fillColor: const Color(0xFF46A8FF), radius: 6.5),
+    ]);
 
-    final orangeDot = await _buildSmallDotDescriptor(
-      fillColor: AppColors.accentOrange,
-      radius: 7.5,
-    );
-    final blueDot = await _buildSmallDotDescriptor(
-      fillColor: const Color(0xFF46A8FF),
-      radius: 6.5,
-    );
+    _MarkerCache.isLoading = false;
 
     if (!mounted) return;
 
+    final descriptors = <String, BitmapDescriptor>{};
+    for (int i = 0; i < foodAssets.length; i++) {
+      descriptors[foodAssets[i]] = results[i];
+    }
+    _MarkerCache.foodPins = descriptors;
+    _MarkerCache.orangeDotPin = results[foodAssets.length];
+    _MarkerCache.blueDotPin = results[foodAssets.length + 1];
+
     setState(() {
-      _foodPins = descriptors;
-      _orangeDotPin = orangeDot;
-      _blueDotPin = blueDot;
+      _foodPins = _MarkerCache.foodPins!;
+      _orangeDotPin = _MarkerCache.orangeDotPin;
+      _blueDotPin = _MarkerCache.blueDotPin;
     });
     _rebuildMarkers();
   }
@@ -170,6 +205,7 @@ class _MapViewState extends State<MapView> {
           ? _navigationCamera
           : _selectLocationCamera,
       markers: _markers,
+      style: _minimalMapStyle,
       zoomControlsEnabled: false,
       myLocationButtonEnabled: false,
       mapToolbarEnabled: false,
@@ -177,8 +213,10 @@ class _MapViewState extends State<MapView> {
       myLocationEnabled: false,
       tiltGesturesEnabled: false,
       rotateGesturesEnabled: false,
+      scrollGesturesEnabled: false,
+      zoomGesturesEnabled: false,
       trafficEnabled: false,
-      buildingsEnabled: true,
+      buildingsEnabled: false,
       indoorViewEnabled: false,
       padding: EdgeInsets.zero,
     );
