@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
-import 'navigation_route_results_page.dart';
+import 'navigation_route_list_page.dart';
 
 class NavigationSearchPage extends StatefulWidget {
   const NavigationSearchPage({super.key});
@@ -17,7 +16,6 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
   final _toFocus = FocusNode();
 
   bool _fromActive = false;
-  bool _toActive = false;
 
   static const _suggestions = [
     'Hongdae',
@@ -28,9 +26,8 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
   ];
 
   List<String> get _filtered {
-    final query = _fromActive
-        ? _fromController.text
-        : _toController.text;
+    final query = _fromActive ? _fromController.text : _toController.text;
+    // _fromActive tracks From focus; otherwise filter by To field
     if (query.isEmpty) return _suggestions;
     return _suggestions
         .where((s) => s.toLowerCase().contains(query.toLowerCase()))
@@ -40,11 +37,13 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
   @override
   void initState() {
     super.initState();
-    _fromFocus.addListener(() => setState(() => _fromActive = _fromFocus.hasFocus));
-    _toFocus.addListener(() => setState(() => _toActive = _toFocus.hasFocus));
+    _fromFocus.addListener(
+        () => setState(() => _fromActive = _fromFocus.hasFocus));
+    _toFocus.addListener(() => setState(() {}));
     _fromController.addListener(() => setState(() {}));
     _toController.addListener(() => setState(() {}));
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fromFocus.requestFocus());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _fromFocus.requestFocus());
   }
 
   @override
@@ -60,7 +59,10 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
     if (_fromActive) {
       _fromController.text = val;
       _fromFocus.unfocus();
-      Future.delayed(const Duration(milliseconds: 100), () => _toFocus.requestFocus());
+      Future.delayed(
+        const Duration(milliseconds: 100),
+        () => _toFocus.requestFocus(),
+      );
     } else {
       _toController.text = val;
       _toFocus.unfocus();
@@ -75,7 +77,7 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => NavigationRouteResultsPage(from: from, to: to),
+          builder: (_) => NavigationRouteListPage(from: from, to: to),
         ),
       );
     }
@@ -83,113 +85,59 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final showSuggestions = _fromActive || _toActive;
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F5F7),
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                child: Row(
-                  children: [
-                    SvgPicture.asset(
-                      'assets/icons/pin.svg',
-                      width: 20,
-                      height: 20,
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.textPrimary,
-                        BlendMode.srcIn,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              child: _SearchPill(
+                fromController: _fromController,
+                toController: _toController,
+                fromFocus: _fromFocus,
+                toFocus: _toFocus,
+                onFromSubmitted: (_) => _toFocus.requestFocus(),
+                onToSubmitted: (_) => _tryNavigate(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                itemCount: _filtered.length,
+                itemBuilder: (_, i) {
+                  final s = _filtered[i];
+                  return InkWell(
+                    onTap: () => _fillSuggestion(s),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 11, horizontal: 4),
+                      child: Row(
                         children: [
-                          _InlineField(
-                            controller: _fromController,
-                            focusNode: _fromFocus,
-                            hint: 'From',
-                            onSubmitted: (_) => _toFocus.requestFocus(),
+                          const Icon(
+                            Icons.north_west_rounded,
+                            size: 15,
+                            color: Color(0xFFBBBBBB),
                           ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 4),
-                            child: Divider(height: 1, color: Color(0xFFDDDDDD)),
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _InlineField(
-                                  controller: _toController,
-                                  focusNode: _toFocus,
-                                  hint: 'To',
-                                  onSubmitted: (_) => _tryNavigate(),
-                                ),
-                              ),
-                              SvgPicture.asset(
-                                'assets/icons/arrow.svg',
-                                width: 18,
-                                height: 18,
-                                colorFilter: const ColorFilter.mode(
-                                  AppColors.textSecondary,
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 14),
+                          Text(
+                            s,
+                            style: const TextStyle(
+                              fontFamily: 'Pretendard',
+                              fontSize: 15,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 8),
-            if (showSuggestions)
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  itemCount: _filtered.length,
-                  itemBuilder: (_, i) {
-                    final s = _filtered[i];
-                    return InkWell(
-                      onTap: () => _fillSuggestion(s),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.north_west_rounded,
-                              size: 16,
-                              color: Color(0xFFBBBBBB),
-                            ),
-                            const SizedBox(width: 14),
-                            Text(
-                              s,
-                              style: const TextStyle(
-                                fontFamily: 'Pretendard',
-                                fontSize: 15,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              )
-            else
-              const Expanded(child: SizedBox()),
           ],
         ),
       ),
@@ -197,41 +145,111 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
   }
 }
 
-class _InlineField extends StatelessWidget {
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final String hint;
-  final ValueChanged<String>? onSubmitted;
+class _SearchPill extends StatelessWidget {
+  final TextEditingController fromController;
+  final TextEditingController toController;
+  final FocusNode fromFocus;
+  final FocusNode toFocus;
+  final ValueChanged<String>? onFromSubmitted;
+  final ValueChanged<String>? onToSubmitted;
 
-  const _InlineField({
-    required this.controller,
-    required this.focusNode,
-    required this.hint,
-    this.onSubmitted,
+  const _SearchPill({
+    required this.fromController,
+    required this.toController,
+    required this.fromFocus,
+    required this.toFocus,
+    this.onFromSubmitted,
+    this.onToSubmitted,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      focusNode: focusNode,
-      onSubmitted: onSubmitted,
-      textInputAction: TextInputAction.next,
-      style: const TextStyle(
-        fontFamily: 'Pretendard',
-        fontSize: 15,
-        color: AppColors.textPrimary,
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F0F0),
+        borderRadius: BorderRadius.circular(25),
       ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(
-          fontFamily: 'Pretendard',
-          fontSize: 15,
-          color: Color(0xFFBBBBBB),
-        ),
-        border: InputBorder.none,
-        isCollapsed: true,
-        contentPadding: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 26,
+            height: 26,
+            decoration: const BoxDecoration(
+              color: Color(0xFF888888),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.location_on,
+              size: 15,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: fromController,
+              focusNode: fromFocus,
+              onSubmitted: onFromSubmitted,
+              textInputAction: TextInputAction.next,
+              style: const TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 15,
+                color: AppColors.textPrimary,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'From',
+                hintStyle: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 15,
+                  color: Color(0xFFAAAAAA),
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                isCollapsed: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6),
+            child: Text(
+              '→',
+              style: TextStyle(
+                fontSize: 16,
+                color: Color(0xFF888888),
+              ),
+            ),
+          ),
+          Expanded(
+            child: TextField(
+              controller: toController,
+              focusNode: toFocus,
+              onSubmitted: onToSubmitted,
+              textInputAction: TextInputAction.done,
+              style: const TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 15,
+                color: AppColors.textPrimary,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'To',
+                hintStyle: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 15,
+                  color: Color(0xFFAAAAAA),
+                ),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                isCollapsed: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
