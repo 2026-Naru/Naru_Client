@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/router/app_router.dart';
+import 'main_tab_page.dart';
 
 class NaruBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -47,7 +48,16 @@ class NaruBottomNavBar extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 if (!active) {
-                  Navigator.pushReplacementNamed(context, item.route);
+                  final tabNotifier = MainTabScope.of(context);
+                  if (tabNotifier != null) {
+                    tabNotifier.value = i;
+                  } else {
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRouter.main,
+                      arguments: i,
+                    );
+                  }
                 }
               },
               child: Column(

@@ -35,6 +35,7 @@ class _MapViewState extends State<MapView> {
   BitmapDescriptor? _orangeDotPin;
   BitmapDescriptor? _blueDotPin;
   Set<Marker> _markers = const {};
+  bool _mapReady = false;
   static const CameraPosition _navigationCamera = CameraPosition(
     target: LatLng(37.55645, 126.92245),
     zoom: 16.35,
@@ -200,25 +201,40 @@ class _MapViewState extends State<MapView> {
 
   @override
   Widget build(BuildContext context) {
-    return GoogleMap(
-      initialCameraPosition: widget.variant == MapViewVariant.navigation
-          ? _navigationCamera
-          : _selectLocationCamera,
-      markers: _markers,
-      style: _minimalMapStyle,
-      zoomControlsEnabled: false,
-      myLocationButtonEnabled: false,
-      mapToolbarEnabled: false,
-      compassEnabled: false,
-      myLocationEnabled: false,
-      tiltGesturesEnabled: false,
-      rotateGesturesEnabled: false,
-      scrollGesturesEnabled: false,
-      zoomGesturesEnabled: false,
-      trafficEnabled: false,
-      buildingsEnabled: false,
-      indoorViewEnabled: false,
-      padding: EdgeInsets.zero,
+    return Stack(
+      children: [
+        GoogleMap(
+          initialCameraPosition: widget.variant == MapViewVariant.navigation
+              ? _navigationCamera
+              : _selectLocationCamera,
+          markers: _markers,
+          style: _minimalMapStyle,
+          zoomControlsEnabled: false,
+          myLocationButtonEnabled: false,
+          mapToolbarEnabled: false,
+          compassEnabled: false,
+          myLocationEnabled: false,
+          tiltGesturesEnabled: false,
+          rotateGesturesEnabled: false,
+          scrollGesturesEnabled: false,
+          zoomGesturesEnabled: false,
+          trafficEnabled: false,
+          buildingsEnabled: false,
+          indoorViewEnabled: false,
+          padding: EdgeInsets.zero,
+          onMapCreated: (_) {
+            if (mounted) setState(() => _mapReady = true);
+          },
+        ),
+        AnimatedOpacity(
+          opacity: _mapReady ? 0.0 : 1.0,
+          duration: const Duration(milliseconds: 400),
+          child: const ColoredBox(
+            color: Color(0xFFE8E8E8),
+            child: SizedBox.expand(),
+          ),
+        ),
+      ],
     );
   }
 
