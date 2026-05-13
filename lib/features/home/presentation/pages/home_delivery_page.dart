@@ -249,7 +249,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
               ),
               const SizedBox(height: 20),
               SizedBox(
-                height: 276,
+                height: 282,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -987,7 +987,25 @@ class _CafeCard extends StatelessWidget {
           SizedBox(
             width: 198,
             height: 20,
-            child: const _RatingRow(rating: '5.0', time: '40min'),
+            child: Row(
+              children: [
+                SvgPicture.asset('assets/icons/star.svg',
+                    width: 14, height: 14),
+                const SizedBox(width: 4),
+                Text('5.0',
+                    style: AppTextStyles.body
+                        .copyWith(fontWeight: FontWeight.w600)),
+                const Text(' (2,002)', style: AppTextStyles.caption),
+                const SizedBox(width: 7),
+                Image.asset('assets/icons/clock.svg',
+                    width: 16, height: 16),
+                const SizedBox(width: 4),
+                Text('40min',
+                    style: AppTextStyles.caption.copyWith(
+                        color: const Color(0xFF333333),
+                        fontWeight: FontWeight.w500)),
+              ],
+            ),
           ),
           const SizedBox(height: 13),
           SizedBox(
