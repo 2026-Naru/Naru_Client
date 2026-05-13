@@ -147,7 +147,7 @@ class _NavigationRouteResultsPageState
                       ),
                       const SizedBox(height: 18),
 
-                      // From / To image cards + heart
+                      // From / To image cards
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -181,35 +181,37 @@ class _NavigationRouteResultsPageState
                               placeName: widget.to,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 68),
-                            child: GestureDetector(
-                              onTap: () => setState(() => _liked = !_liked),
-                              child: Icon(
-                                _liked
-                                    ? Icons.favorite_rounded
-                                    : Icons.favorite_border_rounded,
-                                color: _liked
-                                    ? const Color(0xFFEA3F3F)
-                                    : AppColors.textPrimary,
-                                size: 24,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 14),
 
-                      // "We found it"
-                      const Text(
-                        'We found it',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
+                      // "We found it" + heart
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'We found it',
+                            style: TextStyle(
+                              fontFamily: 'Pretendard',
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () => setState(() => _liked = !_liked),
+                            child: Icon(
+                              _liked
+                                  ? Icons.favorite_rounded
+                                  : Icons.favorite_border_rounded,
+                              color: _liked
+                                  ? const Color(0xFFEA3F3F)
+                                  : AppColors.textPrimary,
+                              size: 24,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       const Text(
@@ -459,68 +461,74 @@ class _TripSpotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const double outerRadius = 23;
+    const double borderWidth = 1.5;
+
     return AspectRatio(
       aspectRatio: 0.72,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+          borderRadius: BorderRadius.circular(outerRadius),
+          border: Border.all(color: const Color(0xFFDDDDDD), width: borderWidth),
         ),
-        clipBehavior: Clip.hardEdge,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.asset(imagePath, fit: BoxFit.cover),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.25),
-                    Colors.black.withValues(alpha: 0.55),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(outerRadius - borderWidth),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(imagePath, fit: BoxFit.cover),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withValues(alpha: 0.25),
+                      Colors.black.withValues(alpha: 0.55),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 8, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 12,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    Text(
+                      timeText,
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 12,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      placeName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 8, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
-                  ),
-                  Text(
-                    timeText,
-                    style: const TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    placeName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      height: 1.2,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
