@@ -249,7 +249,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
               ),
               const SizedBox(height: 20),
               SizedBox(
-                height: 282,
+                height: 286,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
