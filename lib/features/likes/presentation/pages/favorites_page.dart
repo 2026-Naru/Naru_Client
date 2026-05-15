@@ -11,50 +11,50 @@ class FavoritesPage extends StatelessWidget {
     _LikedShopSection(
       name: 'Yupki Ddukbokki',
       subtitle: 'Deliciously spicy Korean snack',
-      logoPath: 'assets/images/food_tteokbokki.png',
+      logoPath: 'assets/images/yupki_profile.png',
       products: [
         _ProductCardData(
           title: 'Yeopgi Menu',
           description: 'Tteokbokki+rice+fries',
           price: '₩14,000',
-          imagePath: 'assets/images/food_tteokbokki.png',
+          imagePath: 'assets/images/YeopgiMenu.png',
         ),
         _ProductCardData(
           title: 'Rosé Menu',
           description: 'Tteokbokki+rice+fries',
           price: '₩16,000',
-          imagePath: 'assets/images/food_tteokbokki.png',
+          imagePath: 'assets/images/Rosé_Menu.png',
         ),
         _ProductCardData(
           title: 'Mala Tteokbokki',
           description: 'Tteokbokki+rice+fries',
           price: '₩13,000',
-          imagePath: 'assets/images/banner_food.png',
+          imagePath: 'assets/images/Mala_Tteokbokki.png',
         ),
       ],
     ),
     _LikedShopSection(
       name: 'Jangchungdong King Jokbal',
       subtitle: 'The original jokbal franchise',
-      logoPath: 'assets/images/food_jokbal.png',
+      logoPath: 'assets/images/jockbal_profile.png',
       products: [
         _ProductCardData(
           title: 'Spicyseasoned...',
           description: 'Signature spicy dish',
           price: '₩43,000',
-          imagePath: 'assets/images/food_jokbal.png',
+          imagePath: 'assets/images/Spicyseasoned.png',
         ),
         _ProductCardData(
           title: 'Jokbal Mix',
           description: 'Jokbal and Golb...',
           price: '₩35,000',
-          imagePath: 'assets/images/food_jokbal.png',
+          imagePath: 'assets/images/Jokbal_Mix.png',
         ),
         _ProductCardData(
           title: 'Jangchungdong...',
           description: 'Pork neck',
           price: '₩37,900',
-          imagePath: 'assets/images/food_jokbal.png',
+          imagePath: 'assets/images/Jangchungdong.png',
         ),
       ],
     ),
@@ -66,24 +66,24 @@ class FavoritesPage extends StatelessWidget {
       subShopName: 'Beyond ordinary pizza',
       title: 'White Seafood Pizza',
       subtitle: 'A combination of crab lang..',
-      logoPath: 'assets/images/franchise_domino_logo.png',
-      imagePath: 'assets/images/food_cafe.png',
+      logoPath: 'assets/images/nomore_profile.png',
+      imagePath: 'assets/images/WhiteSeafoodPizza.png',
     ),
     _TrendingCardData(
       shopName: 'Yookhoe Barun...',
       subShopName: 'Pure freshness',
       title: 'Spicy-Marinated Sa...',
       subtitle: 'deep satisfaction in every bite',
-      logoPath: 'assets/images/franchise_lotteria_logo.png',
-      imagePath: 'assets/images/banner_bg.png',
+      logoPath: 'assets/images/Yookhoe Barun_profile.png',
+      imagePath: 'assets/images/Spicy-MarinatedSa.png',
     ),
     _TrendingCardData(
       shopName: 'Seobu Cheon...',
       subShopName: 'Tradition in every bite',
       title: 'hepatic bone inju...',
       subtitle: 'Soy-braised pork bones,',
-      logoPath: 'assets/images/franchise_nene_logo.png',
-      imagePath: 'assets/images/food_jokbal.png',
+      logoPath: 'assets/images/SeobuCheongg_profile.png',
+      imagePath: 'assets/images/hepaticboneinjury.png',
     ),
   ];
 
@@ -95,7 +95,7 @@ class FavoritesPage extends StatelessWidget {
         child: Column(
           children: [
             const Padding(
-              padding: EdgeInsets.fromLTRB(20, 10, 20, 4),
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
               child: Row(
                 children: [
                   Text(
@@ -118,7 +118,7 @@ class FavoritesPage extends StatelessWidget {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 6, 20, 18),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -170,7 +170,7 @@ class FavoritesPage extends StatelessWidget {
                         },
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 40),
                     const _LikesPromoBanner(),
                     const SizedBox(height: 12),
                   ],
@@ -253,18 +253,20 @@ class _ShopSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.favorite, color: AppColors.accentOrange, size: 22),
+              const Icon(Icons.favorite,
+                  color: AppColors.accentOrange, size: 22),
             ],
           ),
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 228,
+          height: 202,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: section.products.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (_, index) => _ProductCard(item: section.products[index]),
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, index) =>
+                _ProductCard(item: section.products[index]),
           ),
         ),
       ],
@@ -278,53 +280,53 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 144,
-      decoration: BoxDecoration(
-        color: AppColors.bgWhite,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFB9BCC1), width: 1),
-      ),
-      padding: const EdgeInsets.all(3),
+    return SizedBox(
+      width: 120,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F3F3),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF686868), width: 1.2),
+            ),
+            clipBehavior: Clip.antiAlias,
+            padding: const EdgeInsets.all(8),
             child: Image.asset(
               item.imagePath,
-              width: double.infinity,
-              height: 106,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 9),
           Text(
             item.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontFamily: 'Pretendard',
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
-              height: 1.15,
+              height: 1.08,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 6),
           Text(
             item.description,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontFamily: 'Pretendard',
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: Color(0xFF95979B),
-              height: 1.2,
+              color: Color(0xFF6F6F6F),
+              height: 1.1,
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 6),
           Text(
             item.price,
             style: const TextStyle(
@@ -332,10 +334,9 @@ class _ProductCard extends StatelessWidget {
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
-              height: 1.15,
+              height: 1.1,
             ),
           ),
-          const SizedBox(height: 6),
         ],
       ),
     );
@@ -417,7 +418,7 @@ class _TrendingCard extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,8 +429,8 @@ class _TrendingCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontFamily: 'Pretendard',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
                             color: Colors.white,
                             height: 1.15,
                           ),
@@ -502,15 +503,14 @@ class _LikesPromoBanner extends StatelessWidget {
               ],
             ),
           ),
-          // TODO: Replace with exact Figma scooter illustration asset if provided.
           SizedBox(
             width: 114,
             child: Align(
               alignment: Alignment.bottomRight,
               child: Image.asset(
-                'assets/images/delivery_mascot.png',
-                width: 100,
-                height: 74,
+                'assets/images/checkmap.png',
+                width: 210,
+                height: 194,
                 fit: BoxFit.contain,
               ),
             ),
