@@ -23,5 +23,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/category_transparent/
     - assets/icons/
     - assets/navigation/
