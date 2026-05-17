@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/router/app_router.dart';
+import '../../../../shared/widgets/main_tab_page.dart';
 import '../widgets/map_view.dart';
 
 class NavigationRouteResultsPage extends StatefulWidget {
@@ -27,6 +29,19 @@ class _NavigationRouteResultsPageState
   static const _timeRange = '4:38 PM ~ 5:47 PM';
   static const _fare = '₩1,750';
 
+  void _handleBack() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+      return;
+    }
+    final tabNotifier = MainTabScope.of(context);
+    if (tabNotifier != null) {
+      tabNotifier.value = 1;
+      return;
+    }
+    Navigator.pushReplacementNamed(context, AppRouter.main, arguments: 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.of(context);
@@ -47,10 +62,26 @@ class _NavigationRouteResultsPageState
                 const Positioned.fill(
                   child: ColorFiltered(
                     colorFilter: ColorFilter.matrix([
-                      0.2126, 0.7152, 0.0722, 0, 0,
-                      0.2126, 0.7152, 0.0722, 0, 0,
-                      0.2126, 0.7152, 0.0722, 0, 0,
-                      0,      0,      0,      1, 0,
+                      0.2126,
+                      0.7152,
+                      0.0722,
+                      0,
+                      0,
+                      0.2126,
+                      0.7152,
+                      0.0722,
+                      0,
+                      0,
+                      0.2126,
+                      0.7152,
+                      0.0722,
+                      0,
+                      0,
+                      0,
+                      0,
+                      0,
+                      1,
+                      0,
                     ]),
                     child: MapView(variant: MapViewVariant.navigation),
                   ),
@@ -60,12 +91,23 @@ class _NavigationRouteResultsPageState
                     color: const Color(0xFF4B4E52).withValues(alpha: 0.22),
                   ),
                 ),
-                // Search pill
+                // Back + search pill
                 Positioned(
                   top: topInset + 14,
                   left: 20,
                   right: 20,
-                  child: _RouteSearchPill(from: widget.from, to: widget.to),
+                  child: Row(
+                    children: [
+                      _MapBackButton(onTap: _handleBack),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _RouteSearchPill(
+                          from: widget.from,
+                          to: widget.to,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 // Gyeongbokgung marker (top-right)
                 Positioned(
@@ -107,22 +149,11 @@ class _NavigationRouteResultsPageState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Back arrow
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          size: 20,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
                       // "Best  1hr 9min"
-                      Row(
+                      const Row(
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
-                        children: const [
+                        children: [
                           Text(
                             'Best',
                             style: TextStyle(
@@ -271,10 +302,10 @@ class _NavigationRouteResultsPageState
                         ),
                       ),
                       const SizedBox(height: 14),
-                      SingleChildScrollView(
+                      const SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          children: const [
+                          children: [
                             _SpecCard(
                               label: 'Number of\npeople in your\nfamily',
                               value: '3',
@@ -302,6 +333,39 @@ class _NavigationRouteResultsPageState
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MapBackButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _MapBackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+          color: AppColors.textPrimary,
+        ),
       ),
     );
   }
@@ -416,8 +480,8 @@ class _MapPin extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           child: Image.asset(imagePath, fit: BoxFit.cover),
         ),
-        CustomPaint(
-          size: const Size(12, 8),
+        const CustomPaint(
+          size: Size(12, 8),
           painter: _TrianglePainter(AppColors.accentOrange),
         ),
       ],
@@ -469,7 +533,8 @@ class _TripSpotCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(outerRadius),
-          border: Border.all(color: const Color(0xFFDDDDDD), width: borderWidth),
+          border:
+              Border.all(color: const Color(0xFFDDDDDD), width: borderWidth),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(outerRadius - borderWidth),
@@ -658,7 +723,7 @@ class _SpecCard extends StatelessWidget {
                 fontFamily: 'Pretendard',
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
-                  color: dark ? Colors.white : AppColors.textPrimary,
+                color: dark ? Colors.white : AppColors.textPrimary,
               ),
             ),
           ),

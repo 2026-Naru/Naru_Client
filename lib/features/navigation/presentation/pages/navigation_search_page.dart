@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/router/app_router.dart';
+import '../../../../shared/widgets/main_tab_page.dart';
 import 'navigation_route_list_page.dart';
 
 class NavigationSearchPage extends StatefulWidget {
@@ -37,8 +39,8 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
   @override
   void initState() {
     super.initState();
-    _fromFocus.addListener(
-        () => setState(() => _fromActive = _fromFocus.hasFocus));
+    _fromFocus
+        .addListener(() => setState(() => _fromActive = _fromFocus.hasFocus));
     _toFocus.addListener(() => setState(() {}));
     _fromController.addListener(() => setState(() {}));
     _toController.addListener(() => setState(() {}));
@@ -83,6 +85,19 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
     }
   }
 
+  void _handleBack() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+      return;
+    }
+    final tabNotifier = MainTabScope.of(context);
+    if (tabNotifier != null) {
+      tabNotifier.value = 1;
+      return;
+    }
+    Navigator.pushReplacementNamed(context, AppRouter.main, arguments: 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,13 +108,21 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _SearchPill(
-                fromController: _fromController,
-                toController: _toController,
-                fromFocus: _fromFocus,
-                toFocus: _toFocus,
-                onFromSubmitted: (_) => _toFocus.requestFocus(),
-                onToSubmitted: (_) => _tryNavigate(),
+              child: Row(
+                children: [
+                  _RoundBackButton(onTap: _handleBack),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _SearchPill(
+                      fromController: _fromController,
+                      toController: _toController,
+                      fromFocus: _fromFocus,
+                      toFocus: _toFocus,
+                      onFromSubmitted: (_) => _toFocus.requestFocus(),
+                      onToSubmitted: (_) => _tryNavigate(),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 8),
@@ -139,6 +162,33 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundBackButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _RoundBackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFFE6E6E6)),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+          color: AppColors.textPrimary,
         ),
       ),
     );

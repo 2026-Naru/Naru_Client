@@ -2,13 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
+import '../../../../shared/widgets/main_tab_page.dart';
 import 'navigation_search_page.dart';
 import 'select_location_page.dart';
 import '../widgets/map_view.dart';
 
 class NavigationPage extends StatelessWidget {
   const NavigationPage({super.key});
+
+  void _onBackTap(BuildContext context) {
+    final tabNotifier = MainTabScope.of(context);
+    if (tabNotifier != null) {
+      tabNotifier.value = 0;
+      return;
+    }
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+      return;
+    }
+    Navigator.pushReplacementNamed(context, AppRouter.main, arguments: 0);
+  }
 
   static const List<_TrendingItem> _trending = [
     _TrendingItem(
@@ -116,8 +131,7 @@ class NavigationPage extends StatelessWidget {
         name: 'Jongno', imagePath: 'assets/navigation/jongno.png'),
     _FriendAvatarItem(
         name: 'Hannam', imagePath: 'assets/navigation/hannam.png'),
-    _FriendAvatarItem(
-        name: 'Suwon', imagePath: 'assets/navigation/suwon.png'),
+    _FriendAvatarItem(name: 'Suwon', imagePath: 'assets/navigation/suwon.png'),
   ];
 
   @override
@@ -145,6 +159,30 @@ class NavigationPage extends StatelessWidget {
                     right: 18,
                     child: Row(
                       children: [
+                        GestureDetector(
+                          onTap: () => _onBackTap(context),
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.06),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2.5),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              size: 20,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 9),
                         Expanded(
                           child: GestureDetector(
                             onTap: () => Navigator.push(
@@ -230,12 +268,12 @@ class NavigationPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _SectionHeading(
-                        leading: const Text(
+                      const _SectionHeading(
+                        leading: Text(
                           'Trending in ',
                           style: AppTextStyles.title,
                         ),
-                        highlighted: const Text(
+                        highlighted: Text(
                           'Hongdae',
                           style: TextStyle(
                             fontFamily: 'Pretendard',
@@ -259,8 +297,8 @@ class NavigationPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 48),
-                      _SectionHeading(
-                        leading: const Text(
+                      const _SectionHeading(
+                        leading: Text(
                           'Hongdae Restaurant ',
                           style: TextStyle(
                             fontFamily: 'Pretendard',
@@ -269,7 +307,7 @@ class NavigationPage extends StatelessWidget {
                             color: AppColors.accentOrange,
                           ),
                         ),
-                        highlighted: const Text(
+                        highlighted: Text(
                           'Picks',
                           style: TextStyle(
                             fontFamily: 'Pretendard',
@@ -279,7 +317,7 @@ class NavigationPage extends StatelessWidget {
                           ),
                         ),
                         subtitle: 'For Baegopa',
-                        subtitleStyle: const TextStyle(
+                        subtitleStyle: TextStyle(
                           fontFamily: 'Pretendard',
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -395,11 +433,12 @@ class _SectionHeading extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           subtitle,
-          style: subtitleStyle ?? AppTextStyles.caption.copyWith(
-            fontSize: 10,
-            color: AppColors.textMuted,
-            height: 1.2,
-          ),
+          style: subtitleStyle ??
+              AppTextStyles.caption.copyWith(
+                fontSize: 10,
+                color: AppColors.textMuted,
+                height: 1.2,
+              ),
         ),
       ],
     );
