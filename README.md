@@ -2,6 +2,26 @@
 
 A new Flutter project.
 
+## Local secrets
+
+Google Maps API keys are intentionally not committed.
+
+Android:
+
+Add the key to `android/local.properties`:
+
+```properties
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+```
+
+iOS:
+
+Create `ios/Flutter/Secrets.xcconfig`:
+
+```xcconfig
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+```
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
