@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'package:geocoding/geocoding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../likes/presentation/pages/store_detail_page.dart';
 import '../widgets/delivery_pickup_tab.dart';
 import 'search_page.dart';
 
@@ -21,14 +24,73 @@ class HomeDeliveryPage extends StatefulWidget {
   State<HomeDeliveryPage> createState() => _HomeDeliveryPageState();
 }
 
+class _HomeLocationLabel {
+  static const fallback = 'Sillim-dong···';
+  static Future<String>? _cachedFuture;
+
+  static Future<String> resolve() {
+    return _cachedFuture ??= _resolve();
+  }
+
+  static Future<String> _resolve() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return fallback;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return fallback;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      if (placemarks.isEmpty) return fallback;
+
+      final locationName = _pickLocationName(placemarks.first);
+      if (locationName.isEmpty) return fallback;
+      return '$locationName···';
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  static String _pickLocationName(Placemark placemark) {
+    final candidates = [
+      placemark.subLocality,
+      placemark.locality,
+      placemark.subAdministrativeArea,
+      placemark.administrativeArea,
+    ];
+
+    for (final candidate in candidates) {
+      final value = candidate?.trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+    return '';
+  }
+}
+
 class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   final _pageController = PageController();
   int _bannerPage = 0;
   Timer? _bannerTimer;
+  String _locationLabel = _HomeLocationLabel.fallback;
 
   @override
   void initState() {
     super.initState();
+    _loadLocationLabel();
     _bannerTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted ||
           !_pageController.hasClients ||
@@ -51,6 +113,12 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
     super.dispose();
   }
 
+  Future<void> _loadLocationLabel() async {
+    final label = await _HomeLocationLabel.resolve();
+    if (!mounted) return;
+    setState(() => _locationLabel = label);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isPickupMode = widget.selectedIndex == 1;
@@ -69,24 +137,33 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   padding: const EdgeInsets.fromLTRB(20, 12, 16, 0),
                   child: Row(
                     children: [
-                      GestureDetector(
-                        onTap: () {},
-                        child: Row(
-                          children: [
-                            Text('Sillim-dong···', style: AppTextStyles.title),
-                            const SizedBox(width: 4),
-                            Transform.rotate(
-                              angle: math.pi / 2,
-                              child: SvgPicture.asset(
-                                'assets/images/ic_right_small.svg',
-                                width: 8,
-                                height: 8,
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {},
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  _locationLabel,
+                                  style: AppTextStyles.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Transform.rotate(
+                                angle: math.pi / 2,
+                                child: SvgPicture.asset(
+                                  'assets/images/ic_right_small.svg',
+                                  width: 8,
+                                  height: 8,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 12),
                       SvgPicture.asset(
                         'assets/images/ic_search_header.svg',
                         width: 24,
@@ -214,6 +291,8 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     _StoreCard(
                       imagePath: 'assets/images/food_tteokbokki.png',
                       name: 'Yupki Ddukbokki Sillim',
+                      storeSubtitle: 'Spicy Korean street food',
+                      preset: StoreDetailPreset.tteokbokki,
                       rating: '4.9',
                       time: '20min',
                       tags: ['pick up', 'new'],
@@ -222,6 +301,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     _StoreCard(
                       imagePath: 'assets/images/food_jokbal.png',
                       name: 'Simin Jokbal & Bossam',
+                      detailName: 'Simin Jokbal Bossam Sillim',
+                      storeSubtitle: 'Korean jokbal and bossam',
+                      preset: StoreDetailPreset.jokbal,
                       rating: '5.0',
                       time: '40min',
                       tags: ['pick up', 'new'],
@@ -230,6 +312,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     _StoreCard(
                       imagePath: 'assets/images/food_jokbal.png',
                       name: 'Simin Jokbal & Bossam',
+                      detailName: 'Simin Jokbal Bossam Sillim',
+                      storeSubtitle: 'Korean jokbal and bossam',
+                      preset: StoreDetailPreset.jokbal,
                       rating: '5.0',
                       time: '40min',
                       tags: ['pick up', 'new'],
@@ -296,6 +381,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                             bgImage: 'assets/images/franchise_lotteria_bg.png',
                             logoImage:
                                 'assets/images/franchise_lotteria_logo.png',
+                            preset: StoreDetailPreset.burger,
+                            rating: '4.8',
+                            time: '25min',
                           ),
                           SizedBox(width: 6),
                           _FranchiseCard(
@@ -303,6 +391,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                             name: 'Nene Chicken',
                             bgImage: 'assets/images/franchise_nene_bg.png',
                             logoImage: 'assets/images/franchise_nene_logo.png',
+                            preset: StoreDetailPreset.chicken,
+                            rating: '4.9',
+                            time: '30min',
                           ),
                           SizedBox(width: 6),
                           _FranchiseCard(
@@ -311,6 +402,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                             bgImage: 'assets/images/franchise_domino_bg.png',
                             logoImage:
                                 'assets/images/franchise_domino_logo.png',
+                            preset: StoreDetailPreset.pizza,
+                            rating: '4.7',
+                            time: '35min',
                           ),
                         ],
                       ),
@@ -337,17 +431,26 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   children: const [
                     _CafeCard(
                       name: 'Cafe Bombom Sillim',
+                      subtitle: 'Fresh coffee and sweet drinks',
                       imagePath: 'assets/images/food_cafe.png',
+                      rating: '5.0',
+                      time: '15min',
                     ),
                     SizedBox(width: 14),
                     _CafeCard(
                       name: 'Bback Dabang sillim',
-                      imagePath: 'assets/images/food_jokbal.png',
+                      subtitle: 'Coffee and bakery near you',
+                      imagePath: 'assets/images/food_cafe.png',
+                      rating: '4.8',
+                      time: '18min',
                     ),
                     SizedBox(width: 14),
                     _CafeCard(
-                      name: 'Bback Dabang sillim',
-                      imagePath: 'assets/images/food_jokbal.png',
+                      name: 'Ediya Coffee Sillim',
+                      subtitle: 'Coffee for pick up',
+                      imagePath: 'assets/images/food_cafe.png',
+                      rating: '4.7',
+                      time: '16min',
                     ),
                   ],
                 ),
@@ -684,6 +787,9 @@ class _SectionHeader extends StatelessWidget {
 class _StoreCard extends StatelessWidget {
   final String imagePath;
   final String name;
+  final String? detailName;
+  final String storeSubtitle;
+  final StoreDetailPreset preset;
   final String rating;
   final String time;
   final List<String> tags;
@@ -691,6 +797,9 @@ class _StoreCard extends StatelessWidget {
   const _StoreCard({
     required this.imagePath,
     required this.name,
+    this.detailName,
+    required this.storeSubtitle,
+    required this.preset,
     required this.rating,
     required this.time,
     required this.tags,
@@ -698,46 +807,63 @@ class _StoreCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 222,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderDark),
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StoreDetailPage(
+            storeName: detailName ?? name,
+            storeSubtitle: storeSubtitle,
+            heroImagePath: imagePath,
+            logoImagePath: imagePath,
+            preset: preset,
+            rating: rating,
+            deliveryTime: time,
+            bottomNavIndex: 0,
+          ),
+        ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(imagePath,
-                width: 198, height: 129, fit: BoxFit.cover),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: 198,
-            child: Text(name,
-                style: AppTextStyles.bodyMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: 198,
-            height: 20,
-            child: _RatingRow(rating: rating, time: time),
-          ),
-          const SizedBox(height: 13),
-          SizedBox(
-            width: 198,
-            child: Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: tags.map((tag) => _TagChip(label: tag)).toList(),
+      child: Container(
+        width: 222,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.borderDark),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(imagePath,
+                  width: 198, height: 129, fit: BoxFit.cover),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            SizedBox(
+              width: 198,
+              child: Text(name,
+                  style: AppTextStyles.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: 198,
+              height: 20,
+              child: _RatingRow(rating: rating, time: time),
+            ),
+            const SizedBox(height: 13),
+            SizedBox(
+              width: 198,
+              child: Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: tags.map((tag) => _TagChip(label: tag)).toList(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -748,115 +874,132 @@ class _FreeDeliveryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 222,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderDark),
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const StoreDetailPage(
+            storeName: 'Simin Jokbal Bossam Sillim',
+            storeSubtitle: 'Korean jokbal and bossam',
+            heroImagePath: 'assets/images/food_jokbal.png',
+            logoImagePath: 'assets/images/food_jokbal.png',
+            preset: StoreDetailPreset.jokbal,
+            rating: '5.0',
+            deliveryTime: '40min',
+            bottomNavIndex: 0,
+          ),
+        ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  'assets/images/food_jokbal.png',
-                  width: 198,
-                  height: 129,
-                  fit: BoxFit.cover,
+      child: Container(
+        width: 222,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.borderDark),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/images/food_jokbal.png',
+                    width: 198,
+                    height: 129,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-              Positioned(
-                left: 0,
-                bottom: 0,
-                right: 0,
-                child: SizedBox(
-                  height: 22,
-                  width: 198,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 22,
-                          color: AppColors.brandOrange,
-                          padding: const EdgeInsets.only(left: 10),
-                          alignment: Alignment.centerLeft,
-                          child: const Text(
-                            'No fee for delivery',
-                            style: TextStyle(
-                              fontFamily: 'Pretendard',
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                Positioned(
+                  left: 0,
+                  bottom: 0,
+                  right: 0,
+                  child: SizedBox(
+                    height: 22,
+                    width: 198,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 22,
+                            color: AppColors.brandOrange,
+                            padding: const EdgeInsets.only(left: 10),
+                            alignment: Alignment.centerLeft,
+                            child: const Text(
+                              'No fee for delivery',
+                              style: TextStyle(
+                                fontFamily: 'Pretendard',
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                      SvgPicture.asset('assets/images/ic_tag_arrow.svg',
-                          height: 22, width: 22),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: 198,
-            child: const Text('Simin Jokbal & Bossam',
-                style: AppTextStyles.bodyMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: 198,
-            height: 20,
-            child: const _RatingRow(rating: '5.0', time: '40min'),
-          ),
-          const SizedBox(height: 13),
-          SizedBox(
-            width: 198,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: const Color(0x61D9654C),
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: const Color(0xFFD9654C)),
+                        SvgPicture.asset('assets/images/ic_tag_arrow.svg',
+                            height: 22, width: 22),
+                      ],
                     ),
-                    child: const Text('free delivery',
-                        style: AppTextStyles.caption,
-                        overflow: TextOverflow.ellipsis),
                   ),
                 ),
-                const SizedBox(width: 4),
-                const _TagChip(label: 'eco-friendly'),
               ],
             ),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: 198,
-            child: const Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: [
-                _TagChip(label: 'pick up'),
-                _TagChip(label: 'reservation'),
-              ],
+            const SizedBox(height: 10),
+            const SizedBox(
+              width: 198,
+              child: Text('Simin Jokbal & Bossam',
+                  style: AppTextStyles.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            const SizedBox(
+              width: 198,
+              height: 20,
+              child: _RatingRow(rating: '5.0', time: '40min'),
+            ),
+            const SizedBox(height: 13),
+            SizedBox(
+              width: 198,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0x61D9654C),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: const Color(0xFFD9654C)),
+                      ),
+                      child: const Text('free delivery',
+                          style: AppTextStyles.caption,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const _TagChip(label: 'eco-friendly'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            const SizedBox(
+              width: 198,
+              child: Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: [
+                  _TagChip(label: 'pick up'),
+                  _TagChip(label: 'reservation'),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -867,86 +1010,112 @@ class _FranchiseCard extends StatelessWidget {
   final String name;
   final String bgImage;
   final String logoImage;
+  final StoreDetailPreset preset;
+  final String rating;
+  final String time;
 
   const _FranchiseCard({
     required this.category,
     required this.name,
     required this.bgImage,
     required this.logoImage,
+    required this.preset,
+    required this.rating,
+    required this.time,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 152,
-      height: 165,
-      child: Stack(
-        children: [
-          Column(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StoreDetailPage(
+            storeName: name,
+            storeSubtitle: category,
+            heroImagePath: bgImage,
+            logoImagePath: logoImage,
+            preset: preset,
+            rating: rating,
+            deliveryTime: time,
+            bottomNavIndex: 0,
+          ),
+        ),
+      ),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 152,
+        height: 165,
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(8),
+                    topRight: Radius.circular(8),
+                  ),
+                  child: Stack(
+                    children: [
+                      Image.asset(bgImage,
+                          width: 152, height: 77, fit: BoxFit.cover),
+                      Container(
+                          width: 152,
+                          height: 77,
+                          color: const Color(0x33000000)),
+                    ],
+                  ),
                 ),
-                child: Stack(
+                Container(
+                  width: 152,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                    border: Border.all(color: AppColors.borderDark),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              bottom: 18,
+              left: 10,
+              right: 10,
+              child: SizedBox(
+                width: 132,
+                child: Column(
                   children: [
-                    Image.asset(bgImage,
-                        width: 152, height: 77, fit: BoxFit.cover),
                     Container(
-                        width: 152, height: 77, color: const Color(0x33000000)),
+                      width: 49,
+                      height: 49,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFE4E4E4)),
+                      ),
+                      clipBehavior: Clip.hardEdge,
+                      child: Image.asset(logoImage, fit: BoxFit.contain),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(category,
+                        style: AppTextStyles.caption
+                            .copyWith(color: const Color(0xFF7A7B7D)),
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text(name,
+                        style: AppTextStyles.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
-              Container(
-                width: 152,
-                height: 88,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(8),
-                    bottomRight: Radius.circular(8),
-                  ),
-                  border: Border.all(color: AppColors.borderDark),
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            bottom: 18,
-            left: 10,
-            right: 10,
-            child: SizedBox(
-              width: 132,
-              child: Column(
-                children: [
-                  Container(
-                    width: 49,
-                    height: 49,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFE4E4E4)),
-                    ),
-                    clipBehavior: Clip.hardEdge,
-                    child: Image.asset(logoImage, fit: BoxFit.contain),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(category,
-                      style: AppTextStyles.caption
-                          .copyWith(color: const Color(0xFF7A7B7D)),
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 2),
-                  Text(name,
-                      style: AppTextStyles.title,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                ],
-              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -954,76 +1123,104 @@ class _FranchiseCard extends StatelessWidget {
 
 class _CafeCard extends StatelessWidget {
   final String name;
+  final String subtitle;
   final String imagePath;
-  const _CafeCard({required this.name, required this.imagePath});
+  final String rating;
+  final String time;
+
+  const _CafeCard({
+    required this.name,
+    required this.subtitle,
+    required this.imagePath,
+    required this.rating,
+    required this.time,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 222,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderDark),
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StoreDetailPage(
+            storeName: name,
+            storeSubtitle: subtitle,
+            heroImagePath: imagePath,
+            logoImagePath: imagePath,
+            preset: StoreDetailPreset.cafe,
+            rating: rating,
+            deliveryTime: time,
+            bottomNavIndex: 0,
+          ),
+        ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(imagePath,
-                width: 198, height: 129, fit: BoxFit.cover),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: 198,
-            child: Text(name,
-                style: AppTextStyles.bodyMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: 198,
-            height: 20,
-            child: Row(
-              children: [
-                SvgPicture.asset('assets/icons/star.svg',
-                    width: 14, height: 14),
-                const SizedBox(width: 4),
-                Text('5.0',
-                    style: AppTextStyles.body
-                        .copyWith(fontWeight: FontWeight.w600)),
-                const Text(' (2,002)', style: AppTextStyles.caption),
-                const SizedBox(width: 7),
-                Image.asset('assets/icons/clock.svg',
-                    width: 16, height: 16),
-                const SizedBox(width: 4),
-                Text('40min',
-                    style: AppTextStyles.caption.copyWith(
-                        color: const Color(0xFF333333),
-                        fontWeight: FontWeight.w500)),
-              ],
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 222,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.borderDark),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(imagePath,
+                  width: 198, height: 129, fit: BoxFit.cover),
             ),
-          ),
-          const SizedBox(height: 13),
-          SizedBox(
-            width: 198,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.bgLight,
-                borderRadius: BorderRadius.circular(21),
-              ),
-              child: const Text(
-                'available for pick up',
-                style: AppTextStyles.caption,
-                overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 10),
+            SizedBox(
+              width: 198,
+              child: Text(name,
+                  style: AppTextStyles.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: 198,
+              height: 20,
+              child: Row(
+                children: [
+                  SvgPicture.asset('assets/icons/star.svg',
+                      width: 14, height: 14),
+                  const SizedBox(width: 4),
+                  Text(rating,
+                      style: AppTextStyles.body
+                          .copyWith(fontWeight: FontWeight.w600)),
+                  const Text(' (2,002)', style: AppTextStyles.caption),
+                  const SizedBox(width: 7),
+                  SvgPicture.asset('assets/icons/clock.svg',
+                      width: 16, height: 16),
+                  const SizedBox(width: 4),
+                  Text(time,
+                      style: AppTextStyles.caption.copyWith(
+                          color: const Color(0xFF333333),
+                          fontWeight: FontWeight.w500)),
+                ],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 13),
+            SizedBox(
+              width: 198,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.bgLight,
+                  borderRadius: BorderRadius.circular(21),
+                ),
+                child: const Text(
+                  'available for pick up',
+                  style: AppTextStyles.caption,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1054,14 +1251,14 @@ class _PromoBanner extends StatelessWidget {
               fit: BoxFit.fill,
             ),
           ),
-          Positioned(
+          const Positioned(
             left: 24,
             top: 19,
             right: 100,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Bringing Korea's speed to you",
                   style: TextStyle(
                     fontFamily: 'Pretendard',
@@ -1069,8 +1266,8 @@ class _PromoBanner extends StatelessWidget {
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 6),
-                const Text(
+                SizedBox(height: 6),
+                Text(
                   'Discover the benefit\nof ₩0 delivery',
                   style: AppTextStyles.h2,
                 ),
@@ -1110,7 +1307,7 @@ class _RatingRow extends StatelessWidget {
           Text(rating,
               style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
               overflow: TextOverflow.ellipsis),
-          Text(' (2,002)',
+          const Text(' (2,002)',
               style: AppTextStyles.caption, overflow: TextOverflow.ellipsis),
           const SizedBox(width: 7),
           SvgPicture.asset('assets/images/ic_time.svg', width: 16, height: 16),

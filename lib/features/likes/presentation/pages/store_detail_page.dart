@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../shared/widgets/bottom_nav_bar.dart';
 import 'menu_option_page.dart';
+
+enum StoreDetailPreset { jokbal, tteokbokki, burger, chicken, pizza, cafe }
 
 class StoreDetailPage extends StatefulWidget {
   final String storeName;
   final String storeSubtitle;
   final String heroImagePath;
   final String logoImagePath;
+  final StoreDetailPreset preset;
+  final String rating;
+  final String reviewCount;
+  final String deliveryTime;
+  final int? bottomNavIndex;
 
   const StoreDetailPage({
     super.key,
@@ -14,6 +22,11 @@ class StoreDetailPage extends StatefulWidget {
     required this.storeSubtitle,
     required this.heroImagePath,
     required this.logoImagePath,
+    this.preset = StoreDetailPreset.jokbal,
+    this.rating = '5.0',
+    this.reviewCount = '(2,002)',
+    this.deliveryTime = '25~40min',
+    this.bottomNavIndex,
   });
 
   @override
@@ -41,6 +54,9 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
+      bottomNavigationBar: widget.bottomNavIndex == null
+          ? null
+          : NaruBottomNavBar(currentIndex: widget.bottomNavIndex!),
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(context),
@@ -51,11 +67,14 @@ class _StoreDetailPageState extends State<StoreDetailPage>
                 _buildStoreHeader(),
                 _buildDeliveryTabs(),
                 _buildDeliveryInfo(),
-                const Divider(height: 1, thickness: 8, color: Color(0xFFF3F5F7)),
+                const Divider(
+                    height: 1, thickness: 8, color: Color(0xFFF3F5F7)),
                 _buildPopularMenu(),
-                const Divider(height: 1, thickness: 8, color: Color(0xFFF3F5F7)),
+                const Divider(
+                    height: 1, thickness: 8, color: Color(0xFFF3F5F7)),
                 _buildAllergySection(),
-                const Divider(height: 1, thickness: 8, color: Color(0xFFF3F5F7)),
+                const Divider(
+                    height: 1, thickness: 8, color: Color(0xFFF3F5F7)),
                 _buildReviewSection(),
                 const SizedBox(height: 40),
               ],
@@ -96,7 +115,8 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             child: Icon(
               _isLiked ? Icons.favorite : Icons.favorite_border,
               size: 18,
-              color: _isLiked ? AppColors.accentOrange : AppColors.textSecondary,
+              color:
+                  _isLiked ? AppColors.accentOrange : AppColors.textSecondary,
             ),
           ),
         ),
@@ -135,9 +155,9 @@ class _StoreDetailPageState extends State<StoreDetailPage>
                     const Icon(Icons.star_rounded,
                         color: Color(0xFFFFC107), size: 16),
                     const SizedBox(width: 3),
-                    const Text(
-                      '5.0',
-                      style: TextStyle(
+                    Text(
+                      widget.rating,
+                      style: const TextStyle(
                         fontFamily: 'Pretendard',
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -146,8 +166,8 @@ class _StoreDetailPageState extends State<StoreDetailPage>
                     ),
                     const SizedBox(width: 3),
                     Text(
-                      '(272)',
-                      style: TextStyle(
+                      widget.reviewCount,
+                      style: const TextStyle(
                         fontFamily: 'Pretendard',
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
@@ -196,10 +216,8 @@ class _StoreDetailPageState extends State<StoreDetailPage>
         children: [
           _infoRow('Minimum Order', '₩15,000'),
           const SizedBox(height: 6),
-          _infoRow('Store Delivery', '₩3,000'),
+          _infoRow('Store Delivery', widget.deliveryTime),
           const SizedBox(height: 6),
-          _infoRow('', '25~40min'),
-          const SizedBox(height: 8),
           const Text(
             'Free Delivery Fee',
             style: TextStyle(
@@ -244,52 +262,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   Widget _buildPopularMenu() {
-    const menus = [
-      _MenuItem(
-        rank: 'Top 1',
-        name: 'Half [Jok, Bo Set]',
-        description: 'Makguksu + Kimchi + Onion + Ssam',
-        options: [
-          'Small (2~3 servings): ₩38,000',
-          'Medium (3~4 servings): ₩48,000',
-          'Large (4~5 servings): ₩58,000',
-        ],
-        imagePath: 'assets/images/food_jokbal.png',
-      ),
-      _MenuItem(
-        rank: 'Top 2',
-        name: 'Bossam',
-        description: 'Makguksu + Kimchi + Radish + Ssam',
-        options: [
-          'Small (2~3 servings): ₩28,000',
-          'Medium (3~4 servings): ₩38,000',
-          'Large (4~5 servings): ₩48,000',
-        ],
-        imagePath: 'assets/images/food_jokbal.png',
-      ),
-      _MenuItem(
-        rank: 'Top 3',
-        name: 'Jokbal',
-        description: 'Makguksu + Kimchi + Radish + Ssam',
-        options: [
-          'Small (2~3 servings): ₩34,000',
-          'Medium (3~4 servings): ₩39,000',
-          'Large (4~5 servings): ₩45,000',
-        ],
-        imagePath: 'assets/images/food_jokbal.png',
-      ),
-      _MenuItem(
-        rank: 'Mini Jokbo',
-        name: 'Mini Jokbo',
-        description: 'Makguksu + Kimchi + Onion + Ssam',
-        options: [
-          'Small (2~3 servings): ₩22,000',
-          'Medium (3~4 servings): ₩32,000',
-          'Large (4~5 servings): ₩42,000',
-        ],
-        imagePath: 'assets/images/food_jokbal.png',
-      ),
-    ];
+    final menus = _menusForPreset(widget.preset);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -306,7 +279,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          const Text(
             'This is a highly rated menu item',
             style: TextStyle(
               fontFamily: 'Pretendard',
@@ -325,11 +298,256 @@ class _StoreDetailPageState extends State<StoreDetailPage>
     );
   }
 
+  List<_MenuItem> _menusForPreset(StoreDetailPreset preset) {
+    switch (preset) {
+      case StoreDetailPreset.burger:
+        return const [
+          _MenuItem(
+            rank: 'Top 1',
+            name: 'Bulgogi Burger Set',
+            description: 'Burger + Fries + Soft drink',
+            options: [
+              'Single set: ₩8,900',
+              'Double set: ₩11,900',
+              'Family pack: ₩24,000',
+            ],
+            imagePath: 'assets/images/franchise_lotteria_bg.png',
+          ),
+          _MenuItem(
+            rank: 'Top 2',
+            name: 'Cheese Burger',
+            description: 'Beef patty + Cheese + Pickle',
+            options: [
+              'Burger only: ₩5,900',
+              'Regular set: ₩8,400',
+              'Large set: ₩9,400',
+            ],
+            imagePath: 'assets/images/cat_fastfood.png',
+          ),
+          _MenuItem(
+            rank: 'Top 3',
+            name: 'Shrimp Burger',
+            description: 'Crispy shrimp patty + Tartar sauce',
+            options: [
+              'Burger only: ₩6,500',
+              'Regular set: ₩9,000',
+              'Large set: ₩10,000',
+            ],
+            imagePath: 'assets/images/franchise_lotteria_bg.png',
+          ),
+        ];
+      case StoreDetailPreset.chicken:
+        return const [
+          _MenuItem(
+            rank: 'Top 1',
+            name: 'Original Fried Chicken',
+            description: 'Crispy fried chicken + Pickled radish',
+            options: [
+              'Half chicken: ₩12,000',
+              'Whole chicken: ₩21,000',
+              'Boneless: ₩23,000',
+            ],
+            imagePath: 'assets/images/franchise_nene_bg.png',
+          ),
+          _MenuItem(
+            rank: 'Top 2',
+            name: 'Sweet Spicy Chicken',
+            description: 'Fried chicken + Korean spicy sauce',
+            options: [
+              'Half chicken: ₩13,000',
+              'Whole chicken: ₩22,000',
+              'Boneless: ₩24,000',
+            ],
+            imagePath: 'assets/images/cat_chicken_single.png',
+          ),
+          _MenuItem(
+            rank: 'Top 3',
+            name: 'Soy Garlic Chicken',
+            description: 'Crispy chicken + Soy garlic glaze',
+            options: [
+              'Half chicken: ₩13,000',
+              'Whole chicken: ₩22,000',
+              'Boneless: ₩24,000',
+            ],
+            imagePath: 'assets/images/franchise_nene_bg.png',
+          ),
+        ];
+      case StoreDetailPreset.pizza:
+        return const [
+          _MenuItem(
+            rank: 'Top 1',
+            name: 'Signature Cheese Pizza',
+            description: 'Mozzarella + Tomato sauce + Herbs',
+            options: [
+              'Medium: ₩18,900',
+              'Large: ₩24,900',
+              'Family: ₩31,900',
+            ],
+            imagePath: 'assets/images/franchise_domino_bg.png',
+          ),
+          _MenuItem(
+            rank: 'Top 2',
+            name: 'Pepperoni Pizza',
+            description: 'Pepperoni + Cheese + Tomato sauce',
+            options: [
+              'Medium: ₩20,900',
+              'Large: ₩26,900',
+              'Family: ₩33,900',
+            ],
+            imagePath: 'assets/images/franchise_domino_bg.png',
+          ),
+          _MenuItem(
+            rank: 'Top 3',
+            name: 'Potato Bacon Pizza',
+            description: 'Potato + Bacon + Cheese sauce',
+            options: [
+              'Medium: ₩21,900',
+              'Large: ₩27,900',
+              'Family: ₩34,900',
+            ],
+            imagePath: 'assets/images/franchise_domino_bg.png',
+          ),
+        ];
+      case StoreDetailPreset.cafe:
+        return const [
+          _MenuItem(
+            rank: 'Top 1',
+            name: 'Iced Americano',
+            description: 'Espresso + Ice water',
+            options: [
+              'Regular: ₩3,500',
+              'Large: ₩4,000',
+              'Extra shot: + ₩500',
+            ],
+            imagePath: 'assets/images/food_cafe.png',
+          ),
+          _MenuItem(
+            rank: 'Top 2',
+            name: 'Cafe Latte',
+            description: 'Espresso + Steamed milk',
+            options: [
+              'Regular: ₩4,500',
+              'Large: ₩5,000',
+              'Oat milk: + ₩700',
+            ],
+            imagePath: 'assets/images/food_cafe.png',
+          ),
+          _MenuItem(
+            rank: 'Top 3',
+            name: 'Grapefruit Ade',
+            description: 'Grapefruit + Sparkling water',
+            options: [
+              'Regular: ₩5,200',
+              'Large: ₩5,900',
+              'Extra fruit: + ₩800',
+            ],
+            imagePath: 'assets/images/food_cafe.png',
+          ),
+        ];
+      case StoreDetailPreset.tteokbokki:
+        return const [
+          _MenuItem(
+            rank: 'Top 1',
+            name: 'Original Tteokbokki',
+            description: 'Rice cake + Fish cake + Spicy sauce',
+            options: [
+              'Small (1~2 servings): ₩14,000',
+              'Medium (2~3 servings): ₩18,000',
+              'Large (3~4 servings): ₩24,000',
+            ],
+            imagePath: 'assets/images/food_tteokbokki.png',
+          ),
+          _MenuItem(
+            rank: 'Top 2',
+            name: 'Rosé Tteokbokki',
+            description: 'Rice cake + Cream sauce + Sausage',
+            options: [
+              'Small (1~2 servings): ₩16,000',
+              'Medium (2~3 servings): ₩21,000',
+              'Large (3~4 servings): ₩27,000',
+            ],
+            imagePath: 'assets/images/food_tteokbokki.png',
+          ),
+          _MenuItem(
+            rank: 'Top 3',
+            name: 'Mala Tteokbokki',
+            description: 'Rice cake + Mala sauce + Vegetables',
+            options: [
+              'Small (1~2 servings): ₩15,000',
+              'Medium (2~3 servings): ₩20,000',
+              'Large (3~4 servings): ₩26,000',
+            ],
+            imagePath: 'assets/images/banner_food.png',
+          ),
+          _MenuItem(
+            rank: 'Set Menu',
+            name: 'Tteokbokki Set',
+            description: 'Tteokbokki + Fries + Rice balls',
+            options: [
+              'Basic set: ₩23,000',
+              'Cheese set: ₩26,000',
+              'Family set: ₩32,000',
+            ],
+            imagePath: 'assets/images/food_tteokbokki.png',
+          ),
+        ];
+      case StoreDetailPreset.jokbal:
+        return const [
+          _MenuItem(
+            rank: 'Top 1',
+            name: 'Half [Jok, Bo Set]',
+            description: 'Makguksu + Kimchi + Onion + Ssam',
+            options: [
+              'Small (2~3 servings): ₩38,000',
+              'Medium (3~4 servings): ₩48,000',
+              'Large (4~5 servings): ₩58,000',
+            ],
+            imagePath: 'assets/images/food_jokbal.png',
+          ),
+          _MenuItem(
+            rank: 'Top 2',
+            name: 'Bossam',
+            description: 'Makguksu + Kimchi + Radish + Ssam',
+            options: [
+              'Small (2~3 servings): ₩28,000',
+              'Medium (3~4 servings): ₩38,000',
+              'Large (4~5 servings): ₩48,000',
+            ],
+            imagePath: 'assets/images/food_jokbal.png',
+          ),
+          _MenuItem(
+            rank: 'Top 3',
+            name: 'Jokbal',
+            description: 'Makguksu + Kimchi + Radish + Ssam',
+            options: [
+              'Small (2~3 servings): ₩34,000',
+              'Medium (3~4 servings): ₩39,000',
+              'Large (4~5 servings): ₩45,000',
+            ],
+            imagePath: 'assets/images/food_jokbal.png',
+          ),
+          _MenuItem(
+            rank: 'Mini Jokbo',
+            name: 'Mini Jokbo',
+            description: 'Makguksu + Kimchi + Onion + Ssam',
+            options: [
+              'Small (2~3 servings): ₩22,000',
+              'Medium (3~4 servings): ₩32,000',
+              'Large (4~5 servings): ₩42,000',
+            ],
+            imagePath: 'assets/images/food_jokbal.png',
+          ),
+        ];
+    }
+  }
+
   Widget _buildAllergySection() {
     const allergens = [
       _Allergen(label: 'Peanut', sublabel: 'For topping', icon: Icons.eco),
-      _Allergen(label: 'Tomato', sublabel: 'For tomato', icon: Icons.local_florist),
-      _Allergen(label: 'Milk', sublabel: 'For garneing', icon: Icons.water_drop),
+      _Allergen(
+          label: 'Tomato', sublabel: 'For tomato', icon: Icons.local_florist),
+      _Allergen(
+          label: 'Milk', sublabel: 'For garneing', icon: Icons.water_drop),
       _Allergen(label: 'Meat', sublabel: 'For all menu', icon: Icons.set_meal),
       _Allergen(label: 'Egg', sublabel: 'For bread', icon: Icons.egg_outlined),
     ];
@@ -349,7 +567,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          const Text(
             'Chinese check the allergy information before ordering',
             style: TextStyle(
               fontFamily: 'Pretendard',
@@ -361,7 +579,8 @@ class _StoreDetailPageState extends State<StoreDetailPage>
           Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: allergens.map((a) => _AllergenBadge(allergen: a)).toList(),
+            children:
+                allergens.map((a) => _AllergenBadge(allergen: a)).toList(),
           ),
         ],
       ),
@@ -369,6 +588,9 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   Widget _buildReviewSection() {
+    final reviewImage = _reviewImageForPreset(widget.preset);
+    final reviewTexts = _reviewTextsForPreset(widget.preset);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
@@ -387,9 +609,9 @@ class _StoreDetailPageState extends State<StoreDetailPage>
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
-                '5.0',
-                style: TextStyle(
+              Text(
+                widget.rating,
+                style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 40,
                   fontWeight: FontWeight.w700,
@@ -441,22 +663,72 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             name: 'Jake',
             flag: '🇺🇸',
             timeAgo: 'last week',
-            text:
-                'I was making fresh kimchi at home, so I ordered jokbal too~ 😄 I ordered the medium size, and the portion was huge. The bossam and jokbal were so tender—they melted in my mouth. So delicious!',
-            imagePath: 'assets/images/food_jokbal.png',
+            text: reviewTexts.first,
+            imagePath: reviewImage,
           ),
           const SizedBox(height: 20),
           _ReviewCard(
             name: 'Kimana',
             flag: '🇰🇷',
             timeAgo: 'last week',
-            text:
-                'The portion was generous and everything arrived warm. The meat was tender and flavorful—definitely ordering again!',
-            imagePath: 'assets/images/food_jokbal.png',
+            text: reviewTexts.last,
+            imagePath: reviewImage,
           ),
         ],
       ),
     );
+  }
+
+  String _reviewImageForPreset(StoreDetailPreset preset) {
+    switch (preset) {
+      case StoreDetailPreset.jokbal:
+        return 'assets/images/food_jokbal.png';
+      case StoreDetailPreset.tteokbokki:
+        return 'assets/images/food_tteokbokki.png';
+      case StoreDetailPreset.burger:
+        return 'assets/images/franchise_lotteria_bg.png';
+      case StoreDetailPreset.chicken:
+        return 'assets/images/franchise_nene_bg.png';
+      case StoreDetailPreset.pizza:
+        return 'assets/images/franchise_domino_bg.png';
+      case StoreDetailPreset.cafe:
+        return 'assets/images/food_cafe.png';
+    }
+  }
+
+  List<String> _reviewTextsForPreset(StoreDetailPreset preset) {
+    switch (preset) {
+      case StoreDetailPreset.jokbal:
+        return const [
+          'I was making fresh kimchi at home, so I ordered jokbal too~ 😄 I ordered the medium size, and the portion was huge. The bossam and jokbal were so tender—they melted in my mouth. So delicious!',
+          'The portion was generous and everything arrived warm. The meat was tender and flavorful—definitely ordering again!',
+        ];
+      case StoreDetailPreset.tteokbokki:
+        return const [
+          'The tteokbokki was spicy, chewy, and perfect with the rice balls. The sauce stayed warm and rich until the last bite.',
+          'Great balance of sweetness and heat. The portion was generous and the fish cake was really good.',
+        ];
+      case StoreDetailPreset.burger:
+        return const [
+          'The burger set arrived hot and the fries were still crispy. It was exactly the quick comfort food I wanted.',
+          'The bulgogi sauce was sweet and savory, and the portion was perfect for lunch.',
+        ];
+      case StoreDetailPreset.chicken:
+        return const [
+          'The chicken was crispy outside and juicy inside. The sauce was packed separately, so it stayed fresh.',
+          'Great for sharing. Everything arrived warm and the pickled radish made it even better.',
+        ];
+      case StoreDetailPreset.pizza:
+        return const [
+          'The cheese pull was great and the crust was crisp. It arrived faster than expected.',
+          'The toppings were generous and the pizza was still warm when it arrived. Ordering again soon.',
+        ];
+      case StoreDetailPreset.cafe:
+        return const [
+          'The coffee was smooth and still cold when it arrived. Perfect afternoon pick-me-up.',
+          'The ade tasted fresh and not too sweet. Great spot for quick drinks nearby.',
+        ];
+    }
   }
 }
 
@@ -481,75 +753,75 @@ class _MenuItemRow extends StatelessWidget {
       ),
       behavior: HitTestBehavior.opaque,
       child: Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.rank.startsWith('Top') ? item.rank : item.rank,
-                  style: TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: item.rank.startsWith('Top')
-                        ? AppColors.brandOrange
-                        : AppColors.textSecondary,
+        padding: EdgeInsets.only(bottom: isLast ? 0 : 20),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.rank.startsWith('Top') ? item.rank : item.rank,
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: item.rank.startsWith('Top')
+                          ? AppColors.brandOrange
+                          : AppColors.textSecondary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                  const SizedBox(height: 2),
+                  Text(
+                    item.name,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.description,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
+                  const SizedBox(height: 2),
+                  Text(
+                    item.description,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                ...item.options.map(
-                  (opt) => Padding(
-                    padding: const EdgeInsets.only(bottom: 2),
-                    child: Text(
-                      '• $opt',
-                      style: const TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        height: 1.4,
+                  const SizedBox(height: 6),
+                  ...item.options.map(
+                    (opt) => Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        '• $opt',
+                        style: const TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              item.imagePath,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
+            const SizedBox(width: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                item.imagePath,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 }
