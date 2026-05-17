@@ -139,64 +139,7 @@ class MyPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _InfoCard(
-                      child: SizedBox(
-                        height: 86,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Exchanged amount',
-                                  style: AppTextStyles.caption.copyWith(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.textPrimary,
-                                    height: 1.2,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Image.asset(
-                                  'assets/images/exchangeimg.png',
-                                  width: 52,
-                                  height: 34,
-                                  fit: BoxFit.contain,
-                                ),
-                              ],
-                            ),
-                            const Spacer(),
-                            const Divider(
-                              color: AppColors.border,
-                              height: 1,
-                              thickness: 0.9,
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Spacer(),
-                                Text(
-                                  '₩123,000',
-                                  style: AppTextStyles.caption.copyWith(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
-                                    height: 1.1,
-                                  ),
-                                ),
-                                const SizedBox(width: 2),
-                                const Icon(
-                                  Icons.chevron_right,
-                                  size: 18,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    const _ExchangeAmountCard(),
                     const SizedBox(height: 12),
                     _InfoCard(
                       child: SizedBox(
@@ -236,20 +179,15 @@ class MyPage extends StatelessWidget {
                           const SizedBox(height: 12),
                           const Row(
                             children: [
-                              Expanded(
-                                child: _StoreThumb(
-                                  label: 'Kyochon Chicken',
-                                  imagePath:
-                                      'assets/images/cat_chicken_single.png',
-                                ),
+                              _StoreThumb(
+                                label: 'Kyochon Chicken',
+                                imagePath:
+                                    'assets/images/cat_chicken_single.png',
                               ),
                               SizedBox(width: 8),
-                              Expanded(
-                                child: _StoreThumb(
-                                  label: 'Yupki Ddukbokki',
-                                  imagePath:
-                                      'assets/images/food_tteokbokki.png',
-                                ),
+                              _StoreThumb(
+                                label: 'Yupki Ddukbokki',
+                                imagePath: 'assets/images/food_tteokbokki.png',
                               ),
                             ],
                           ),
@@ -336,6 +274,95 @@ class MyPage extends StatelessWidget {
   }
 }
 
+class _ExchangeAmountCard extends StatelessWidget {
+  static const double _cardWidth = 359.2;
+  static const double _cardHeight = 114.5;
+
+  const _ExchangeAmountCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = constraints.maxWidth < _cardWidth
+            ? constraints.maxWidth
+            : _cardWidth;
+
+        return Center(
+          child: Container(
+            width: cardWidth,
+            height: _cardHeight,
+            decoration: BoxDecoration(
+              color: AppColors.bgWhite,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFF2A2A2A), width: 1.1),
+            ),
+            padding: const EdgeInsets.fromLTRB(17, 10, 17, 12),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: 0,
+                  top: 17,
+                  child: Text(
+                    'Exchanged amount',
+                    style: AppTextStyles.caption.copyWith(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  top: -10,
+                  child: Image.asset(
+                    'assets/images/mypage_lang.png',
+                    width: 95,
+                    height: 95,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 46,
+                  child: Container(height: 1, color: const Color(0xFF1F1F1F)),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '₩123,000',
+                        style: AppTextStyles.caption.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          height: 1.1,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 26,
+                        color: AppColors.textPrimary,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _InfoCard extends StatelessWidget {
   final Widget child;
   const _InfoCard({required this.child});
@@ -411,6 +438,9 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _StoreThumb extends StatelessWidget {
+  static const double _thumbWidth = 110;
+  static const double _thumbHeight = 100;
+
   final String label;
   final String imagePath;
   const _StoreThumb({required this.label, required this.imagePath});
@@ -422,8 +452,8 @@ class _StoreThumb extends StatelessWidget {
       children: [
         Container(
           clipBehavior: Clip.hardEdge,
-          width: double.infinity,
-          constraints: const BoxConstraints(minHeight: 88),
+          width: _thumbWidth,
+          height: _thumbHeight,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(9),
             border: Border.all(color: const Color(0xFF7B7B7B), width: 0.8),
