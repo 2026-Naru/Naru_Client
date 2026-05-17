@@ -27,13 +27,7 @@ class _MarkerCache {
   static bool isLoading = false;
 }
 
-const _foodPinDesignVersion = 2;
-
-const _minimalMapStyle = '''[
-  {"featureType":"poi","stylers":[{"visibility":"off"}]},
-  {"featureType":"transit","stylers":[{"visibility":"off"}]},
-  {"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]}
-]''';
+const _foodPinDesignVersion = 3;
 
 class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   Map<String, BitmapDescriptor> _foodPins = {};
@@ -265,24 +259,6 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
         icon: _foodPins['assets/images/banner_food.png']!,
         anchor: const Offset(0.5, 0.96),
       ),
-      Marker(
-        markerId: const MarkerId('dot_orange_1'),
-        position: _offset(center, 0.00050, -0.00175),
-        icon: _orangeDotPin!,
-        anchor: const Offset(0.5, 0.5),
-      ),
-      Marker(
-        markerId: const MarkerId('dot_orange_2'),
-        position: _offset(center, 0.00055, -0.00133),
-        icon: _orangeDotPin!,
-        anchor: const Offset(0.5, 0.5),
-      ),
-      Marker(
-        markerId: const MarkerId('dot_blue_1'),
-        position: _offset(center, -0.00035, -0.00127),
-        icon: _blueDotPin!,
-        anchor: const Offset(0.5, 0.5),
-      ),
     };
   }
 
@@ -327,12 +303,12 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
               ? _navigationCamera
               : _selectLocationCamera,
           markers: _markers,
-          style: _minimalMapStyle,
           zoomControlsEnabled: false,
           myLocationButtonEnabled: false,
           mapToolbarEnabled: false,
           compassEnabled: false,
-          myLocationEnabled: _myLocationEnabled,
+          myLocationEnabled: widget.variant == MapViewVariant.selectLocation &&
+              _myLocationEnabled,
           tiltGesturesEnabled: false,
           rotateGesturesEnabled: false,
           scrollGesturesEnabled: false,
@@ -362,13 +338,13 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   Future<BitmapDescriptor> _buildFoodPinDescriptor(
       String imageAssetPath) async {
     try {
-      final sourceImage = await _loadAssetImage(imageAssetPath, targetSize: 96);
+      final sourceImage = await _loadAssetImage(imageAssetPath, targetSize: 72);
 
-      const double canvasWidth = 76;
-      const double canvasHeight = 90;
-      const innerRect = Rect.fromLTWH(14, 12, 48, 48);
+      const double canvasWidth = 54;
+      const double canvasHeight = 63;
+      const innerRect = Rect.fromLTWH(10, 8, 34, 34);
       final innerRRect =
-          RRect.fromRectAndRadius(innerRect, const Radius.circular(13));
+          RRect.fromRectAndRadius(innerRect, const Radius.circular(11));
 
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
@@ -431,13 +407,13 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
     return Path()
       ..addRRect(
         RRect.fromRectAndRadius(
-          const Rect.fromLTWH(8, 6, 60, 60),
-          const Radius.circular(18),
+          const Rect.fromLTWH(4, 3, 46, 46),
+          const Radius.circular(17),
         ),
       )
-      ..moveTo(24, 61)
-      ..lineTo(52, 61)
-      ..lineTo(38, 88)
+      ..moveTo(18, 44)
+      ..lineTo(36, 44)
+      ..lineTo(27, 61)
       ..close();
   }
 
