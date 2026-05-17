@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/router/app_router.dart';
+import '../../../../shared/widgets/main_tab_page.dart';
 
 // _RouteResult is passed from results page — redeclare here as a simple data class
 class RouteInfo {
@@ -36,8 +38,7 @@ class NavigationRouteDetailPage extends StatefulWidget {
       _NavigationRouteDetailPageState();
 }
 
-class _NavigationRouteDetailPageState
-    extends State<NavigationRouteDetailPage> {
+class _NavigationRouteDetailPageState extends State<NavigationRouteDetailPage> {
   Set<Marker> _markers = const {};
   Set<Polyline> _polylines = const {};
   bool _liked = false;
@@ -107,6 +108,19 @@ class _NavigationRouteDetailPageState
   String get _duration => widget.route.duration as String;
   bool get _isBest => widget.route.isBest as bool;
 
+  void _handleBack() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+      return;
+    }
+    final tabNotifier = MainTabScope.of(context);
+    if (tabNotifier != null) {
+      tabNotifier.value = 1;
+      return;
+    }
+    Navigator.pushReplacementNamed(context, AppRouter.main, arguments: 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,15 +130,28 @@ class _NavigationRouteDetailPageState
           // Google Map top 42%
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.42,
-            child: GoogleMap(
-              initialCameraPosition: const CameraPosition(
-                target: LatLng(37.546, 127.040),
-                zoom: 11.5,
-              ),
-              markers: _markers,
-              polylines: _polylines,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: GoogleMap(
+                    initialCameraPosition: const CameraPosition(
+                      target: LatLng(37.546, 127.040),
+                      zoom: 11.5,
+                    ),
+                    markers: _markers,
+                    polylines: _polylines,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
+                  ),
+                ),
+                SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16, top: 12),
+                    child: _MapBackButton(onTap: _handleBack),
+                  ),
+                ),
+              ],
             ),
           ),
           // Bottom sheet content
@@ -138,15 +165,6 @@ class _NavigationRouteDetailPageState
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: Row(
                       children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: const Icon(
-                            Icons.arrow_back,
-                            size: 22,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
                         if (_isBest)
                           const Text(
                             'Best  ',
@@ -214,7 +232,8 @@ class _NavigationRouteDetailPageState
                             onTap: () => setState(() => _liked = !_liked),
                             child: Icon(
                               _liked ? Icons.favorite : Icons.favorite_border,
-                              color: _liked ? Colors.red : AppColors.textSecondary,
+                              color:
+                                  _liked ? Colors.red : AppColors.textSecondary,
                               size: 22,
                             ),
                           ),
@@ -356,8 +375,8 @@ class _NavigationRouteDetailPageState
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
                     child: Row(
                       children: [
                         Expanded(
@@ -366,14 +385,14 @@ class _NavigationRouteDetailPageState
                             value: '3',
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10),
                         Expanded(
                           child: _SpecCard(
                             label: 'Price per\nperson',
                             value: '₩1,750',
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10),
                         Expanded(
                           child: _SpecCard(
                             label: 'Total',
@@ -388,6 +407,39 @@ class _NavigationRouteDetailPageState
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MapBackButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _MapBackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+          color: AppColors.textPrimary,
+        ),
       ),
     );
   }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/router/app_router.dart';
+import '../../../../shared/widgets/main_tab_page.dart';
 import 'navigation_route_results_page.dart';
 
 class NavigationRouteListPage extends StatelessWidget {
@@ -11,6 +13,19 @@ class NavigationRouteListPage extends StatelessWidget {
     required this.from,
     required this.to,
   });
+
+  void _handleBack(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+      return;
+    }
+    final tabNotifier = MainTabScope.of(context);
+    if (tabNotifier != null) {
+      tabNotifier.value = 1;
+      return;
+    }
+    Navigator.pushReplacementNamed(context, AppRouter.main, arguments: 1);
+  }
 
   static const _routes = <_RouteData>[
     _RouteData(
@@ -52,7 +67,15 @@ class NavigationRouteListPage extends StatelessWidget {
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _SearchPill(from: from, to: to),
+              child: Row(
+                children: [
+                  _RoundBackButton(onTap: () => _handleBack(context)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _SearchPill(from: from, to: to),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
             Padding(
@@ -93,6 +116,33 @@ class NavigationRouteListPage extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundBackButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _RoundBackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFFE6E6E6)),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+          color: AppColors.textPrimary,
         ),
       ),
     );

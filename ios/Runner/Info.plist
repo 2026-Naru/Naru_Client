@@ -55,6 +55,8 @@
 	<string>Main</string>
 	<key>GMSApiKey</key>
 	<string>AIzaSyD1YSTYMPZJlqdMigkPeigtB4toAO3qUWw</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Naru uses your location to show nearby places on the map.</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

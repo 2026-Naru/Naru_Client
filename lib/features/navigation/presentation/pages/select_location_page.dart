@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
+import '../../../../shared/widgets/main_tab_page.dart';
 import '../widgets/map_view.dart';
 
 class SelectLocationPage extends StatelessWidget {
   const SelectLocationPage({super.key});
+
+  void _handleBack(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+      return;
+    }
+    final tabNotifier = MainTabScope.of(context);
+    if (tabNotifier != null) {
+      tabNotifier.value = 1;
+      return;
+    }
+    Navigator.pushReplacementNamed(context, AppRouter.main, arguments: 1);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,29 +34,40 @@ class SelectLocationPage extends StatelessWidget {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: Container(
-                height: 52,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F3F3),
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    const Icon(Icons.search,
-                        size: 28, color: AppColors.inactive),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Search places...',
-                      style: AppTextStyles.body.copyWith(
-                        color: AppColors.textMuted,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                        height: 1.2,
+              child: Row(
+                children: [
+                  _RoundBackButton(onTap: () => _handleBack(context)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Container(
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F3F3),
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.search,
+                            size: 28,
+                            color: AppColors.inactive,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Search places...',
+                            style: AppTextStyles.body.copyWith(
+                              color: AppColors.textMuted,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -77,10 +103,10 @@ class SelectLocationPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  Row(
+                  const Row(
                     children: [
                       _ModeChip(label: 'Directions', selected: true),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       _ModeChip(label: 'Menu', selected: false),
                     ],
                   ),
@@ -91,6 +117,39 @@ class SelectLocationPage extends StatelessWidget {
         ],
       ),
       bottomNavigationBar: const NaruBottomNavBar(currentIndex: 1),
+    );
+  }
+}
+
+class _RoundBackButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _RoundBackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 8,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: 20,
+          color: AppColors.textPrimary,
+        ),
+      ),
     );
   }
 }

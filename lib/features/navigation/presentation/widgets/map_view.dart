@@ -1,7 +1,9 @@
 import 'dart:ui' as ui;
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -21,8 +23,11 @@ class _MarkerCache {
   static Map<String, BitmapDescriptor>? foodPins;
   static BitmapDescriptor? orangeDotPin;
   static BitmapDescriptor? blueDotPin;
+  static int? foodPinDesignVersion;
   static bool isLoading = false;
 }
+
+const _foodPinDesignVersion = 2;
 
 const _minimalMapStyle = '''[
   {"featureType":"poi","stylers":[{"visibility":"off"}]},
@@ -30,11 +35,17 @@ const _minimalMapStyle = '''[
   {"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]}
 ]''';
 
-class _MapViewState extends State<MapView> {
+class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   Map<String, BitmapDescriptor> _foodPins = {};
   BitmapDescriptor? _orangeDotPin;
   BitmapDescriptor? _blueDotPin;
   Set<Marker> _markers = const {};
+  GoogleMapController? _mapController;
+  LatLng? _currentLocation;
+  bool _myLocationEnabled = false;
+  bool _isResolvingLocation = false;
+  int _locationRetryCount = 0;
+  Timer? _locationRetryTimer;
   bool _mapReady = false;
   static const CameraPosition _navigationCamera = CameraPosition(
     target: LatLng(37.55645, 126.92245),
@@ -49,7 +60,9 @@ class _MapViewState extends State<MapView> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeMarkerDescriptors();
+    _initializeCurrentLocation();
   }
 
   @override
@@ -57,13 +70,108 @@ class _MapViewState extends State<MapView> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.variant != widget.variant) {
       _rebuildMarkers();
+      _moveCameraToActiveLocation();
     }
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _locationRetryTimer?.cancel();
+    _mapController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _currentLocation == null) {
+      _initializeCurrentLocation();
+    }
+  }
+
+  Future<void> _initializeCurrentLocation() async {
+    if (_isResolvingLocation) return;
+    _isResolvingLocation = true;
+
+    final position = await _determineCurrentPosition();
+    _isResolvingLocation = false;
+    if (!mounted) return;
+
+    if (position == null) {
+      _scheduleLocationRetry();
+      return;
+    }
+
+    setState(() {
+      _currentLocation = LatLng(position.latitude, position.longitude);
+      _myLocationEnabled = true;
+      _locationRetryCount = 0;
+    });
+    _locationRetryTimer?.cancel();
+    _rebuildMarkers();
+    _moveCameraToActiveLocation();
+  }
+
+  void _scheduleLocationRetry() {
+    if (_locationRetryCount >= 8 || _locationRetryTimer?.isActive == true) {
+      return;
+    }
+
+    _locationRetryCount += 1;
+    _locationRetryTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted && _currentLocation == null) {
+        _initializeCurrentLocation();
+      }
+    });
+  }
+
+  Future<Position?> _determineCurrentPosition() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return null;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+
+      final lastKnownPosition = await Geolocator.getLastKnownPosition();
+      if (lastKnownPosition != null) return lastKnownPosition;
+
+      return Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _moveCameraToActiveLocation() async {
+    final controller = _mapController;
+    final target = _currentLocation;
+    if (controller == null || target == null) return;
+
+    await controller.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: target,
+          zoom: widget.variant == MapViewVariant.navigation ? 16.35 : 15.95,
+        ),
+      ),
+    );
+  }
 
   Future<void> _initializeMarkerDescriptors() async {
     // 캐시가 있으면 바로 사용
     if (_MarkerCache.foodPins != null &&
+        _MarkerCache.foodPinDesignVersion == _foodPinDesignVersion &&
         _MarkerCache.orangeDotPin != null &&
         _MarkerCache.blueDotPin != null) {
       if (!mounted) return;
@@ -90,8 +198,7 @@ class _MapViewState extends State<MapView> {
     final results = await Future.wait([
       ...foodAssets.map(_buildFoodPinDescriptor),
       _buildSmallDotDescriptor(fillColor: AppColors.accentOrange, radius: 7.5),
-      _buildSmallDotDescriptor(
-          fillColor: const Color(0xFF46A8FF), radius: 6.5),
+      _buildSmallDotDescriptor(fillColor: const Color(0xFF46A8FF), radius: 6.5),
     ]);
 
     _MarkerCache.isLoading = false;
@@ -103,6 +210,7 @@ class _MapViewState extends State<MapView> {
       descriptors[foodAssets[i]] = results[i];
     }
     _MarkerCache.foodPins = descriptors;
+    _MarkerCache.foodPinDesignVersion = _foodPinDesignVersion;
     _MarkerCache.orangeDotPin = results[foodAssets.length];
     _MarkerCache.blueDotPin = results[foodAssets.length + 1];
 
@@ -130,46 +238,48 @@ class _MapViewState extends State<MapView> {
   }
 
   Set<Marker> _buildNavigationMarkers() {
+    final center = _currentLocation ?? _navigationCamera.target;
+
     return {
       Marker(
         markerId: const MarkerId('food_1'),
-        position: const LatLng(37.55588, 126.92055),
+        position: _offset(center, -0.00057, -0.00190),
         icon: _foodPins['assets/images/food_cafe.png']!,
-        anchor: const Offset(0.5, 0.93),
+        anchor: const Offset(0.5, 0.96),
       ),
       Marker(
         markerId: const MarkerId('food_2'),
-        position: const LatLng(37.55658, 126.92135),
+        position: _offset(center, 0.00013, -0.00110),
         icon: _foodPins['assets/images/food_jokbal.png']!,
-        anchor: const Offset(0.5, 0.93),
+        anchor: const Offset(0.5, 0.96),
       ),
       Marker(
         markerId: const MarkerId('food_3'),
-        position: const LatLng(37.55628, 126.92255),
+        position: _offset(center, -0.00017, 0.00010),
         icon: _foodPins['assets/images/food_tteokbokki.png']!,
-        anchor: const Offset(0.5, 0.93),
+        anchor: const Offset(0.5, 0.96),
       ),
       Marker(
         markerId: const MarkerId('food_4'),
-        position: const LatLng(37.55598, 126.92305),
+        position: _offset(center, -0.00047, 0.00060),
         icon: _foodPins['assets/images/banner_food.png']!,
-        anchor: const Offset(0.5, 0.93),
+        anchor: const Offset(0.5, 0.96),
       ),
       Marker(
         markerId: const MarkerId('dot_orange_1'),
-        position: const LatLng(37.55695, 126.92070),
+        position: _offset(center, 0.00050, -0.00175),
         icon: _orangeDotPin!,
         anchor: const Offset(0.5, 0.5),
       ),
       Marker(
         markerId: const MarkerId('dot_orange_2'),
-        position: const LatLng(37.55700, 126.92112),
+        position: _offset(center, 0.00055, -0.00133),
         icon: _orangeDotPin!,
         anchor: const Offset(0.5, 0.5),
       ),
       Marker(
         markerId: const MarkerId('dot_blue_1'),
-        position: const LatLng(37.55610, 126.92118),
+        position: _offset(center, -0.00035, -0.00127),
         icon: _blueDotPin!,
         anchor: const Offset(0.5, 0.5),
       ),
@@ -177,26 +287,35 @@ class _MapViewState extends State<MapView> {
   }
 
   Set<Marker> _buildSelectLocationMarkers() {
+    final center = _currentLocation ?? _selectLocationCamera.target;
+
     return {
       Marker(
         markerId: const MarkerId('select_dot_1'),
-        position: const LatLng(37.55655, 126.92090),
+        position: _offset(center, 0.00055, -0.00090),
         icon: _orangeDotPin!,
         anchor: const Offset(0.5, 0.5),
       ),
       Marker(
         markerId: const MarkerId('select_dot_2'),
-        position: const LatLng(37.55593, 126.92215),
+        position: _offset(center, -0.00007, 0.00035),
         icon: _orangeDotPin!,
         anchor: const Offset(0.5, 0.5),
       ),
       Marker(
         markerId: const MarkerId('select_dot_3'),
-        position: const LatLng(37.55522, 126.92142),
+        position: _offset(center, -0.00078, -0.00038),
         icon: _orangeDotPin!,
         anchor: const Offset(0.5, 0.5),
       ),
     };
+  }
+
+  LatLng _offset(LatLng origin, double latitudeDelta, double longitudeDelta) {
+    return LatLng(
+      origin.latitude + latitudeDelta,
+      origin.longitude + longitudeDelta,
+    );
   }
 
   @override
@@ -213,7 +332,7 @@ class _MapViewState extends State<MapView> {
           myLocationButtonEnabled: false,
           mapToolbarEnabled: false,
           compassEnabled: false,
-          myLocationEnabled: false,
+          myLocationEnabled: _myLocationEnabled,
           tiltGesturesEnabled: false,
           rotateGesturesEnabled: false,
           scrollGesturesEnabled: false,
@@ -222,8 +341,10 @@ class _MapViewState extends State<MapView> {
           buildingsEnabled: false,
           indoorViewEnabled: false,
           padding: EdgeInsets.zero,
-          onMapCreated: (_) {
+          onMapCreated: (controller) {
+            _mapController = controller;
             if (mounted) setState(() => _mapReady = true);
+            _moveCameraToActiveLocation();
           },
         ),
         AnimatedOpacity(
@@ -238,22 +359,22 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Future<BitmapDescriptor> _buildFoodPinDescriptor(String imageAssetPath) async {
+  Future<BitmapDescriptor> _buildFoodPinDescriptor(
+      String imageAssetPath) async {
     try {
-      final sourceImage = await _loadAssetImage(imageAssetPath, targetSize: 56);
+      final sourceImage = await _loadAssetImage(imageAssetPath, targetSize: 96);
 
-      const double canvasWidth = 40;
-      const double canvasHeight = 52;
-      const innerRect = Rect.fromLTWH(5.6, 5.6, 28.8, 28.8);
+      const double canvasWidth = 76;
+      const double canvasHeight = 90;
+      const innerRect = Rect.fromLTWH(14, 12, 48, 48);
       final innerRRect =
-          RRect.fromRectAndRadius(innerRect, const Radius.circular(9.4));
+          RRect.fromRectAndRadius(innerRect, const Radius.circular(13));
 
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
       final pinPath = _buildPinPath();
 
       canvas.drawPath(pinPath, Paint()..color = AppColors.accentOrange);
-      canvas.drawRRect(innerRRect, Paint()..color = const Color(0xFFE9E9E9));
 
       canvas.save();
       canvas.clipRRect(innerRRect);
@@ -270,7 +391,8 @@ class _MapViewState extends State<MapView> {
           .toImage(canvasWidth.toInt(), canvasHeight.toInt());
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) {
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+        return BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueOrange);
       }
       return BitmapDescriptor.bytes(byteData.buffer.asUint8List());
     } catch (_) {
@@ -296,7 +418,8 @@ class _MapViewState extends State<MapView> {
           .toImage(canvasSize.toInt(), canvasSize.toInt());
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) {
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+        return BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueOrange);
       }
       return BitmapDescriptor.bytes(byteData.buffer.asUint8List());
     } catch (_) {
@@ -308,13 +431,13 @@ class _MapViewState extends State<MapView> {
     return Path()
       ..addRRect(
         RRect.fromRectAndRadius(
-          const Rect.fromLTWH(2.5, 2.5, 35, 35),
-          const Radius.circular(10.8),
+          const Rect.fromLTWH(8, 6, 60, 60),
+          const Radius.circular(18),
         ),
       )
-      ..moveTo(15, 34.5)
-      ..lineTo(25, 34.5)
-      ..lineTo(20, 55.0)
+      ..moveTo(24, 61)
+      ..lineTo(52, 61)
+      ..lineTo(38, 88)
       ..close();
   }
 
