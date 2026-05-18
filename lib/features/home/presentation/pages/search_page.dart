@@ -15,8 +15,7 @@ class SearchPage extends StatefulWidget {
   State<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage>
-    with TickerProviderStateMixin {
+class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
   late TabController _tabController;
   final _searchController = TextEditingController();
   bool _hasQuery = false;
@@ -70,8 +69,7 @@ class _SearchPageState extends State<SearchPage>
     _rankTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       _rankAnimController.forward().then((_) {
         setState(() {
-          _currentRankIndex =
-              (_currentRankIndex + 1) % _popularSearches.length;
+          _currentRankIndex = (_currentRankIndex + 1) % _popularSearches.length;
         });
         _rankAnimController.reset();
       });
@@ -97,9 +95,7 @@ class _SearchPageState extends State<SearchPage>
             _buildTopBar(context),
             _buildTabs(),
             Expanded(
-              child: _hasQuery
-                  ? _buildSearchResults()
-                  : _buildDefaultContent(),
+              child: _hasQuery ? _buildSearchResults() : _buildDefaultContent(),
             ),
           ],
         ),
@@ -270,34 +266,34 @@ class _SearchPageState extends State<SearchPage>
           const SizedBox(width: 14),
           Expanded(
             child: ClipRect(
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                SlideTransition(
-                  position: _slideOutAnim,
-                  child: Text(
-                    _popularSearches[_currentRankIndex],
-                    style: const TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 15,
-                      color: AppColors.textPrimary,
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  SlideTransition(
+                    position: _slideOutAnim,
+                    child: Text(
+                      _popularSearches[_currentRankIndex],
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 15,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                SlideTransition(
-                  position: _slideInAnim,
-                  child: Text(
-                    _popularSearches[
-                        (_currentRankIndex + 1) % _popularSearches.length],
-                    style: const TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 15,
-                      color: AppColors.textPrimary,
+                  SlideTransition(
+                    position: _slideInAnim,
+                    child: Text(
+                      _popularSearches[
+                          (_currentRankIndex + 1) % _popularSearches.length],
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 15,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -553,7 +549,9 @@ class _FilterChipWidget extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SvgPicture.asset(chip.icon, width: 14, height: 14),
+          chip.icon.endsWith('black_clock.svg')
+              ? SvgPicture.asset(chip.icon, width: 14, height: 14)
+              : Image.asset(chip.icon, width: 14, height: 14),
           const SizedBox(width: 6),
           Text(
             chip.label,
@@ -738,8 +736,7 @@ class _StoreCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Image.asset(
               store.imagePath,
               width: double.infinity,
@@ -787,7 +784,7 @@ class _StoreCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    SvgPicture.asset('assets/icons/clock.svg',
+                    Image.asset('assets/icons/clock.svg',
                         width: 13, height: 13),
                     const SizedBox(width: 3),
                     Text(
