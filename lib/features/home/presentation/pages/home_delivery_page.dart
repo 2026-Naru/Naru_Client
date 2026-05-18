@@ -7,7 +7,10 @@ import 'package:geolocator/geolocator.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../likes/presentation/pages/store_detail_page.dart';
+import '../../data/category_dummy_data.dart';
+import '../../domain/category_model.dart';
 import '../widgets/delivery_pickup_tab.dart';
+import 'category_detail_page.dart';
 import 'search_page.dart';
 
 class HomeDeliveryPage extends StatefulWidget {
@@ -550,22 +553,6 @@ class _CategoryGrid extends StatelessWidget {
   static const _columns = 5;
   static const _columnGap = 6.0;
   static const _rowGap = 14.0;
-  static const _items = [
-    _CategoryData(label: 'Korean', imagePath: 'assets/images/cat_korean.png'),
-    _CategoryData(
-        label: 'Chicken', imagePath: 'assets/images/cat_chicken_single.png'),
-    _CategoryData(label: 'Street', imagePath: 'assets/images/cat_street.png'),
-    _CategoryData(label: 'BBQ', imagePath: 'assets/images/cat_chicken.png'),
-    _CategoryData(label: 'Asian', imagePath: 'assets/images/cat_asian.png'),
-    _CategoryData(
-        label: 'Desserts', imagePath: 'assets/images/cat_desserts.png'),
-    _CategoryData(label: 'Coffee', imagePath: 'assets/images/cat_coffee.png'),
-    _CategoryData(
-        label: 'Fast Food', imagePath: 'assets/images/cat_fastfood.png'),
-    _CategoryData(label: 'Healthy', imagePath: 'assets/images/cat_healthy.png'),
-    _CategoryData(
-        label: 'Late Night', imagePath: 'assets/images/cat_late_night.png'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -577,12 +564,11 @@ class _CategoryGrid extends StatelessWidget {
         return Wrap(
           spacing: _columnGap,
           runSpacing: _rowGap,
-          children: _items
+          children: categoryDummyData
               .map(
-                (item) => SizedBox(
+                (category) => SizedBox(
                   width: itemWidth,
-                  child: _CategoryItem(
-                      label: item.label, imagePath: item.imagePath),
+                  child: _CategoryItem(category: category),
                 ),
               )
               .toList(),
@@ -718,49 +704,52 @@ class _PickupBrandItem extends StatelessWidget {
   }
 }
 
-class _CategoryData {
-  final String label;
-  final String imagePath;
-  const _CategoryData({required this.label, required this.imagePath});
-}
-
 class _CategoryItem extends StatelessWidget {
-  final String label;
-  final String imagePath;
-  const _CategoryItem({required this.label, required this.imagePath});
+  final CategoryModel category;
+
+  const _CategoryItem({required this.category});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.primary),
-            ),
-            clipBehavior: Clip.hardEdge,
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.contain,
-                alignment: Alignment.center,
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CategoryDetailPage(category: category),
+        ),
+      ),
+      child: Column(
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.primary),
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Image.asset(
+                  category.image,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: AppTextStyles.body,
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+          const SizedBox(height: 4),
+          Text(
+            category.title,
+            style: AppTextStyles.body,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1193,8 +1182,7 @@ class _CafeCard extends StatelessWidget {
                           .copyWith(fontWeight: FontWeight.w600)),
                   const Text(' (2,002)', style: AppTextStyles.caption),
                   const SizedBox(width: 7),
-                  SvgPicture.asset('assets/icons/clock.svg',
-                      width: 16, height: 16),
+                  Image.asset('assets/icons/clock.svg', width: 16, height: 16),
                   const SizedBox(width: 4),
                   Text(time,
                       style: AppTextStyles.caption.copyWith(
