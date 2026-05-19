@@ -15,8 +15,7 @@ class SearchPage extends StatefulWidget {
   State<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage>
-    with TickerProviderStateMixin {
+class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
   late TabController _tabController;
   final _searchController = TextEditingController();
   bool _hasQuery = false;
@@ -70,8 +69,7 @@ class _SearchPageState extends State<SearchPage>
     _rankTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       _rankAnimController.forward().then((_) {
         setState(() {
-          _currentRankIndex =
-              (_currentRankIndex + 1) % _popularSearches.length;
+          _currentRankIndex = (_currentRankIndex + 1) % _popularSearches.length;
         });
         _rankAnimController.reset();
       });
@@ -97,9 +95,7 @@ class _SearchPageState extends State<SearchPage>
             _buildTopBar(context),
             _buildTabs(),
             Expanded(
-              child: _hasQuery
-                  ? _buildSearchResults()
-                  : _buildDefaultContent(),
+              child: _hasQuery ? _buildSearchResults() : _buildDefaultContent(),
             ),
           ],
         ),
@@ -169,7 +165,7 @@ class _SearchPageState extends State<SearchPage>
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => CartPage(
+                builder: (_) => const CartPage(
                   menuName: 'Half [Jok, Bo Set]',
                   selectedSize: 'Small (2–3 servings)',
                   selectedJokbal: 'Choice Jokbal',
@@ -270,34 +266,34 @@ class _SearchPageState extends State<SearchPage>
           const SizedBox(width: 14),
           Expanded(
             child: ClipRect(
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                SlideTransition(
-                  position: _slideOutAnim,
-                  child: Text(
-                    _popularSearches[_currentRankIndex],
-                    style: const TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 15,
-                      color: AppColors.textPrimary,
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  SlideTransition(
+                    position: _slideOutAnim,
+                    child: Text(
+                      _popularSearches[_currentRankIndex],
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 15,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                SlideTransition(
-                  position: _slideInAnim,
-                  child: Text(
-                    _popularSearches[
-                        (_currentRankIndex + 1) % _popularSearches.length],
-                    style: const TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 15,
-                      color: AppColors.textPrimary,
+                  SlideTransition(
+                    position: _slideInAnim,
+                    child: Text(
+                      _popularSearches[
+                          (_currentRankIndex + 1) % _popularSearches.length],
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 15,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -318,11 +314,11 @@ class _SearchPageState extends State<SearchPage>
       padding: const EdgeInsets.fromLTRB(18, 16, 0, 16),
       child: Row(
         children: [
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Not sure where to go?',
                   style: TextStyle(
                     fontFamily: 'Pretendard',
@@ -331,8 +327,8 @@ class _SearchPageState extends State<SearchPage>
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 6),
-                const Text(
+                SizedBox(height: 6),
+                Text(
                   'Discover a new Korea\nthrough friends!',
                   style: TextStyle(
                     fontFamily: 'Pretendard',
@@ -399,7 +395,7 @@ class _SearchPageState extends State<SearchPage>
     final query = _searchController.text.trim().toLowerCase();
 
     if (query == 'malatang') {
-      return _MalatangResults();
+      return const _MalatangResults();
     }
 
     return const Center(
@@ -477,7 +473,7 @@ class _MalatangResults extends StatelessWidget {
     ),
   ];
 
-  const _MalatangResults({super.key});
+  const _MalatangResults();
 
   @override
   Widget build(BuildContext context) {
@@ -496,9 +492,9 @@ class _MalatangResults extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: const Text(
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
             'Recommended',
             style: TextStyle(
               fontFamily: 'Pretendard',
@@ -738,8 +734,7 @@ class _StoreCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Image.asset(
               store.imagePath,
               width: double.infinity,
