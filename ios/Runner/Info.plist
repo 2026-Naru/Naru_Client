@@ -54,7 +54,7 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>GMSApiKey</key>
-	<string>AIzaSyD1YSTYMPZJlqdMigkPeigtB4toAO3qUWw</string>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Naru uses your location to show nearby places on the map.</string>
 	<key>UISupportedInterfaceOrientations</key>

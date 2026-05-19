@@ -11,7 +11,7 @@ class OrderFlowPage extends StatefulWidget {
 }
 
 class _OrderFlowPageState extends State<OrderFlowPage> {
-  int _step = 0;
+  final int _step = 0;
 
   static const List<_MenuItem> _priceOptions = [
     _MenuItem('Small (2–3 servings)', '₩38,000'),
@@ -84,7 +84,7 @@ class _OrderFlowPageState extends State<OrderFlowPage> {
                               color: const Color(0xFF787E81))),
                     ),
                     const SizedBox(height: 8),
-                    Text('Half [Jok, Bo Set]', style: AppTextStyles.h1),
+                    const Text('Half [Jok, Bo Set]', style: AppTextStyles.h1),
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -133,7 +133,7 @@ class _OrderFlowPageState extends State<OrderFlowPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('quantity', style: AppTextStyles.h3),
+                        const Text('quantity', style: AppTextStyles.h3),
                         Container(
                           height: 46,
                           width: 161,
@@ -203,7 +203,7 @@ class _OrderFlowPageState extends State<OrderFlowPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   alignment: Alignment.center,
-                  child: Text('Order ₩38,000',
+                  child: const Text('Order ₩38,000',
                       style: AppTextStyles.button),
                 ),
               ),

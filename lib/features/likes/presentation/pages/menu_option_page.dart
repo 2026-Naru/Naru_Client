@@ -87,12 +87,12 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Row(
+                        const Row(
                           children: [
-                            const Icon(Icons.star_rounded,
+                            Icon(Icons.star_rounded,
                                 color: Color(0xFFFFC107), size: 15),
-                            const SizedBox(width: 3),
-                            const Text(
+                            SizedBox(width: 3),
+                            Text(
                               '3.2',
                               style: TextStyle(
                                 fontFamily: 'Pretendard',
@@ -101,17 +101,17 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
                                 color: AppColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(width: 2),
+                            SizedBox(width: 2),
                             Text(
                               '(132)',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Pretendard',
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                               ),
                             ),
-                            const SizedBox(width: 2),
-                            const Icon(Icons.chevron_right,
+                            SizedBox(width: 2),
+                            Icon(Icons.chevron_right,
                                 size: 16, color: AppColors.textSecondary),
                           ],
                         ),

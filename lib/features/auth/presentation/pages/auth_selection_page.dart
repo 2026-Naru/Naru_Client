@@ -16,7 +16,7 @@ class AuthSelectionPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(height: 115),
-          _AuthHero(),
+          const _AuthHero(),
           const SizedBox(height: 55),
 
           // Apple / Google 소셜 로그인
@@ -132,7 +132,7 @@ class _AuthHero extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 11),
-          _FoodImageWithGlow(),
+          const _FoodImageWithGlow(),
         ],
       ),
     );
@@ -144,9 +144,9 @@ class _FoodImageWithGlow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foodWidth = 150.0;
-    final foodHeight = 130.0;
-    final glowSize = 178.0;
+    const foodWidth = 150.0;
+    const foodHeight = 130.0;
+    const glowSize = 178.0;
 
     return SizedBox(
       width: glowSize,

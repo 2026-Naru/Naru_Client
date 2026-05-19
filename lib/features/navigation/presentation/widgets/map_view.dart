@@ -1,12 +1,15 @@
 import 'dart:ui' as ui;
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../likes/presentation/pages/store_detail_page.dart';
 
 enum MapViewVariant { navigation, selectLocation }
 
@@ -27,13 +30,7 @@ class _MarkerCache {
   static bool isLoading = false;
 }
 
-const _foodPinDesignVersion = 2;
-
-const _minimalMapStyle = '''[
-  {"featureType":"poi","stylers":[{"visibility":"off"}]},
-  {"featureType":"transit","stylers":[{"visibility":"off"}]},
-  {"featureType":"road","elementType":"labels.icon","stylers":[{"visibility":"off"}]}
-]''';
+const _foodPinDesignVersion = 3;
 
 class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   Map<String, BitmapDescriptor> _foodPins = {};
@@ -46,7 +43,6 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   bool _isResolvingLocation = false;
   int _locationRetryCount = 0;
   Timer? _locationRetryTimer;
-  bool _mapReady = false;
   static const CameraPosition _navigationCamera = CameraPosition(
     target: LatLng(37.55645, 126.92245),
     zoom: 16.35,
@@ -56,6 +52,53 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
     target: LatLng(37.55600, 126.92180),
     zoom: 15.95,
   );
+
+  static const _navigationStorePins = [
+    _MapStorePin(
+      markerId: 'food_cafe',
+      imagePath: 'assets/images/food_cafe.png',
+      latitudeDelta: -0.00057,
+      longitudeDelta: -0.00190,
+      storeName: 'Cafe Bombom Sillim',
+      storeSubtitle: 'Fresh coffee and sweet drinks',
+      preset: StoreDetailPreset.cafe,
+      rating: '5.0',
+      deliveryTime: '15min',
+    ),
+    _MapStorePin(
+      markerId: 'food_jokbal',
+      imagePath: 'assets/images/food_jokbal.png',
+      latitudeDelta: 0.00013,
+      longitudeDelta: -0.00110,
+      storeName: 'Simin Jokbal Bossam Sillim',
+      storeSubtitle: 'Korean jokbal and bossam',
+      preset: StoreDetailPreset.jokbal,
+      rating: '5.0',
+      deliveryTime: '40min',
+    ),
+    _MapStorePin(
+      markerId: 'food_tteokbokki',
+      imagePath: 'assets/images/food_tteokbokki.png',
+      latitudeDelta: -0.00017,
+      longitudeDelta: 0.00010,
+      storeName: 'Yupki Ddukbokki Sillim',
+      storeSubtitle: 'Spicy Korean street food',
+      preset: StoreDetailPreset.tteokbokki,
+      rating: '4.9',
+      deliveryTime: '20min',
+    ),
+    _MapStorePin(
+      markerId: 'food_jjukkumi',
+      imagePath: 'assets/images/banner_food.png',
+      latitudeDelta: -0.00047,
+      longitudeDelta: 0.00060,
+      storeName: 'Seoul Bangyidong Jjukkumi House',
+      storeSubtitle: 'Bold, spicy, and full of flavor',
+      preset: StoreDetailPreset.jjukkumi,
+      rating: '4.8',
+      deliveryTime: '30min',
+    ),
+  ];
 
   @override
   void initState() {
@@ -240,50 +283,39 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   Set<Marker> _buildNavigationMarkers() {
     final center = _currentLocation ?? _navigationCamera.target;
 
-    return {
-      Marker(
-        markerId: const MarkerId('food_1'),
-        position: _offset(center, -0.00057, -0.00190),
-        icon: _foodPins['assets/images/food_cafe.png']!,
-        anchor: const Offset(0.5, 0.96),
+    return _navigationStorePins
+        .map(
+          (pin) => Marker(
+            markerId: MarkerId(pin.markerId),
+            position: _offset(
+              center,
+              pin.latitudeDelta,
+              pin.longitudeDelta,
+            ),
+            icon: _foodPins[pin.imagePath]!,
+            anchor: const Offset(0.5, 0.96),
+            onTap: () => _openStoreDetail(pin),
+          ),
+        )
+        .toSet();
+  }
+
+  void _openStoreDetail(_MapStorePin pin) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StoreDetailPage(
+          storeName: pin.storeName,
+          storeSubtitle: pin.storeSubtitle,
+          heroImagePath: pin.imagePath,
+          logoImagePath: pin.imagePath,
+          preset: pin.preset,
+          rating: pin.rating,
+          deliveryTime: pin.deliveryTime,
+          bottomNavIndex: 1,
+        ),
       ),
-      Marker(
-        markerId: const MarkerId('food_2'),
-        position: _offset(center, 0.00013, -0.00110),
-        icon: _foodPins['assets/images/food_jokbal.png']!,
-        anchor: const Offset(0.5, 0.96),
-      ),
-      Marker(
-        markerId: const MarkerId('food_3'),
-        position: _offset(center, -0.00017, 0.00010),
-        icon: _foodPins['assets/images/food_tteokbokki.png']!,
-        anchor: const Offset(0.5, 0.96),
-      ),
-      Marker(
-        markerId: const MarkerId('food_4'),
-        position: _offset(center, -0.00047, 0.00060),
-        icon: _foodPins['assets/images/banner_food.png']!,
-        anchor: const Offset(0.5, 0.96),
-      ),
-      Marker(
-        markerId: const MarkerId('dot_orange_1'),
-        position: _offset(center, 0.00050, -0.00175),
-        icon: _orangeDotPin!,
-        anchor: const Offset(0.5, 0.5),
-      ),
-      Marker(
-        markerId: const MarkerId('dot_orange_2'),
-        position: _offset(center, 0.00055, -0.00133),
-        icon: _orangeDotPin!,
-        anchor: const Offset(0.5, 0.5),
-      ),
-      Marker(
-        markerId: const MarkerId('dot_blue_1'),
-        position: _offset(center, -0.00035, -0.00127),
-        icon: _blueDotPin!,
-        anchor: const Offset(0.5, 0.5),
-      ),
-    };
+    );
   }
 
   Set<Marker> _buildSelectLocationMarkers() {
@@ -320,55 +352,45 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        GoogleMap(
-          initialCameraPosition: widget.variant == MapViewVariant.navigation
-              ? _navigationCamera
-              : _selectLocationCamera,
-          markers: _markers,
-          style: _minimalMapStyle,
-          zoomControlsEnabled: false,
-          myLocationButtonEnabled: false,
-          mapToolbarEnabled: false,
-          compassEnabled: false,
-          myLocationEnabled: _myLocationEnabled,
-          tiltGesturesEnabled: false,
-          rotateGesturesEnabled: false,
-          scrollGesturesEnabled: false,
-          zoomGesturesEnabled: false,
-          trafficEnabled: false,
-          buildingsEnabled: false,
-          indoorViewEnabled: false,
-          padding: EdgeInsets.zero,
-          onMapCreated: (controller) {
-            _mapController = controller;
-            if (mounted) setState(() => _mapReady = true);
-            _moveCameraToActiveLocation();
-          },
-        ),
-        AnimatedOpacity(
-          opacity: _mapReady ? 0.0 : 1.0,
-          duration: const Duration(milliseconds: 400),
-          child: const ColoredBox(
-            color: Color(0xFFE8E8E8),
-            child: SizedBox.expand(),
-          ),
-        ),
-      ],
+    return GoogleMap(
+      initialCameraPosition: widget.variant == MapViewVariant.navigation
+          ? _navigationCamera
+          : _selectLocationCamera,
+      markers: _markers,
+      zoomControlsEnabled: false,
+      myLocationButtonEnabled: false,
+      mapToolbarEnabled: false,
+      compassEnabled: false,
+      myLocationEnabled:
+          widget.variant == MapViewVariant.selectLocation && _myLocationEnabled,
+      tiltGesturesEnabled: false,
+      rotateGesturesEnabled: false,
+      scrollGesturesEnabled: false,
+      zoomGesturesEnabled: false,
+      trafficEnabled: false,
+      buildingsEnabled: false,
+      indoorViewEnabled: false,
+      padding: EdgeInsets.zero,
+      gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+        Factory<TapGestureRecognizer>(() => TapGestureRecognizer()),
+      },
+      onMapCreated: (controller) {
+        _mapController = controller;
+        _moveCameraToActiveLocation();
+      },
     );
   }
 
   Future<BitmapDescriptor> _buildFoodPinDescriptor(
       String imageAssetPath) async {
     try {
-      final sourceImage = await _loadAssetImage(imageAssetPath, targetSize: 96);
+      final sourceImage = await _loadAssetImage(imageAssetPath, targetSize: 72);
 
-      const double canvasWidth = 76;
-      const double canvasHeight = 90;
-      const innerRect = Rect.fromLTWH(14, 12, 48, 48);
+      const double canvasWidth = 54;
+      const double canvasHeight = 63;
+      const innerRect = Rect.fromLTWH(10, 8, 34, 34);
       final innerRRect =
-          RRect.fromRectAndRadius(innerRect, const Radius.circular(13));
+          RRect.fromRectAndRadius(innerRect, const Radius.circular(11));
 
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
@@ -431,13 +453,13 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
     return Path()
       ..addRRect(
         RRect.fromRectAndRadius(
-          const Rect.fromLTWH(8, 6, 60, 60),
-          const Radius.circular(18),
+          const Rect.fromLTWH(4, 3, 46, 46),
+          const Radius.circular(17),
         ),
       )
-      ..moveTo(24, 61)
-      ..lineTo(52, 61)
-      ..lineTo(38, 88)
+      ..moveTo(18, 44)
+      ..lineTo(36, 44)
+      ..lineTo(27, 61)
       ..close();
   }
 
@@ -453,4 +475,28 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
     final frame = await codec.getNextFrame();
     return frame.image;
   }
+}
+
+class _MapStorePin {
+  final String markerId;
+  final String imagePath;
+  final double latitudeDelta;
+  final double longitudeDelta;
+  final String storeName;
+  final String storeSubtitle;
+  final StoreDetailPreset preset;
+  final String rating;
+  final String deliveryTime;
+
+  const _MapStorePin({
+    required this.markerId,
+    required this.imagePath,
+    required this.latitudeDelta,
+    required this.longitudeDelta,
+    required this.storeName,
+    required this.storeSubtitle,
+    required this.preset,
+    required this.rating,
+    required this.deliveryTime,
+  });
 }

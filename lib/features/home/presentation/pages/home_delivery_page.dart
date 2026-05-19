@@ -1182,7 +1182,7 @@ class _CafeCard extends StatelessWidget {
                           .copyWith(fontWeight: FontWeight.w600)),
                   const Text(' (2,002)', style: AppTextStyles.caption),
                   const SizedBox(width: 7),
-                  Image.asset('assets/icons/clock.svg', width: 16, height: 16),
+                  SvgPicture.asset('assets/icons/clock.svg', width: 16, height: 16),
                   const SizedBox(width: 4),
                   Text(time,
                       style: AppTextStyles.caption.copyWith(

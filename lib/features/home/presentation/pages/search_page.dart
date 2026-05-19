@@ -165,7 +165,7 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => CartPage(
+                builder: (_) => const CartPage(
                   menuName: 'Half [Jok, Bo Set]',
                   selectedSize: 'Small (2–3 servings)',
                   selectedJokbal: 'Choice Jokbal',
@@ -314,11 +314,11 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
       padding: const EdgeInsets.fromLTRB(18, 16, 0, 16),
       child: Row(
         children: [
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Not sure where to go?',
                   style: TextStyle(
                     fontFamily: 'Pretendard',
@@ -327,8 +327,8 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 6),
-                const Text(
+                SizedBox(height: 6),
+                Text(
                   'Discover a new Korea\nthrough friends!',
                   style: TextStyle(
                     fontFamily: 'Pretendard',
@@ -395,7 +395,7 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
     final query = _searchController.text.trim().toLowerCase();
 
     if (query == 'malatang') {
-      return _MalatangResults();
+      return const _MalatangResults();
     }
 
     return const Center(
@@ -473,7 +473,7 @@ class _MalatangResults extends StatelessWidget {
     ),
   ];
 
-  const _MalatangResults({super.key});
+  const _MalatangResults();
 
   @override
   Widget build(BuildContext context) {
@@ -492,9 +492,9 @@ class _MalatangResults extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: const Text(
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
             'Recommended',
             style: TextStyle(
               fontFamily: 'Pretendard',
@@ -549,9 +549,7 @@ class _FilterChipWidget extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          chip.icon.endsWith('black_clock.svg')
-              ? SvgPicture.asset(chip.icon, width: 14, height: 14)
-              : Image.asset(chip.icon, width: 14, height: 14),
+          SvgPicture.asset(chip.icon, width: 14, height: 14),
           const SizedBox(width: 6),
           Text(
             chip.label,
@@ -784,7 +782,7 @@ class _StoreCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Image.asset('assets/icons/clock.svg',
+                    SvgPicture.asset('assets/icons/clock.svg',
                         width: 13, height: 13),
                     const SizedBox(width: 3),
                     Text(

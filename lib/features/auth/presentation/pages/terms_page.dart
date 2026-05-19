@@ -87,7 +87,7 @@ class _TermsPageState extends State<TermsPage> {
                                     ),
                                   ),
                                   const SizedBox(width: 6),
-                                  Text(
+                                  const Text(
                                     'Agree to All',
                                     style: AppTextStyles.title,
                                   ),
