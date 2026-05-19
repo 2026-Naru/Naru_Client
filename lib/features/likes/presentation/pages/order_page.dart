@@ -449,9 +449,9 @@ class _OrderPageState extends State<OrderPage>
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           const SizedBox(height: 12),
-          Row(
+          const Row(
             children: [
-              const Text(
+              Text(
                 'Ponits',
                 style: TextStyle(
                   fontFamily: 'Pretendard',
@@ -459,8 +459,8 @@ class _OrderPageState extends State<OrderPage>
                   color: AppColors.textSecondary,
                 ),
               ),
-              const Spacer(),
-              const Text(
+              Spacer(),
+              Text(
                 '0',
                 style: TextStyle(
                   fontFamily: 'Pretendard',
@@ -468,8 +468,8 @@ class _OrderPageState extends State<OrderPage>
                   color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(width: 4),
-              const Icon(Icons.chevron_right,
+              SizedBox(width: 4),
+              Icon(Icons.chevron_right,
                   size: 18, color: AppColors.textSecondary),
             ],
           ),

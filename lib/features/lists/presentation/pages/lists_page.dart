@@ -37,21 +37,21 @@ class _ListsPageState extends State<ListsPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 16, 0),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 16, 0),
               child: Row(
                 children: [
                   Text('Lists', style: AppTextStyles.h3),
-                  const Spacer(),
-                  const Icon(Icons.search, size: 24),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.shopping_cart_outlined, size: 24),
+                  Spacer(),
+                  Icon(Icons.search, size: 24),
+                  SizedBox(width: 6),
+                  Icon(Icons.shopping_cart_outlined, size: 24),
                 ],
               ),
             ),
             const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.only(left: 20),
+            const Padding(
+              padding: EdgeInsets.only(left: 20),
               child: Text('Order History', style: AppTextStyles.title),
             ),
             // Tabs

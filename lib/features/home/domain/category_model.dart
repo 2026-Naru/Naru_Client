@@ -1,25 +1,27 @@
 class CategoryModel {
+  final String id;
   final String title;
-  final String description;
   final String image;
+  final String description;
   final List<CategoryItemModel> items;
 
   const CategoryModel({
+    required this.id,
     required this.title,
-    required this.description,
     required this.image,
+    required this.description,
     required this.items,
   });
 }
 
 class CategoryItemModel {
   final String name;
-  final String description;
   final String image;
+  final String description;
 
   const CategoryItemModel({
     required this.name,
-    required this.description,
     required this.image,
+    required this.description,
   });
 }

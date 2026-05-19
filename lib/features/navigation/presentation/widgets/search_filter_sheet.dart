@@ -17,9 +17,9 @@ class SearchFilterSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Filter', style: AppTextStyles.h3),
+          const Text('Filter', style: AppTextStyles.h3),
           const SizedBox(height: 16),
-          Text('Transport', style: AppTextStyles.title),
+          const Text('Transport', style: AppTextStyles.title),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
