@@ -251,8 +251,7 @@ class _CategoryBadge extends StatelessWidget {
       child: Image.asset(
         _transparentAsset(image),
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) =>
-            Image.asset(image, fit: BoxFit.contain),
+        errorBuilder: (_, __, ___) => Image.asset(image, fit: BoxFit.contain),
       ),
     );
   }
