@@ -23,7 +23,7 @@ class FavoritesPage extends StatelessWidget {
           title: 'Rosé Menu',
           description: 'Tteokbokki+rice+fries',
           price: '₩16,000',
-          imagePath: 'assets/images/Rosé_Menu.png',
+          imagePath: 'assets/images/rose_menu.png',
         ),
         _ProductCardData(
           title: 'Mala Tteokbokki',

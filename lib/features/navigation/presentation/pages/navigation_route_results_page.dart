@@ -60,36 +60,7 @@ class _NavigationRouteResultsPageState
             child: Stack(
               children: [
                 const Positioned.fill(
-                  child: ColorFiltered(
-                    colorFilter: ColorFilter.matrix([
-                      0.2126,
-                      0.7152,
-                      0.0722,
-                      0,
-                      0,
-                      0.2126,
-                      0.7152,
-                      0.0722,
-                      0,
-                      0,
-                      0.2126,
-                      0.7152,
-                      0.0722,
-                      0,
-                      0,
-                      0,
-                      0,
-                      0,
-                      1,
-                      0,
-                    ]),
-                    child: MapView(variant: MapViewVariant.navigation),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    color: const Color(0xFF4B4E52).withValues(alpha: 0.22),
-                  ),
+                  child: MapView(variant: MapViewVariant.navigation),
                 ),
                 // Back + search pill
                 Positioned(
