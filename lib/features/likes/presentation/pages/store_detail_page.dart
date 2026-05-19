@@ -3,7 +3,15 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
 import 'menu_option_page.dart';
 
-enum StoreDetailPreset { jokbal, tteokbokki, burger, chicken, pizza, cafe }
+enum StoreDetailPreset {
+  jokbal,
+  tteokbokki,
+  burger,
+  chicken,
+  pizza,
+  cafe,
+  jjukkumi,
+}
 
 class StoreDetailPage extends StatefulWidget {
   final String storeName;
@@ -444,6 +452,42 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             imagePath: 'assets/images/food_cafe.png',
           ),
         ];
+      case StoreDetailPreset.jjukkumi:
+        return const [
+          _MenuItem(
+            rank: 'Top 1',
+            name: 'Spicy Jjukkumi Set',
+            description: 'Jjukkumi + Bean sprouts + Spicy sauce',
+            options: [
+              'Small (1~2 servings): ₩24,000',
+              'Medium (2~3 servings): ₩32,000',
+              'Large (3~4 servings): ₩42,000',
+            ],
+            imagePath: 'assets/images/banner_food.png',
+          ),
+          _MenuItem(
+            rank: 'Top 2',
+            name: 'Cheese Jjukkumi',
+            description: 'Jjukkumi + Mozzarella + Rice cake',
+            options: [
+              'Small (1~2 servings): ₩27,000',
+              'Medium (2~3 servings): ₩35,000',
+              'Large (3~4 servings): ₩45,000',
+            ],
+            imagePath: 'assets/images/banner_food.png',
+          ),
+          _MenuItem(
+            rank: 'Top 3',
+            name: 'Jjukkumi Fried Rice',
+            description: 'Rice + Seaweed + Spicy jjukkumi sauce',
+            options: [
+              'Single: ₩5,000',
+              'Double: ₩9,000',
+              'Add cheese: + ₩2,000',
+            ],
+            imagePath: 'assets/images/banner_food.png',
+          ),
+        ];
       case StoreDetailPreset.tteokbokki:
         return const [
           _MenuItem(
@@ -693,6 +737,8 @@ class _StoreDetailPageState extends State<StoreDetailPage>
         return 'assets/images/franchise_domino_bg.png';
       case StoreDetailPreset.cafe:
         return 'assets/images/food_cafe.png';
+      case StoreDetailPreset.jjukkumi:
+        return 'assets/images/banner_food.png';
     }
   }
 
@@ -727,6 +773,11 @@ class _StoreDetailPageState extends State<StoreDetailPage>
         return const [
           'The coffee was smooth and still cold when it arrived. Perfect afternoon pick-me-up.',
           'The ade tasted fresh and not too sweet. Great spot for quick drinks nearby.',
+        ];
+      case StoreDetailPreset.jjukkumi:
+        return const [
+          'The jjukkumi was spicy in the best way, and the portion was generous. It paired perfectly with rice.',
+          'Fresh, bold, and full of flavor. The sauce was rich and everything arrived hot.',
         ];
     }
   }
