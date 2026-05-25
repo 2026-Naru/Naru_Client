@@ -8,6 +8,7 @@ class OrderCard extends StatelessWidget {
   final String price;
   final String date;
   final String imagePath;
+  final VoidCallback? onTap;
 
   const OrderCard({
     super.key,
@@ -16,15 +17,21 @@ class OrderCard extends StatelessWidget {
     required this.price,
     required this.date,
     required this.imagePath,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
+      color: AppColors.bgWhite,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
       height: 96,
       padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
       decoration: BoxDecoration(
-        color: AppColors.bgWhite,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFF747474), width: 1),
       ),
@@ -103,6 +110,8 @@ class OrderCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }
