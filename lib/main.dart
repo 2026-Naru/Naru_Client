@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'app.dart';
+import 'features/cart/presentation/providers/cart_provider.dart';
 
 void main() {
-  runApp(const NaruApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CartProvider(),
+      child: const NaruApp(),
+    ),
+  );
 }
