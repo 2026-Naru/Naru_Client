@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../cart/domain/cart_item.dart';
 import 'payment_success_page.dart';
 
 class OrderPage extends StatefulWidget {
@@ -10,6 +11,7 @@ class OrderPage extends StatefulWidget {
   final int totalPrice;
   final String menuImagePath;
   final bool isPickup;
+  final List<CartItem>? cartItems;
 
   const OrderPage({
     super.key,
@@ -20,6 +22,7 @@ class OrderPage extends StatefulWidget {
     required this.totalPrice,
     required this.menuImagePath,
     required this.isPickup,
+    this.cartItems,
   });
 
   @override
@@ -149,6 +152,54 @@ class _OrderPageState extends State<OrderPage>
   }
 
   Widget _buildMenuCard() {
+    final items = widget.cartItems;
+    if (items != null && items.isNotEmpty) {
+      return _Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: items.map((item) => Padding(
+            padding: EdgeInsets.only(bottom: items.last == item ? 0 : 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(item.imagePath, width: 64, height: 64, fit: BoxFit.cover),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.menuName,
+                          style: const TextStyle(
+                            fontFamily: 'Pretendard',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          )),
+                      const SizedBox(height: 2),
+                      Text(item.optionsSummary, style: _subtitleStyle),
+                      const SizedBox(height: 4),
+                      Text(
+                        '₩${_formatPrice(item.totalPrice)}  ×${item.quantity}',
+                        style: const TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )).toList(),
+        ),
+      );
+    }
+
     return _Card(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,12 +228,9 @@ class _OrderPageState extends State<OrderPage>
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(widget.selectedSize,
-                    style: _subtitleStyle),
-                Text(widget.selectedJokbal,
-                    style: _subtitleStyle),
-                Text(widget.selectedDrink,
-                    style: _subtitleStyle),
+                Text(widget.selectedSize, style: _subtitleStyle),
+                Text(widget.selectedJokbal, style: _subtitleStyle),
+                Text(widget.selectedDrink, style: _subtitleStyle),
                 const SizedBox(height: 8),
                 Text(
                   '₩${_formatPrice(widget.totalPrice)}',
