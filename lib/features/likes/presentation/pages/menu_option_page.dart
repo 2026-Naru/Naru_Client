@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../cart/presentation/pages/cart_list_page.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
 import 'cart_page.dart';
 
 class MenuOptionPage extends StatefulWidget {
@@ -56,7 +59,44 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
           RegExp(r'(\d)(?=(\d{3})+$)'),
           (m) => '${m[1]},',
         );
-    return 'Order ₩$formatted';
+    return 'Order Now ₩$formatted';
+  }
+
+  void _addToCart() {
+    final unitPrice = _sizes[_selectedSize].price +
+        _jokbals[_selectedJokbal].price +
+        _drinks[_selectedDrink].price;
+
+    context.read<CartProvider>().addItem(
+          menuName: widget.menuName,
+          imagePath: widget.imagePath,
+          selectedSize: _sizes[_selectedSize].label,
+          selectedJokbal: _jokbals[_selectedJokbal].label,
+          selectedDrink: _drinks[_selectedDrink].label,
+          unitPrice: unitPrice,
+          quantity: _quantity,
+        );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Added to cart',
+          style: TextStyle(fontFamily: 'Pretendard', fontSize: 14),
+        ),
+        action: SnackBarAction(
+          label: 'View Cart',
+          textColor: AppColors.brandOrange,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CartListPage()),
+          ),
+        ),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.textPrimary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
@@ -172,6 +212,7 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
           ),
           _BottomBar(
             orderLabel: _orderLabel,
+            onCart: _addToCart,
             onOrder: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -402,7 +443,13 @@ class _QtyButton extends StatelessWidget {
 class _BottomBar extends StatelessWidget {
   final String orderLabel;
   final VoidCallback onOrder;
-  const _BottomBar({required this.orderLabel, required this.onOrder});
+  final VoidCallback onCart;
+
+  const _BottomBar({
+    required this.orderLabel,
+    required this.onOrder,
+    required this.onCart,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -437,7 +484,26 @@ class _BottomBar extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: onCart,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: AppColors.bgWhite,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.brandOrange, width: 1.5),
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.shopping_cart_outlined,
+                color: AppColors.brandOrange,
+                size: 22,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: GestureDetector(
               onTap: onOrder,
@@ -452,7 +518,7 @@ class _BottomBar extends StatelessWidget {
                   orderLabel,
                   style: const TextStyle(
                     fontFamily: 'Pretendard',
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),

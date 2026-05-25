@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../cart/presentation/pages/cart_list_page.dart';
 import '../../../likes/presentation/pages/store_detail_page.dart';
 import '../../data/category_dummy_data.dart';
 import '../../domain/category_model.dart';
@@ -173,10 +174,18 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                         height: 24,
                       ),
                       const SizedBox(width: 6),
-                      SvgPicture.asset(
-                        'assets/images/ic_cart.svg',
-                        width: 24,
-                        height: 24,
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CartListPage(),
+                          ),
+                        ),
+                        child: SvgPicture.asset(
+                          'assets/images/ic_cart.svg',
+                          width: 24,
+                          height: 24,
+                        ),
                       ),
                     ],
                   ),

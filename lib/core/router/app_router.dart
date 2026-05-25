@@ -5,6 +5,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/signup_page.dart';
 import '../../features/search/presentation/pages/search_page.dart';
 import '../../features/order/presentation/pages/order_flow_page.dart';
+import '../../features/cart/presentation/pages/cart_list_page.dart';
 import '../../shared/widgets/main_tab_page.dart';
 
 class AppRouter {
@@ -21,6 +22,7 @@ class AppRouter {
   static const String myPage = '/main';
   static const String search = '/search';
   static const String order = '/order';
+  static const String cart = '/cart';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -42,6 +44,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const SearchPage());
       case order:
         return MaterialPageRoute(builder: (_) => const OrderFlowPage());
+      case cart:
+        return MaterialPageRoute(builder: (_) => const CartListPage());
       default:
         return MaterialPageRoute(builder: (_) => const OnboardingPage());
     }
