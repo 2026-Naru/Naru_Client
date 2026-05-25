@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../likes/presentation/pages/store_detail_page.dart';
 import '../widgets/order_card.dart';
 
 class OrderHistoryPage extends StatelessWidget {
@@ -14,13 +15,15 @@ class OrderHistoryPage extends StatelessWidget {
       price: '₩12,500',
       date: '26.04.01',
       imagePath: 'assets/images/cat_chicken_single.png',
+      preset: StoreDetailPreset.chicken,
     ),
     _OrderItem(
       title: 'TangHwa MALATANG',
-      subtitle: 'Chef’s Choice Mala Tang',
+      subtitle: 'Chef\'s Choice Mala Tang',
       price: '₩28,500',
       date: '26.04.01',
       imagePath: 'assets/images/food_tteokbokki.png',
+      preset: StoreDetailPreset.tteokbokki,
     ),
   ];
 
@@ -86,7 +89,7 @@ class _OrderList extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
       itemCount: orders.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (_, index) {
+      itemBuilder: (context, index) {
         final item = orders[index];
         return OrderCard(
           title: item.title,
@@ -94,6 +97,19 @@ class _OrderList extends StatelessWidget {
           price: item.price,
           date: item.date,
           imagePath: item.imagePath,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StoreDetailPage(
+                storeName: item.title,
+                storeSubtitle: item.subtitle,
+                heroImagePath: item.imagePath,
+                logoImagePath: item.imagePath,
+                preset: item.preset,
+                bottomNavIndex: 3,
+              ),
+            ),
+          ),
         );
       },
     );
@@ -106,6 +122,7 @@ class _OrderItem {
   final String price;
   final String date;
   final String imagePath;
+  final StoreDetailPreset preset;
 
   const _OrderItem({
     required this.title,
@@ -113,5 +130,6 @@ class _OrderItem {
     required this.price,
     required this.date,
     required this.imagePath,
+    required this.preset,
   });
 }

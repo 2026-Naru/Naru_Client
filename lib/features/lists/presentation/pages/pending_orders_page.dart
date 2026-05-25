@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../likes/presentation/pages/store_detail_page.dart';
 
 class PendingOrdersPage extends StatefulWidget {
   const PendingOrdersPage({super.key});
@@ -21,6 +22,7 @@ class _PendingOrdersPageState extends State<PendingOrdersPage> {
       title: 'BHC Chicken Myeongdong',
       statusText: 'Order Being Prepared',
       imagePath: 'assets/images/cat_bhc.png',
+      preset: StoreDetailPreset.chicken,
     ),
     _PendingOrder(
       date: '4.5 SUN',
@@ -29,6 +31,7 @@ class _PendingOrdersPageState extends State<PendingOrdersPage> {
       title: 'Kyochon Chicken Jongno 1st Store',
       statusText: 'Order Being Prepared',
       imagePath: 'assets/images/franchise_nene_bg.png',
+      preset: StoreDetailPreset.chicken,
     ),
     _PendingOrder(
       date: '4.5 SUN',
@@ -37,6 +40,7 @@ class _PendingOrdersPageState extends State<PendingOrdersPage> {
       title: 'East Village Seoul',
       statusText: 'Order Being Prepared',
       imagePath: 'assets/images/cat_korean.png',
+      preset: StoreDetailPreset.jokbal,
     ),
   ];
 
@@ -107,7 +111,7 @@ class _PendingOrdersPageState extends State<PendingOrdersPage> {
               : ListView.builder(
                   padding: const EdgeInsets.only(bottom: 16),
                   itemCount: filtered.length,
-                  itemBuilder: (_, i) {
+                  itemBuilder: (context, i) {
                     final order = filtered[i];
                     final showDate = i == 0 || filtered[i - 1].date != order.date;
                     return Column(
@@ -126,7 +130,22 @@ class _PendingOrdersPageState extends State<PendingOrdersPage> {
                               ),
                             ),
                           ),
-                        _PendingOrderRow(order: order),
+                        _PendingOrderRow(
+                          order: order,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => StoreDetailPage(
+                                storeName: order.title,
+                                storeSubtitle: order.category,
+                                heroImagePath: order.imagePath,
+                                logoImagePath: order.imagePath,
+                                preset: order.preset,
+                                bottomNavIndex: 3,
+                              ),
+                            ),
+                          ),
+                        ),
                         if (i < filtered.length - 1)
                           const Divider(
                             height: 1,
@@ -147,65 +166,72 @@ class _PendingOrdersPageState extends State<PendingOrdersPage> {
 
 class _PendingOrderRow extends StatelessWidget {
   final _PendingOrder order;
-  const _PendingOrderRow({required this.order});
+  final VoidCallback? onTap;
+  const _PendingOrderRow({required this.order, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
-              color: const Color(0xFFF3F5F7),
-            ),
-            child: Image.asset(order.imagePath, fit: BoxFit.cover),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                clipBehavior: Clip.hardEdge,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
+                  color: const Color(0xFFF3F5F7),
+                ),
+                child: Image.asset(order.imagePath, fit: BoxFit.cover),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${order.status}  |  ${order.category}',
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      order.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      order.statusText,
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.brandOrange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${order.status}  |  ${order.category}',
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  order.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  order.statusText,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.brandOrange,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -218,6 +244,7 @@ class _PendingOrder {
   final String title;
   final String statusText;
   final String imagePath;
+  final StoreDetailPreset preset;
 
   const _PendingOrder({
     required this.date,
@@ -226,5 +253,6 @@ class _PendingOrder {
     required this.title,
     required this.statusText,
     required this.imagePath,
+    required this.preset,
   });
 }
