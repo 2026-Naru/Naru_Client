@@ -30,7 +30,7 @@ class OrderHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!isStandalone) {
-      return _OrderList(orders: _orders);
+      return const _OrderList(orders: _orders);
     }
 
     return Scaffold(
@@ -71,7 +71,7 @@ class OrderHistoryPage extends StatelessWidget {
                 ],
               ),
             ),
-            Expanded(child: _OrderList(orders: _orders)),
+            const Expanded(child: _OrderList(orders: _orders)),
           ],
         ),
       ),
