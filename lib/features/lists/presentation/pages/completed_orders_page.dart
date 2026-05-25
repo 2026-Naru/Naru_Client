@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../likes/presentation/pages/store_detail_page.dart';
 
 class CompletedOrdersPage extends StatefulWidget {
   const CompletedOrdersPage({super.key});
@@ -21,6 +22,7 @@ class _CompletedOrdersPageState extends State<CompletedOrdersPage> {
       detail: 'Queue Number 317  |  2 guests',
       category: 'Korean',
       imagePath: 'assets/images/cat_korean.png',
+      preset: StoreDetailPreset.jokbal,
     ),
     _CompletedOrder(
       date: '4.1 WED',
@@ -29,6 +31,7 @@ class _CompletedOrdersPageState extends State<CompletedOrdersPage> {
       detail: 'Queue Number 317  |  2 guests',
       category: 'Korean',
       imagePath: 'assets/images/cat_korean.png',
+      preset: StoreDetailPreset.jokbal,
     ),
   ];
 
@@ -99,7 +102,7 @@ class _CompletedOrdersPageState extends State<CompletedOrdersPage> {
               : ListView.builder(
                   padding: const EdgeInsets.only(bottom: 16),
                   itemCount: filtered.length,
-                  itemBuilder: (_, i) {
+                  itemBuilder: (context, i) {
                     final order = filtered[i];
                     final showDate = i == 0 || filtered[i - 1].date != order.date;
                     return Column(
@@ -118,7 +121,22 @@ class _CompletedOrdersPageState extends State<CompletedOrdersPage> {
                               ),
                             ),
                           ),
-                        _CompletedOrderRow(order: order),
+                        _CompletedOrderRow(
+                          order: order,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => StoreDetailPage(
+                                storeName: order.title,
+                                storeSubtitle: order.detail,
+                                heroImagePath: order.imagePath,
+                                logoImagePath: order.imagePath,
+                                preset: order.preset,
+                                bottomNavIndex: 3,
+                              ),
+                            ),
+                          ),
+                        ),
                         if (i < filtered.length - 1)
                           const Divider(
                             height: 1,
@@ -139,7 +157,8 @@ class _CompletedOrdersPageState extends State<CompletedOrdersPage> {
 
 class _CompletedOrderRow extends StatelessWidget {
   final _CompletedOrder order;
-  const _CompletedOrderRow({required this.order});
+  final VoidCallback? onTap;
+  const _CompletedOrderRow({required this.order, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -147,59 +166,70 @@ class _CompletedOrderRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
-          Container(
-            width: 80,
-            height: 80,
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
-              color: const Color(0xFFF3F5F7),
+          // Image and text are tappable — navigates to store detail
+          GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              width: 80,
+              height: 80,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
+                color: const Color(0xFFF3F5F7),
+              ),
+              child: Image.asset(order.imagePath, fit: BoxFit.cover),
             ),
-            child: Image.asset(order.imagePath, fit: BoxFit.cover),
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  order.status,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.textSecondary,
+            child: GestureDetector(
+              onTap: onTap,
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    order.status,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  order.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                  const SizedBox(height: 4),
+                  Text(
+                    order.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  order.detail,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.textSecondary,
+                  const SizedBox(height: 4),
+                  Text(
+                    order.detail,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 12),
+          // Reorder button — separate tap area, does not trigger navigation
           GestureDetector(
             onTap: () {},
+            behavior: HitTestBehavior.opaque,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
@@ -230,6 +260,7 @@ class _CompletedOrder {
   final String detail;
   final String category;
   final String imagePath;
+  final StoreDetailPreset preset;
 
   const _CompletedOrder({
     required this.date,
@@ -238,5 +269,6 @@ class _CompletedOrder {
     required this.detail,
     required this.category,
     required this.imagePath,
+    required this.preset,
   });
 }
