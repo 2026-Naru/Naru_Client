@@ -46,6 +46,7 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
     _searchController.addListener(() {
       setState(() => _hasQuery = _searchController.text.isNotEmpty);
     });
+    _tabController.addListener(_onTabChanged);
 
     _rankAnimController = AnimationController(
       vsync: this,
@@ -76,8 +77,15 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
     });
   }
 
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _searchController.dispose();
     _rankAnimController.dispose();
@@ -95,7 +103,11 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
             _buildTopBar(context),
             _buildTabs(),
             Expanded(
-              child: _hasQuery ? _buildSearchResults() : _buildDefaultContent(),
+              child: _tabController.index == 1
+                  ? const _PickupDefaultContent()
+                  : (_hasQuery
+                      ? _buildSearchResults()
+                      : _buildDefaultContent()),
             ),
           ],
         ),
@@ -407,6 +419,130 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
           color: AppColors.textSecondary,
         ),
       ),
+    );
+  }
+}
+
+// ── Pickup default content ────────────────────────────────────────────────────
+
+class _PickupDefaultContent extends StatelessWidget {
+  static const _filters = [
+    _FilterChip(icon: 'assets/icons/black_clock.svg', label: 'reservation'),
+    _FilterChip(icon: 'assets/icons/promo.svg', label: 'promo now'),
+    _FilterChip(icon: 'assets/icons/black_star.svg', label: 'Highest Rated'),
+  ];
+
+  static const _stores = [
+    _SearchResultData(
+      name: 'Simin Jokbal Bossam Sillim',
+      tags: ['Jokbal', 'Bossam'],
+      rating: '5.0',
+      reviewCount: '2,002',
+      pickUpTime: '24~45min',
+      walkingTime: '8 min',
+      label: 'Jokbal\n₩38,000',
+      imagePath: 'assets/images/food_jokbal.png',
+    ),
+    _SearchResultData(
+      name: 'Yupki Ddukbokki Sillim',
+      tags: ['Tteokbokki', 'Street Food'],
+      rating: '4.9',
+      reviewCount: '2,002',
+      pickUpTime: '15~20min',
+      walkingTime: '5 min',
+      label: 'Tteokbokki\n₩12,000',
+      imagePath: 'assets/images/food_tteokbokki.png',
+    ),
+    _SearchResultData(
+      name: 'Rakungfu MALATANG',
+      tags: ['MALATANG', 'Self MALATANG'],
+      rating: '3.2',
+      reviewCount: '132',
+      pickUpTime: '15~20min',
+      walkingTime: '13 min',
+      label: 'Preparing',
+      imagePath: 'assets/images/food_tteokbokki.png',
+    ),
+    _SearchResultData(
+      name: 'Cafe Bombom Sillim',
+      tags: ['Coffee', 'Dessert'],
+      rating: '5.0',
+      reviewCount: '1,245',
+      pickUpTime: '10~15min',
+      walkingTime: '3 min',
+      label: 'Preparing',
+      imagePath: 'assets/images/food_cafe.png',
+    ),
+    _SearchResultData(
+      name: 'Nene Chicken Sillim',
+      tags: ['Chicken', 'Wings'],
+      rating: '4.8',
+      reviewCount: '3,102',
+      pickUpTime: '20~30min',
+      walkingTime: '10 min',
+      label: 'Chicken\n₩18,000',
+      imagePath: 'assets/images/food_jokbal.png',
+    ),
+  ];
+
+  const _PickupDefaultContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 40,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: _filters.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) => _FilterChipWidget(chip: _filters[i]),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'Recommended',
+            style: TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            itemCount: _stores.length,
+            separatorBuilder: (_, __) => const Divider(
+              height: 24,
+              thickness: 1,
+              color: Color(0xFFEEEEEE),
+            ),
+            itemBuilder: (context, i) => GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MenuOptionPage(
+                    rank: 'Top ${i + 1}',
+                    menuName: _stores[i].name,
+                    description: _stores[i].tags.join(', '),
+                    imagePath: _stores[i].imagePath,
+                  ),
+                ),
+              ),
+              behavior: HitTestBehavior.opaque,
+              child: _SearchResultRow(item: _stores[i]),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
