@@ -6,6 +6,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../../shared/widgets/main_tab_page.dart';
 import 'navigation_search_page.dart';
+import 'navigation_store_detail_page.dart';
 import 'select_location_page.dart';
 import '../widgets/map_view.dart';
 
@@ -23,6 +24,15 @@ class NavigationPage extends StatelessWidget {
       return;
     }
     Navigator.pushReplacementNamed(context, AppRouter.main, arguments: 0);
+  }
+
+  void _openStoreDetail(BuildContext context, MapStorePin pin) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => NavigationStoreDetailPage(pin: pin),
+      ),
+    );
   }
 
   static const List<_TrendingItem> _trending = [
@@ -151,7 +161,10 @@ class NavigationPage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     height: mapHeight,
-                    child: const MapView(variant: MapViewVariant.navigation),
+                    child: MapView(
+                      variant: MapViewVariant.navigation,
+                      onStorePinTap: (pin) => _openStoreDetail(context, pin),
+                    ),
                   ),
                   Positioned(
                     top: 12,

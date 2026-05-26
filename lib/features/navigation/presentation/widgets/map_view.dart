@@ -11,11 +11,19 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../likes/presentation/pages/store_detail_page.dart';
 
-enum MapViewVariant { navigation, selectLocation }
+enum MapViewVariant { navigation, selectLocation, selectedStore }
 
 class MapView extends StatefulWidget {
   final MapViewVariant variant;
-  const MapView({super.key, this.variant = MapViewVariant.navigation});
+  final ValueChanged<MapStorePin>? onStorePinTap;
+  final String? selectedStoreImagePath;
+
+  const MapView({
+    super.key,
+    this.variant = MapViewVariant.navigation,
+    this.onStorePinTap,
+    this.selectedStoreImagePath,
+  });
 
   @override
   State<MapView> createState() => _MapViewState();
@@ -30,7 +38,7 @@ class _MarkerCache {
   static bool isLoading = false;
 }
 
-const _foodPinDesignVersion = 3;
+const _foodPinDesignVersion = 4;
 
 class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   Map<String, BitmapDescriptor> _foodPins = {};
@@ -53,19 +61,24 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
     zoom: 15.95,
   );
 
+  static const CameraPosition _selectedStoreCamera = CameraPosition(
+    target: LatLng(37.55600, 126.92180),
+    zoom: 15.95,
+  );
+
   static const _navigationStorePins = [
-    _MapStorePin(
+    MapStorePin(
       markerId: 'food_cafe',
-      imagePath: 'assets/images/food_cafe.png',
+      imagePath: 'assets/navigation/szimpatikus_hero.png',
       latitudeDelta: -0.00057,
       longitudeDelta: -0.00190,
-      storeName: 'Cafe Bombom Sillim',
-      storeSubtitle: 'Fresh coffee and sweet drinks',
+      storeName: 'SZIMPATIKUSSEOUL STATION',
+      storeSubtitle: 'an atmospheric meal enjoyed by the barrel',
       preset: StoreDetailPreset.cafe,
       rating: '5.0',
       deliveryTime: '15min',
     ),
-    _MapStorePin(
+    MapStorePin(
       markerId: 'food_jokbal',
       imagePath: 'assets/images/food_jokbal.png',
       latitudeDelta: 0.00013,
@@ -76,7 +89,7 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
       rating: '5.0',
       deliveryTime: '40min',
     ),
-    _MapStorePin(
+    MapStorePin(
       markerId: 'food_tteokbokki',
       imagePath: 'assets/images/food_tteokbokki.png',
       latitudeDelta: -0.00017,
@@ -87,7 +100,7 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
       rating: '4.9',
       deliveryTime: '20min',
     ),
-    _MapStorePin(
+    MapStorePin(
       markerId: 'food_jjukkumi',
       imagePath: 'assets/images/banner_food.png',
       latitudeDelta: -0.00047,
@@ -105,15 +118,23 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initializeMarkerDescriptors();
-    _initializeCurrentLocation();
+    if (widget.variant != MapViewVariant.selectedStore) {
+      _initializeCurrentLocation();
+    }
   }
 
   @override
   void didUpdateWidget(covariant MapView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.variant != widget.variant) {
+    if (oldWidget.variant != widget.variant ||
+        oldWidget.selectedStoreImagePath != widget.selectedStoreImagePath) {
       _rebuildMarkers();
       _moveCameraToActiveLocation();
+    }
+    if (oldWidget.variant == MapViewVariant.selectedStore &&
+        widget.variant != MapViewVariant.selectedStore &&
+        _currentLocation == null) {
+      _initializeCurrentLocation();
     }
   }
 
@@ -127,7 +148,9 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _currentLocation == null) {
+    if (state == AppLifecycleState.resumed &&
+        widget.variant != MapViewVariant.selectedStore &&
+        _currentLocation == null) {
       _initializeCurrentLocation();
     }
   }
@@ -197,6 +220,8 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   }
 
   Future<void> _moveCameraToActiveLocation() async {
+    if (widget.variant == MapViewVariant.selectedStore) return;
+
     final controller = _mapController;
     final target = _currentLocation;
     if (controller == null || target == null) return;
@@ -235,6 +260,7 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
       'assets/images/food_tteokbokki.png',
       'assets/images/banner_food.png',
       'assets/images/food_cafe.png',
+      'assets/navigation/szimpatikus_hero.png',
     ];
 
     // 모든 descriptor를 병렬로 생성
@@ -271,9 +297,18 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
       return;
     }
 
-    final markers = widget.variant == MapViewVariant.navigation
-        ? _buildNavigationMarkers()
-        : _buildSelectLocationMarkers();
+    final Set<Marker> markers;
+    switch (widget.variant) {
+      case MapViewVariant.navigation:
+        markers = _buildNavigationMarkers();
+        break;
+      case MapViewVariant.selectLocation:
+        markers = _buildSelectLocationMarkers();
+        break;
+      case MapViewVariant.selectedStore:
+        markers = _buildSelectedStoreMarkers();
+        break;
+    }
 
     setState(() {
       _markers = markers;
@@ -294,13 +329,22 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
             ),
             icon: _foodPins[pin.imagePath]!,
             anchor: const Offset(0.5, 0.96),
-            onTap: () => _openStoreDetail(pin),
+            onTap: () => _handleStorePinTap(pin),
           ),
         )
         .toSet();
   }
 
-  void _openStoreDetail(_MapStorePin pin) {
+  void _handleStorePinTap(MapStorePin pin) {
+    final handler = widget.onStorePinTap;
+    if (handler != null) {
+      handler(pin);
+      return;
+    }
+    _openStoreDetail(pin);
+  }
+
+  void _openStoreDetail(MapStorePin pin) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -316,6 +360,23 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  Set<Marker> _buildSelectedStoreMarkers() {
+    final markerImagePath =
+        widget.selectedStoreImagePath ?? _navigationStorePins.first.imagePath;
+    final markerIcon = _foodPins[markerImagePath] ??
+        _foodPins[_navigationStorePins.first.imagePath] ??
+        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+
+    return {
+      Marker(
+        markerId: const MarkerId('selected_store'),
+        position: _offset(_selectedStoreCamera.target, -0.00016, -0.00010),
+        icon: markerIcon,
+        anchor: const Offset(0.5, 0.96),
+      ),
+    };
   }
 
   Set<Marker> _buildSelectLocationMarkers() {
@@ -353,9 +414,7 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return GoogleMap(
-      initialCameraPosition: widget.variant == MapViewVariant.navigation
-          ? _navigationCamera
-          : _selectLocationCamera,
+      initialCameraPosition: _initialCameraPosition(),
       markers: _markers,
       zoomControlsEnabled: false,
       myLocationButtonEnabled: false,
@@ -379,6 +438,17 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
         _moveCameraToActiveLocation();
       },
     );
+  }
+
+  CameraPosition _initialCameraPosition() {
+    switch (widget.variant) {
+      case MapViewVariant.navigation:
+        return _navigationCamera;
+      case MapViewVariant.selectLocation:
+        return _selectLocationCamera;
+      case MapViewVariant.selectedStore:
+        return _selectedStoreCamera;
+    }
   }
 
   Future<BitmapDescriptor> _buildFoodPinDescriptor(
@@ -477,7 +547,7 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
   }
 }
 
-class _MapStorePin {
+class MapStorePin {
   final String markerId;
   final String imagePath;
   final double latitudeDelta;
@@ -488,7 +558,7 @@ class _MapStorePin {
   final String rating;
   final String deliveryTime;
 
-  const _MapStorePin({
+  const MapStorePin({
     required this.markerId,
     required this.imagePath,
     required this.latitudeDelta,
