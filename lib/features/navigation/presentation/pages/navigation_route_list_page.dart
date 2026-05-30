@@ -7,11 +7,15 @@ import 'navigation_route_results_page.dart';
 class NavigationRouteListPage extends StatelessWidget {
   final String from;
   final String to;
+  final String fromImagePath;
+  final String toImagePath;
 
   const NavigationRouteListPage({
     super.key,
     required this.from,
     required this.to,
+    required this.fromImagePath,
+    required this.toImagePath,
   });
 
   void _handleBack(BuildContext context) {
@@ -109,6 +113,8 @@ class NavigationRouteListPage extends StatelessWidget {
                       builder: (_) => NavigationRouteResultsPage(
                         from: from,
                         to: to,
+                        fromImagePath: fromImagePath,
+                        toImagePath: toImagePath,
                       ),
                     ),
                   ),
