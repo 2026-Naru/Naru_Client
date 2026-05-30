@@ -25,5 +25,6 @@ flutter:
   assets:
     - assets/images/
     - assets/images/category_transparent/
+    - assets/images/landmarks/
     - assets/icons/
     - assets/navigation/
