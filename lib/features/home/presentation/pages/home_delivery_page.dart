@@ -594,17 +594,142 @@ class _PickupBrandGrid extends StatelessWidget {
   static const _columnGap = 10.0;
   static const _rowGap = 16.0;
   static const _items = [
-    _PickupBrandData(label: 'BHC', imagePath: 'assets/images/cat_bhc.png'),
-    _PickupBrandData(label: 'BBQ', imagePath: 'assets/images/cat_bbq.png'),
-    _PickupBrandData(label: 'Gupne', imagePath: 'assets/images/cat_goobne.png'),
     _PickupBrandData(
-        label: 'Bongus', imagePath: 'assets/images/cat_bongus.png'),
-    _PickupBrandData(label: 'Bback', imagePath: 'assets/images/cat_Bback.png'),
+      label: 'BHC',
+      imagePath: 'assets/images/cat_bhc.png',
+      description: 'Pickup-ready BHC chicken stores near your current area.',
+      items: [
+        CategoryItemModel(
+          name: 'BHC Chicken Sillim',
+          image: 'assets/images/cat_bhc.png',
+          description: 'Crispy chicken sets prepared quickly for pick up.',
+        ),
+        CategoryItemModel(
+          name: 'BHC Hot Chicken',
+          image: 'assets/images/cat_bhc.png',
+          description: 'Spicy fried chicken and shareable sides.',
+        ),
+      ],
+    ),
     _PickupBrandData(
-        label: 'Bombom', imagePath: 'assets/images/cat_bombom.png'),
+      label: 'BBQ',
+      imagePath: 'assets/images/cat_bbq.png',
+      description: 'Golden olive chicken and BBQ favorites for pick up.',
+      items: [
+        CategoryItemModel(
+          name: 'BBQ Chicken Sillim',
+          image: 'assets/images/cat_bbq.png',
+          description: 'Golden olive chicken packed for easy pickup.',
+        ),
+        CategoryItemModel(
+          name: 'BBQ Spicy Chicken',
+          image: 'assets/images/cat_bbq.png',
+          description: 'Bold seasoned chicken with crispy texture.',
+        ),
+      ],
+    ),
     _PickupBrandData(
-        label: 'Puradak', imagePath: 'assets/images/cat_puradak.png'),
-    _PickupBrandData(label: 'Ediya', imagePath: 'assets/images/cat_ediya.png'),
+      label: 'Gupne',
+      imagePath: 'assets/images/cat_goobne.png',
+      description: 'Oven-roasted chicken options available for pick up.',
+      items: [
+        CategoryItemModel(
+          name: 'Goobne Chicken Sillim',
+          image: 'assets/images/cat_goobne.png',
+          description: 'Oven-roasted chicken with lighter flavor.',
+        ),
+        CategoryItemModel(
+          name: 'Goobne Volcano Chicken',
+          image: 'assets/images/cat_goobne.png',
+          description: 'A spicy roasted chicken favorite.',
+        ),
+      ],
+    ),
+    _PickupBrandData(
+      label: 'Bongus',
+      imagePath: 'assets/images/cat_bongus.png',
+      description: 'Rice burgers and quick meals you can grab nearby.',
+      items: [
+        CategoryItemModel(
+          name: 'Bongus Rice Burger',
+          image: 'assets/images/cat_bongus.png',
+          description: 'Warm rice burgers for a quick pickup meal.',
+        ),
+        CategoryItemModel(
+          name: 'Bongus Bulgogi Burger',
+          image: 'assets/images/cat_bongus.png',
+          description: 'Savory rice burger with bulgogi flavor.',
+        ),
+      ],
+    ),
+    _PickupBrandData(
+      label: 'Bback',
+      imagePath: 'assets/images/cat_Bback.png',
+      description: 'Coffee and bakery drinks ready on your route.',
+      items: [
+        CategoryItemModel(
+          name: 'Bback Dabang Sillim',
+          image: 'assets/images/cat_Bback.png',
+          description: 'Large coffees and cafe drinks for pick up.',
+        ),
+        CategoryItemModel(
+          name: 'Bback Dabang Bakery',
+          image: 'assets/images/cat_Bback.png',
+          description: 'Coffee with simple bakery menus.',
+        ),
+      ],
+    ),
+    _PickupBrandData(
+      label: 'Bombom',
+      imagePath: 'assets/images/cat_bombom.png',
+      description: 'Sweet cafe drinks and fruit beverages for pick up.',
+      items: [
+        CategoryItemModel(
+          name: 'Cafe Bombom Sillim',
+          image: 'assets/images/cat_bombom.png',
+          description: 'Fruit drinks, lattes, and sweet cafe favorites.',
+        ),
+        CategoryItemModel(
+          name: 'Cafe Bombom Dessert',
+          image: 'assets/images/cat_bombom.png',
+          description: 'Refreshing drinks with easy dessert cups.',
+        ),
+      ],
+    ),
+    _PickupBrandData(
+      label: 'Puradak',
+      imagePath: 'assets/images/cat_puradak.png',
+      description: 'Premium chicken menus available for nearby pickup.',
+      items: [
+        CategoryItemModel(
+          name: 'Puradak Chicken Sillim',
+          image: 'assets/images/cat_puradak.png',
+          description: 'Premium chicken with rich sauces.',
+        ),
+        CategoryItemModel(
+          name: 'Puradak Black Chicken',
+          image: 'assets/images/cat_puradak.png',
+          description: 'Signature black sauce chicken for pick up.',
+        ),
+      ],
+    ),
+    _PickupBrandData(
+      label: 'Ediya',
+      imagePath: 'assets/images/cat_ediya.png',
+      description: 'Reliable coffee and tea from Ediya locations nearby.',
+      items: [
+        CategoryItemModel(
+          name: 'Ediya Coffee Sillim',
+          image: 'assets/images/cat_ediya.png',
+          description: 'Iced coffee and tea prepared for pick up.',
+        ),
+        CategoryItemModel(
+          name: 'Ediya Coffee Dessert',
+          image: 'assets/images/cat_ediya.png',
+          description: 'Cafe drinks with simple dessert menus.',
+        ),
+      ],
+    ),
   ];
 
   @override
@@ -622,13 +747,17 @@ class _PickupBrandGrid extends StatelessWidget {
           children: [
             SizedBox(
               width: nearMeWidth,
-              child: _PickupNearMeItem(height: itemWidth),
+              child: _PickupNearMeItem(
+                height: itemWidth,
+                category: _nearMeCategory,
+              ),
             ),
             ..._items.map(
               (item) => SizedBox(
                 width: itemWidth,
                 child: _PickupBrandItem(
-                    label: item.label, imagePath: item.imagePath),
+                  category: item.category,
+                ),
               ),
             ),
           ],
@@ -636,79 +765,139 @@ class _PickupBrandGrid extends StatelessWidget {
       },
     );
   }
+
+  static const _nearMeCategory = CategoryModel(
+    id: 'pickup-near-me',
+    title: 'Near Me',
+    image: 'assets/images/cat_near_me.png',
+    description: 'Pickup-friendly stores close to your current location.',
+    items: [
+      CategoryItemModel(
+        name: 'Yupki Ddukbokki Sillim',
+        image: 'assets/images/food_tteokbokki.png',
+        description: 'Spicy tteokbokki with chewy rice cakes and fish cake.',
+      ),
+      CategoryItemModel(
+        name: 'Simin Jokbal & Bossam',
+        image: 'assets/images/food_jokbal.png',
+        description: 'Tender jokbal and bossam plates for a filling meal.',
+      ),
+      CategoryItemModel(
+        name: 'Cafe Bombom Sillim',
+        image: 'assets/images/food_cafe.png',
+        description: 'Sweet drinks, coffee, and refreshing dessert cups.',
+      ),
+    ],
+  );
 }
 
 class _PickupBrandData {
   final String label;
   final String imagePath;
+  final String description;
+  final List<CategoryItemModel> items;
 
-  const _PickupBrandData({required this.label, required this.imagePath});
+  const _PickupBrandData({
+    required this.label,
+    required this.imagePath,
+    required this.description,
+    required this.items,
+  });
+
+  CategoryModel get category => CategoryModel(
+        id: 'pickup-${label.toLowerCase()}',
+        title: label,
+        image: imagePath,
+        description: description,
+        items: items,
+      );
 }
 
 class _PickupNearMeItem extends StatelessWidget {
   final double height;
+  final CategoryModel category;
 
-  const _PickupNearMeItem({required this.height});
+  const _PickupNearMeItem({
+    required this.height,
+    required this.category,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.primary),
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CategoryDetailPage(category: category),
+        ),
       ),
-      clipBehavior: Clip.hardEdge,
-      child: Image.asset(
-        'assets/images/cat_near_me.png',
-        fit: BoxFit.cover,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.primary),
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Image.asset(
+          'assets/images/cat_near_me.png',
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
 }
 
 class _PickupBrandItem extends StatelessWidget {
-  final String label;
-  final String imagePath;
+  final CategoryModel category;
 
-  const _PickupBrandItem({required this.label, required this.imagePath});
+  const _PickupBrandItem({required this.category});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.bgWhite,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.primary),
-            ),
-            clipBehavior: Clip.hardEdge,
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.contain,
-                alignment: Alignment.center,
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CategoryDetailPage(category: category),
+        ),
+      ),
+      child: Column(
+        children: [
+          AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.bgWhite,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppColors.primary),
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Image.asset(
+                  category.image,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.center,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: AppTextStyles.title.copyWith(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: AppColors.textPrimary,
+          const SizedBox(height: 8),
+          Text(
+            category.title,
+            style: AppTextStyles.title.copyWith(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -1191,7 +1380,8 @@ class _CafeCard extends StatelessWidget {
                           .copyWith(fontWeight: FontWeight.w600)),
                   const Text(' (2,002)', style: AppTextStyles.caption),
                   const SizedBox(width: 7),
-                  SvgPicture.asset('assets/icons/clock.svg', width: 16, height: 16),
+                  SvgPicture.asset('assets/icons/clock.svg',
+                      width: 16, height: 16),
                   const SizedBox(width: 4),
                   Text(time,
                       style: AppTextStyles.caption.copyWith(
