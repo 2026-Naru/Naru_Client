@@ -318,7 +318,7 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
 
   Widget _buildDiscoverBanner() {
     return Container(
-      height: 120,
+      height: 108,
       decoration: BoxDecoration(
         color: const Color(0xFFA0782A),
         borderRadius: BorderRadius.circular(14),
@@ -361,8 +361,8 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
             child: Image.asset(
               'assets/images/searchimg.png',
               width: 110,
-              height: double.infinity,
-              fit: BoxFit.cover,
+              height: 108,
+              fit: BoxFit.contain,
             ),
           ),
         ],
