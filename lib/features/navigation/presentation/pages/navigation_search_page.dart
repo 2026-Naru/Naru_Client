@@ -12,74 +12,80 @@ class NavigationSearchPage extends StatefulWidget {
 }
 
 class _NavigationSearchPageState extends State<NavigationSearchPage> {
-  final _fromController = TextEditingController();
-  final _toController = TextEditingController();
-  final _fromFocus = FocusNode();
-  final _toFocus = FocusNode();
+  _LandmarkSuggestion? _selectedFrom;
+  _LandmarkSuggestion? _selectedTo;
+  bool _selectingFrom = true;
 
-  bool _fromActive = false;
-
-  static const _suggestions = [
-    'Hongdae',
-    'Hongdaesterrt',
-    'HongJjimdak',
-    'Sinchon Station',
-    'Sillim Station Exit 2',
+  static const _suggestions = <_LandmarkSuggestion>[
+    _LandmarkSuggestion(
+      name: 'Seoul Forest',
+      imagePath: 'assets/images/landmarks/seoul_forest.jpg',
+    ),
+    _LandmarkSuggestion(
+      name: 'Seongsu',
+      imagePath: 'assets/images/landmarks/seongsu.jpg',
+    ),
+    _LandmarkSuggestion(
+      name: 'Myeongdong',
+      imagePath: 'assets/images/landmarks/myeongdong.jpg',
+    ),
+    _LandmarkSuggestion(
+      name: 'Gyeongbokgung Palace',
+      imagePath: 'assets/images/landmarks/gyeongbokgung_palace.jpg',
+    ),
+    _LandmarkSuggestion(
+      name: 'Lotte World',
+      imagePath: 'assets/images/landmarks/lotte_world.jpg',
+    ),
+    _LandmarkSuggestion(
+      name: 'N Seoul Tower',
+      imagePath: 'assets/images/landmarks/n_seoul_tower.jpg',
+    ),
+    _LandmarkSuggestion(
+      name: 'Hangang Park',
+      imagePath: 'assets/images/landmarks/hangang_park.jpg',
+    ),
+    _LandmarkSuggestion(
+      name: 'Bukchon Hanok Village',
+      imagePath: 'assets/images/landmarks/bukchon_hanok_village.jpg',
+    ),
+    _LandmarkSuggestion(
+      name: 'Dongdaemun Design Plaza',
+      imagePath: 'assets/images/landmarks/ddp.jpg',
+    ),
+    _LandmarkSuggestion(
+      name: 'Gwanghwamun Square',
+      imagePath: 'assets/images/landmarks/gwanghwamun_square.jpg',
+    ),
   ];
 
-  List<String> get _filtered {
-    final query = _fromActive ? _fromController.text : _toController.text;
-    // _fromActive tracks From focus; otherwise filter by To field
-    if (query.isEmpty) return _suggestions;
-    return _suggestions
-        .where((s) => s.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fromFocus
-        .addListener(() => setState(() => _fromActive = _fromFocus.hasFocus));
-    _toFocus.addListener(() => setState(() {}));
-    _fromController.addListener(() => setState(() {}));
-    _toController.addListener(() => setState(() {}));
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _fromFocus.requestFocus());
-  }
-
-  @override
-  void dispose() {
-    _fromController.dispose();
-    _toController.dispose();
-    _fromFocus.dispose();
-    _toFocus.dispose();
-    super.dispose();
-  }
-
-  void _fillSuggestion(String val) {
-    if (_fromActive) {
-      _fromController.text = val;
-      _fromFocus.unfocus();
-      Future.delayed(
-        const Duration(milliseconds: 100),
-        () => _toFocus.requestFocus(),
-      );
-    } else {
-      _toController.text = val;
-      _toFocus.unfocus();
-      _tryNavigate();
-    }
+  void _selectSuggestion(_LandmarkSuggestion val) {
+    setState(() {
+      if (_selectingFrom) {
+        _selectedFrom = _selectedFrom == val ? null : val;
+        if (_selectedFrom != null) {
+          _selectingFrom = false;
+        }
+      } else {
+        _selectedTo = _selectedTo == val ? null : val;
+      }
+    });
+    _tryNavigate();
   }
 
   void _tryNavigate() {
-    final from = _fromController.text.trim();
-    final to = _toController.text.trim();
+    final from = _selectedFrom?.name.trim() ?? '';
+    final to = _selectedTo?.name.trim() ?? '';
     if (from.isNotEmpty && to.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => NavigationRouteListPage(from: from, to: to),
+          builder: (_) => NavigationRouteListPage(
+            from: from,
+            to: to,
+            fromImagePath: _selectedFrom!.imagePath,
+            toImagePath: _selectedTo!.imagePath,
+          ),
         ),
       );
     }
@@ -114,12 +120,19 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _SearchPill(
-                      fromController: _fromController,
-                      toController: _toController,
-                      fromFocus: _fromFocus,
-                      toFocus: _toFocus,
-                      onFromSubmitted: (_) => _toFocus.requestFocus(),
-                      onToSubmitted: (_) => _tryNavigate(),
+                      selectedFrom: _selectedFrom,
+                      selectedTo: _selectedTo,
+                      selectingFrom: _selectingFrom,
+                      onSelectFrom: () => setState(() => _selectingFrom = true),
+                      onSelectTo: () => setState(() => _selectingFrom = false),
+                      onClearFrom: () => setState(() {
+                        _selectedFrom = null;
+                        _selectingFrom = true;
+                      }),
+                      onClearTo: () => setState(() {
+                        _selectedTo = null;
+                        _selectingFrom = false;
+                      }),
                     ),
                   ),
                 ],
@@ -130,28 +143,38 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
               child: ListView.builder(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                itemCount: _filtered.length,
+                itemCount: _suggestions.length,
                 itemBuilder: (_, i) {
-                  final s = _filtered[i];
+                  final s = _suggestions[i];
+                  final isSelected = _selectedFrom == s || _selectedTo == s;
                   return InkWell(
-                    onTap: () => _fillSuggestion(s),
+                    onTap: () => _selectSuggestion(s),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 11, horizontal: 4),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.north_west_rounded,
+                          Icon(
+                            isSelected
+                                ? Icons.check_circle_rounded
+                                : Icons.north_west_rounded,
                             size: 15,
-                            color: Color(0xFFBBBBBB),
+                            color: isSelected
+                                ? AppColors.primary
+                                : const Color(0xFFBBBBBB),
                           ),
                           const SizedBox(width: 14),
                           Text(
-                            s,
-                            style: const TextStyle(
+                            s.name,
+                            style: TextStyle(
                               fontFamily: 'Pretendard',
                               fontSize: 15,
-                              color: AppColors.textPrimary,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -196,20 +219,22 @@ class _RoundBackButton extends StatelessWidget {
 }
 
 class _SearchPill extends StatelessWidget {
-  final TextEditingController fromController;
-  final TextEditingController toController;
-  final FocusNode fromFocus;
-  final FocusNode toFocus;
-  final ValueChanged<String>? onFromSubmitted;
-  final ValueChanged<String>? onToSubmitted;
+  final _LandmarkSuggestion? selectedFrom;
+  final _LandmarkSuggestion? selectedTo;
+  final bool selectingFrom;
+  final VoidCallback onSelectFrom;
+  final VoidCallback onSelectTo;
+  final VoidCallback onClearFrom;
+  final VoidCallback onClearTo;
 
   const _SearchPill({
-    required this.fromController,
-    required this.toController,
-    required this.fromFocus,
-    required this.toFocus,
-    this.onFromSubmitted,
-    this.onToSubmitted,
+    required this.selectedFrom,
+    required this.selectedTo,
+    required this.selectingFrom,
+    required this.onSelectFrom,
+    required this.onSelectTo,
+    required this.onClearFrom,
+    required this.onClearTo,
   });
 
   @override
@@ -238,29 +263,12 @@ class _SearchPill extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: TextField(
-              controller: fromController,
-              focusNode: fromFocus,
-              onSubmitted: onFromSubmitted,
-              textInputAction: TextInputAction.next,
-              style: const TextStyle(
-                fontFamily: 'Pretendard',
-                fontSize: 15,
-                color: AppColors.textPrimary,
-              ),
-              decoration: const InputDecoration(
-                hintText: 'From',
-                hintStyle: TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 15,
-                  color: Color(0xFFAAAAAA),
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                isCollapsed: true,
-                contentPadding: EdgeInsets.zero,
-              ),
+            child: _ReadonlyPlaceField(
+              label: selectedFrom?.name ?? 'Select departure',
+              selected: selectedFrom != null,
+              active: selectingFrom,
+              onTap: onSelectFrom,
+              onClear: selectedFrom == null ? null : onClearFrom,
             ),
           ),
           const Padding(
@@ -274,31 +282,79 @@ class _SearchPill extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: TextField(
-              controller: toController,
-              focusNode: toFocus,
-              onSubmitted: onToSubmitted,
-              textInputAction: TextInputAction.done,
-              style: const TextStyle(
+            child: _ReadonlyPlaceField(
+              label: selectedTo?.name ?? 'Select destination',
+              selected: selectedTo != null,
+              active: !selectingFrom,
+              onTap: onSelectTo,
+              onClear: selectedTo == null ? null : onClearTo,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LandmarkSuggestion {
+  final String name;
+  final String imagePath;
+
+  const _LandmarkSuggestion({
+    required this.name,
+    required this.imagePath,
+  });
+}
+
+class _ReadonlyPlaceField extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final bool active;
+  final VoidCallback onTap;
+  final VoidCallback? onClear;
+
+  const _ReadonlyPlaceField({
+    required this.label,
+    required this.selected,
+    required this.active,
+    required this.onTap,
+    this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
                 fontFamily: 'Pretendard',
                 fontSize: 15,
-                color: AppColors.textPrimary,
-              ),
-              decoration: const InputDecoration(
-                hintText: 'To',
-                hintStyle: TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 15,
-                  color: Color(0xFFAAAAAA),
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                isCollapsed: true,
-                contentPadding: EdgeInsets.zero,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                color:
+                    selected ? AppColors.textPrimary : const Color(0xFFAAAAAA),
               ),
             ),
           ),
+          if (onClear != null)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onClear,
+              child: const Padding(
+                padding: EdgeInsets.only(left: 4),
+                child: Icon(
+                  Icons.close_rounded,
+                  size: 14,
+                  color: Color(0xFF999999),
+                ),
+              ),
+            ),
         ],
       ),
     );
