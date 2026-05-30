@@ -9,11 +9,15 @@ import '../widgets/map_view.dart';
 class NavigationRouteResultsPage extends StatefulWidget {
   final String from;
   final String to;
+  final String fromImagePath;
+  final String toImagePath;
 
   const NavigationRouteResultsPage({
     super.key,
     required this.from,
     required this.to,
+    required this.fromImagePath,
+    required this.toImagePath,
   });
 
   @override
@@ -85,7 +89,7 @@ class _NavigationRouteResultsPageState
                   top: mapHeight * 0.28,
                   right: 28,
                   child: _MapPlaceMarker(
-                    imagePath: 'assets/images/gyeongbokgungplace.png',
+                    imagePath: widget.toImagePath,
                     label: widget.to,
                   ),
                 ),
@@ -94,7 +98,7 @@ class _NavigationRouteResultsPageState
                   top: mapHeight * 0.60,
                   left: 28,
                   child: _MapPlaceMarker(
-                    imagePath: 'assets/images/sinielseoul.png',
+                    imagePath: widget.fromImagePath,
                     label: widget.from,
                   ),
                 ),
@@ -155,7 +159,7 @@ class _NavigationRouteResultsPageState
                         children: [
                           Expanded(
                             child: _TripSpotCard(
-                              imagePath: 'assets/images/sinielseoul.png',
+                              imagePath: widget.fromImagePath,
                               label: 'From',
                               timeText: '4:38 PM ~',
                               placeName: widget.from,
@@ -177,7 +181,7 @@ class _NavigationRouteResultsPageState
                           const SizedBox(width: 8),
                           Expanded(
                             child: _TripSpotCard(
-                              imagePath: 'assets/images/gyeongbokgungplace.png',
+                              imagePath: widget.toImagePath,
                               label: 'To',
                               timeText: '~ 5:47 PM',
                               placeName: widget.to,
