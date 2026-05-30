@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../likes/presentation/pages/store_detail_page.dart';
 import '../../domain/category_model.dart';
 
 // Derives the transparent-background version of a cat_*.png asset path.
@@ -299,81 +300,163 @@ class _CategoryPlaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.bgWhite,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+    final detail = _storeDetailForItem(item);
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StoreDetailPage(
+            storeName: detail.storeName,
+            storeSubtitle: detail.storeSubtitle,
+            heroImagePath: detail.heroImagePath,
+            logoImagePath: detail.logoImagePath,
+            preset: detail.preset,
+            rating: detail.rating,
+            deliveryTime: detail.deliveryTime,
+            bottomNavIndex: 0,
           ),
-        ],
+        ),
       ),
-      clipBehavior: Clip.hardEdge,
-      child: Row(
-        children: [
-          SizedBox(
-            width: 116,
-            height: 116,
-            child: Image.asset(
-              item.image,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: AppColors.bgInput,
-                alignment: Alignment.center,
-                child: const Icon(Icons.restaurant, color: AppColors.textMuted),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.bgWhite,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Row(
+          children: [
+            SizedBox(
+              width: 116,
+              height: 116,
+              child: Image.asset(
+                item.image,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: AppColors.bgInput,
+                  alignment: Alignment.center,
+                  child:
+                      const Icon(Icons.restaurant, color: AppColors.textMuted),
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodyMedium,
-                  ),
-                  const SizedBox(height: 7),
-                  Text(
-                    item.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.caption.copyWith(height: 1.35),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        size: 16,
-                        color: AppColors.brandOrange,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '4.${item.name.length % 4 + 6}',
-                        style: AppTextStyles.captionMedium.copyWith(
-                          color: AppColors.textPrimary,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bodyMedium,
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      item.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.caption.copyWith(height: 1.35),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          size: 16,
+                          color: AppColors.brandOrange,
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        '20-35 min',
-                        style: AppTextStyles.captionMedium,
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 4),
+                        Text(
+                          detail.rating,
+                          style: AppTextStyles.captionMedium.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          detail.deliveryTime,
+                          style: AppTextStyles.captionMedium,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+class _StoreDetailData {
+  final String storeName;
+  final String storeSubtitle;
+  final String heroImagePath;
+  final String logoImagePath;
+  final StoreDetailPreset preset;
+  final String rating;
+  final String deliveryTime;
+
+  const _StoreDetailData({
+    required this.storeName,
+    required this.storeSubtitle,
+    required this.heroImagePath,
+    required this.logoImagePath,
+    required this.preset,
+    required this.rating,
+    required this.deliveryTime,
+  });
+}
+
+_StoreDetailData _storeDetailForItem(CategoryItemModel item) {
+  final normalizedName = item.name.toLowerCase();
+  final normalizedImage = item.image.toLowerCase();
+
+  StoreDetailPreset preset = StoreDetailPreset.jokbal;
+  if (_containsAny(
+      normalizedName, normalizedImage, ['tteokbokki', 'ddukbokki'])) {
+    preset = StoreDetailPreset.tteokbokki;
+  } else if (_containsAny(
+      normalizedName, normalizedImage, ['burger', 'lotteria', 'bongus'])) {
+    preset = StoreDetailPreset.burger;
+  } else if (_containsAny(normalizedName, normalizedImage,
+      ['chicken', 'bhc', 'bbq', 'nene', 'goobne', 'gupne', 'puradak'])) {
+    preset = StoreDetailPreset.chicken;
+  } else if (_containsAny(
+      normalizedName, normalizedImage, ['pizza', 'domino'])) {
+    preset = StoreDetailPreset.pizza;
+  } else if (_containsAny(normalizedName, normalizedImage,
+      ['cafe', 'coffee', 'bombom', 'bback', 'ediya'])) {
+    preset = StoreDetailPreset.cafe;
+  } else if (_containsAny(normalizedName, normalizedImage, ['jjukkumi'])) {
+    preset = StoreDetailPreset.jjukkumi;
+  }
+
+  final rating = '4.${item.name.length % 4 + 6}';
+
+  return _StoreDetailData(
+    storeName: item.name,
+    storeSubtitle: item.description,
+    heroImagePath: item.image,
+    logoImagePath: item.image,
+    preset: preset,
+    rating: rating,
+    deliveryTime: '20-35 min',
+  );
+}
+
+bool _containsAny(String name, String image, List<String> tokens) {
+  return tokens.any((token) => name.contains(token) || image.contains(token));
 }
