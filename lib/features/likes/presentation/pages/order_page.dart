@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/api_client.dart';
 import '../../../cart/domain/cart_item.dart';
+import '../../../order/data/order_service.dart';
 import 'payment_success_page.dart';
 
 class OrderPage extends StatefulWidget {
@@ -34,6 +36,8 @@ class _OrderPageState extends State<OrderPage>
   late TabController _tabController;
   int _selectedPayment = 0;
   bool _noUtensils = true;
+  bool _isOrdering = false;
+  OrderService? _orderService;
 
   static const _paymentMethods = [
     'Credit',
@@ -53,6 +57,36 @@ class _OrderPageState extends State<OrderPage>
       length: 2,
       vsync: this,
       initialIndex: widget.isPickup ? 1 : 0,
+    );
+    _initOrderService();
+  }
+
+  Future<void> _initOrderService() async {
+    final api = await ApiClient.getInstance();
+    if (mounted) {
+      setState(() => _orderService = OrderService(api));
+    }
+  }
+
+  Future<void> _placeOrder() async {
+    if (_isOrdering) return;
+    setState(() => _isOrdering = true);
+
+    try {
+      final type = _tabController.index == 0 ? 'DELIVERY' : 'PICKUP';
+      await _orderService?.createOrder(type: type);
+    } catch (_) {
+      // 서버 장바구니가 비어있을 수 있으나 UI 흐름은 계속 진행
+    } finally {
+      if (mounted) setState(() => _isOrdering = false);
+    }
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentSuccessPage(totalPrice: widget.totalPrice),
+      ),
     );
   }
 
@@ -594,28 +628,29 @@ class _OrderPageState extends State<OrderPage>
         width: double.infinity,
         height: 52,
         child: GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  PaymentSuccessPage(totalPrice: widget.totalPrice),
-            ),
-          ),
+          onTap: _isOrdering ? null : _placeOrder,
           child: Container(
             decoration: BoxDecoration(
               color: AppColors.brandOrange,
               borderRadius: BorderRadius.circular(28),
             ),
             alignment: Alignment.center,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontFamily: 'Pretendard',
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
+            child: _isOrdering
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2.5),
+                  )
+                : Text(
+                    label,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
           ),
         ),
       ),

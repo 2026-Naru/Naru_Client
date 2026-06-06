@@ -1,15 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../likes/presentation/pages/favorites_page.dart';
+import '../../../likes/presentation/providers/favorites_provider.dart';
 import '../../../lists/presentation/pages/order_history_page.dart';
+import '../providers/user_provider.dart';
 
-class MyPage extends StatelessWidget {
+class MyPage extends StatefulWidget {
   const MyPage({super.key});
 
   @override
+  State<MyPage> createState() => _MyPageState();
+}
+
+class _MyPageState extends State<MyPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserProvider>().fetch();
+      context.read<FavoritesProvider>().fetch();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final user = context.watch<UserProvider>().user;
+    final favCount = context.watch<FavoritesProvider>().count;
     return Scaffold(
       backgroundColor: AppColors.bgLight,
       body: SafeArea(
@@ -64,7 +83,7 @@ class MyPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Baegopa',
+                            user?.name ?? 'Baegopa',
                             style: AppTextStyles.body.copyWith(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -73,7 +92,7 @@ class MyPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text('d2434@e-mirim.hs.kr',
+                          Text(user?.email ?? '',
                               style: AppTextStyles.caption.copyWith(
                                 fontSize: 11,
                                 color: AppColors.textGray,
@@ -139,7 +158,7 @@ class MyPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const _ExchangeAmountCard(),
+                    _ExchangeAmountCard(balanceKrw: user?.balanceKrw ?? 0),
                     const SizedBox(height: 12),
                     _InfoCard(
                       child: SizedBox(
@@ -147,7 +166,7 @@ class MyPage extends StatelessWidget {
                         child: Center(
                           child: _InfoRow(
                             label: 'Total Orders',
-                            value: '2',
+                            value: '-',
                             showArrow: true,
                             onTap: () => Navigator.push(
                               context,
@@ -167,7 +186,7 @@ class MyPage extends StatelessWidget {
                         children: [
                           _InfoRow(
                             label: 'Stores you liked',
-                            value: '2',
+                            value: '$favCount',
                             showArrow: true,
                             onTap: () => Navigator.push(
                               context,
@@ -278,7 +297,12 @@ class _ExchangeAmountCard extends StatelessWidget {
   static const double _cardWidth = 359.2;
   static const double _cardHeight = 114.5;
 
-  const _ExchangeAmountCard();
+  final int balanceKrw;
+  const _ExchangeAmountCard({required this.balanceKrw});
+
+  static String _fmt(int v) => v
+      .toString()
+      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
 
   @override
   Widget build(BuildContext context) {
@@ -337,7 +361,7 @@ class _ExchangeAmountCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        '₩123,000',
+                        '₩${_fmt(balanceKrw)}',
                         style: AppTextStyles.caption.copyWith(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
