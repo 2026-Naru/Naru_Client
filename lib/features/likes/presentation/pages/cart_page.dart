@@ -69,8 +69,20 @@ class _CartPageState extends State<CartPage>
     return total;
   }
 
-  int get _subtotal => widget.totalPrice + _extrasTotal;
+  int get _menuUnitTotal => widget.quantity <= 0
+      ? widget.totalPrice
+      : widget.totalPrice ~/ widget.quantity;
+  int get _menuTotal => _menuUnitTotal * _quantity;
+  int get _subtotal => _menuTotal + _extrasTotal;
   int get _totalPayment => _subtotal;
+  String get _selectedExtrasLabel {
+    final selectedExtras = _extras
+        .where((extra) => _addedExtras.contains(extra.name))
+        .map((extra) => extra.name)
+        .toList();
+    if (selectedExtras.isEmpty) return widget.selectedDrink;
+    return '${widget.selectedDrink} · ${selectedExtras.join(' · ')}';
+  }
 
   String _formatPrice(int price) {
     return price.toString().replaceAllMapped(
@@ -192,7 +204,8 @@ class _CartPageState extends State<CartPage>
             ),
           ),
           const SizedBox(width: 4),
-          const Icon(Icons.chevron_right, size: 18, color: AppColors.textSecondary),
+          const Icon(Icons.chevron_right,
+              size: 18, color: AppColors.textSecondary),
         ],
       ),
     );
@@ -251,7 +264,7 @@ class _CartPageState extends State<CartPage>
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '₩${_formatPrice(widget.totalPrice)}',
+                    '₩${_formatPrice(_menuTotal)}',
                     style: const TextStyle(
                       fontFamily: 'Pretendard',
                       fontSize: 16,
@@ -332,7 +345,8 @@ class _CartPageState extends State<CartPage>
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
@@ -388,7 +402,9 @@ class _CartPageState extends State<CartPage>
                                 : const Color(0xFFCCCCCC),
                             width: 1.5,
                           ),
-                          color: added ? AppColors.brandOrange : Colors.transparent,
+                          color: added
+                              ? AppColors.brandOrange
+                              : Colors.transparent,
                         ),
                         child: Icon(
                           added ? Icons.check : Icons.add,
@@ -437,8 +453,8 @@ class _CartPageState extends State<CartPage>
                 behavior: HitTestBehavior.opaque,
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
@@ -603,8 +619,8 @@ class _CartPageState extends State<CartPage>
                     menuName: widget.menuName,
                     selectedSize: widget.selectedSize,
                     selectedJokbal: widget.selectedJokbal,
-                    selectedDrink: widget.selectedDrink,
-                    totalPrice: widget.totalPrice,
+                    selectedDrink: _selectedExtrasLabel,
+                    totalPrice: _totalPayment,
                     menuImagePath: widget.menuImagePath,
                     isPickup: _selectedMethod == 1,
                   ),

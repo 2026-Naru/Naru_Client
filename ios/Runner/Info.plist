@@ -30,6 +30,13 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Naru uses your location to show nearby places on the map.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Naru connects to the local development server while testing.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

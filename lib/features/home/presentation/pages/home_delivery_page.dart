@@ -4,10 +4,13 @@ import 'package:geocoding/geocoding.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../shared/widgets/main_tab_page.dart';
 import '../../../cart/presentation/pages/cart_list_page.dart';
 import '../../../likes/presentation/pages/store_detail_page.dart';
+import '../../../likes/presentation/providers/favorites_provider.dart';
 import '../../data/category_dummy_data.dart';
 import '../../domain/category_model.dart';
 import '../widgets/delivery_pickup_tab.dart';
@@ -30,10 +33,27 @@ class HomeDeliveryPage extends StatefulWidget {
 
 class _HomeLocationLabel {
   static const fallback = 'Sillim-dong···';
-  static Future<String>? _cachedFuture;
+  static String? _cachedLabel;
+  static Future<String>? _inFlight;
 
-  static Future<String> resolve() {
-    return _cachedFuture ??= _resolve();
+  static Future<String> resolve({bool forceRefresh = false}) {
+    final pending = _inFlight;
+    if (pending != null) return pending;
+
+    if (!forceRefresh) {
+      final cached = _cachedLabel;
+      if (cached != null) return Future.value(cached);
+    }
+
+    final future = _resolve().then((label) {
+      if (label != fallback) {
+        _cachedLabel = label;
+      }
+      return label;
+    }).whenComplete(() => _inFlight = null);
+
+    _inFlight = future;
+    return future;
   }
 
   static Future<String> _resolve() async {
@@ -50,18 +70,21 @@ class _HomeLocationLabel {
         return fallback;
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
+      final lastKnownPosition = await Geolocator.getLastKnownPosition();
+      final position = lastKnownPosition ??
+          await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              timeLimit: Duration(seconds: 8),
+            ),
+          );
       final placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
       );
       if (placemarks.isEmpty) return fallback;
 
-      final locationName = _pickLocationName(placemarks.first);
+      final locationName = _formatLocationName(placemarks.first);
       if (locationName.isEmpty) return fallback;
       return '$locationName···';
     } catch (_) {
@@ -69,32 +92,44 @@ class _HomeLocationLabel {
     }
   }
 
-  static String _pickLocationName(Placemark placemark) {
-    final candidates = [
+  static String _formatLocationName(Placemark placemark) {
+    return _joinUnique([
+      placemark.street,
       placemark.subLocality,
       placemark.locality,
       placemark.subAdministrativeArea,
       placemark.administrativeArea,
-    ];
+    ]);
+  }
 
-    for (final candidate in candidates) {
-      final value = candidate?.trim();
-      if (value != null && value.isNotEmpty) return value;
+  static String _joinUnique(List<String?> values) {
+    final normalized = <String>[];
+    for (final value in values) {
+      final trimmed = value?.trim();
+      if (trimmed == null || trimmed.isEmpty) continue;
+      if (normalized.contains(trimmed)) continue;
+      normalized.add(trimmed);
     }
-    return '';
+    return normalized.join(', ');
   }
 }
 
-class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
+class _HomeDeliveryPageState extends State<HomeDeliveryPage>
+    with WidgetsBindingObserver {
   final _pageController = PageController();
   int _bannerPage = 0;
   Timer? _bannerTimer;
   String _locationLabel = _HomeLocationLabel.fallback;
+  ValueNotifier<int>? _mainTabNotifier;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadLocationLabel();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FavoritesProvider>().fetch();
+    });
     _bannerTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted ||
           !_pageController.hasClients ||
@@ -111,14 +146,40 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final notifier = MainTabScope.of(context);
+    if (_mainTabNotifier == notifier) return;
+
+    _mainTabNotifier?.removeListener(_handleMainTabChanged);
+    _mainTabNotifier = notifier;
+    _mainTabNotifier?.addListener(_handleMainTabChanged);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _mainTabNotifier?.removeListener(_handleMainTabChanged);
     _bannerTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadLocationLabel() async {
-    final label = await _HomeLocationLabel.resolve();
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadLocationLabel(forceRefresh: true);
+    }
+  }
+
+  void _handleMainTabChanged() {
+    if (_mainTabNotifier?.value == 0) {
+      _loadLocationLabel(forceRefresh: true);
+    }
+  }
+
+  Future<void> _loadLocationLabel({bool forceRefresh = false}) async {
+    final label = await _HomeLocationLabel.resolve(forceRefresh: forceRefresh);
     if (!mounted) return;
     setState(() => _locationLabel = label);
   }
@@ -301,6 +362,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: const [
                     _StoreCard(
+                      storeId: 2,
                       imagePath: 'assets/images/food_tteokbokki.png',
                       name: 'Yupki Ddukbokki Sillim',
                       storeSubtitle: 'Spicy Korean street food',
@@ -311,6 +373,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     ),
                     SizedBox(width: 14),
                     _StoreCard(
+                      storeId: 1,
                       imagePath: 'assets/images/food_jokbal.png',
                       name: 'Simin Jokbal & Bossam',
                       detailName: 'Simin Jokbal Bossam Sillim',
@@ -322,6 +385,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage> {
                     ),
                     SizedBox(width: 14),
                     _StoreCard(
+                      storeId: 1,
                       imagePath: 'assets/images/food_jokbal.png',
                       name: 'Simin Jokbal & Bossam',
                       detailName: 'Simin Jokbal Bossam Sillim',
@@ -972,6 +1036,7 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _StoreCard extends StatelessWidget {
+  final int? storeId;
   final String imagePath;
   final String name;
   final String? detailName;
@@ -982,6 +1047,7 @@ class _StoreCard extends StatelessWidget {
   final List<String> tags;
 
   const _StoreCard({
+    this.storeId,
     required this.imagePath,
     required this.name,
     this.detailName,
@@ -999,6 +1065,7 @@ class _StoreCard extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (_) => StoreDetailPage(
+            storeId: storeId,
             storeName: detailName ?? name,
             storeSubtitle: storeSubtitle,
             heroImagePath: imagePath,
@@ -1066,6 +1133,7 @@ class _FreeDeliveryCard extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (_) => const StoreDetailPage(
+            storeId: 1,
             storeName: 'Simin Jokbal Bossam Sillim',
             storeSubtitle: 'Korean jokbal and bossam',
             heroImagePath: 'assets/images/food_jokbal.png',

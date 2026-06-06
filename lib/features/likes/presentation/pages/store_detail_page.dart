@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
+import '../../data/models/favorite_store_model.dart';
+import '../providers/favorites_provider.dart';
 import 'menu_option_page.dart';
 
 enum StoreDetailPreset {
@@ -14,6 +17,8 @@ enum StoreDetailPreset {
 }
 
 class StoreDetailPage extends StatefulWidget {
+  final int? storeId;
+  final bool? syncFavoriteRemote;
   final String storeName;
   final String storeSubtitle;
   final String heroImagePath;
@@ -26,6 +31,8 @@ class StoreDetailPage extends StatefulWidget {
 
   const StoreDetailPage({
     super.key,
+    this.storeId,
+    this.syncFavoriteRemote,
     required this.storeName,
     required this.storeSubtitle,
     required this.heroImagePath,
@@ -44,7 +51,7 @@ class StoreDetailPage extends StatefulWidget {
 class _StoreDetailPageState extends State<StoreDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLiked = true;
+  bool _isUpdatingFavorite = false;
 
   @override
   void initState() {
@@ -111,31 +118,91 @@ class _StoreDetailPageState extends State<StoreDetailPage>
         ),
       ),
       actions: [
-        GestureDetector(
-          onTap: () => setState(() => _isLiked = !_isLiked),
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.85),
-              shape: BoxShape.circle,
-            ),
-            padding: const EdgeInsets.all(6),
-            child: Icon(
-              _isLiked ? Icons.favorite : Icons.favorite_border,
-              size: 18,
-              color:
-                  _isLiked ? AppColors.accentOrange : AppColors.textSecondary,
-            ),
-          ),
+        Consumer<FavoritesProvider>(
+          builder: (context, favoritesProvider, _) {
+            final favoriteStoreId = _favoriteStoreId;
+            final isLiked = favoritesProvider.isFavorite(favoriteStoreId);
+
+            return GestureDetector(
+              onTap: _isUpdatingFavorite
+                  ? null
+                  : () => _toggleFavorite(favoritesProvider),
+              child: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(6),
+                child: Icon(
+                  isLiked ? Icons.favorite : Icons.favorite_border,
+                  size: 18,
+                  color: isLiked
+                      ? AppColors.accentOrange
+                      : AppColors.textSecondary,
+                ),
+              ),
+            );
+          },
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        background: Image.asset(
-          widget.heroImagePath,
-          fit: BoxFit.cover,
-        ),
+        background: _storeHeroImage(widget.heroImagePath),
       ),
     );
+  }
+
+  Widget _storeHeroImage(String imagePath) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(imagePath, fit: BoxFit.cover);
+    }
+    return Image.network(
+      imagePath,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        color: AppColors.bgLight,
+        alignment: Alignment.center,
+        child: const Icon(Icons.store, color: AppColors.textMuted),
+      ),
+    );
+  }
+
+  int get _favoriteStoreId {
+    return widget.storeId ?? _localStoreId(widget.storeName);
+  }
+
+  Future<void> _toggleFavorite(FavoritesProvider favoritesProvider) async {
+    setState(() => _isUpdatingFavorite = true);
+    await favoritesProvider.toggle(
+      FavoriteStoreModel(
+        storeId: _favoriteStoreId,
+        name: widget.storeName,
+        imageUrl: widget.heroImagePath,
+        rating: double.tryParse(widget.rating) ?? 0,
+        reviewCount: _reviewCountNumber,
+        categoryName: widget.storeSubtitle,
+        syncRemote: _syncFavoriteRemote,
+      ),
+    );
+    if (!mounted) return;
+    setState(() => _isUpdatingFavorite = false);
+  }
+
+  bool get _syncFavoriteRemote {
+    return widget.syncFavoriteRemote ?? widget.storeId != null;
+  }
+
+  int get _reviewCountNumber {
+    final digits = widget.reviewCount.replaceAll(RegExp(r'[^0-9]'), '');
+    return int.tryParse(digits) ?? 0;
+  }
+
+  int _localStoreId(String value) {
+    var hash = 17;
+    for (final codeUnit in value.codeUnits) {
+      hash = (hash * 37 + codeUnit) & 0x3fffffff;
+    }
+    return hash == 0 ? 1 : hash;
   }
 
   Widget _buildStoreHeader() {

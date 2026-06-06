@@ -6,8 +6,17 @@ class OrderHistoryService {
 
   OrderHistoryService(this._api);
 
+  Future<List<OrderHistoryModel>> fetchAllOrders() async {
+    final res = await _api.get('/users/me/orders');
+    final list = res['data'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => OrderHistoryModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<OrderHistoryModel>> fetchPendingOrders() async {
-    final res = await _api.get('/users/me/orders', queryParameters: {'status': 'pending'});
+    final res = await _api
+        .get('/users/me/orders', queryParameters: {'status': 'pending'});
     final list = res['data'] as List<dynamic>? ?? [];
     return list
         .map((e) => OrderHistoryModel.fromJson(e as Map<String, dynamic>))
@@ -15,7 +24,8 @@ class OrderHistoryService {
   }
 
   Future<List<OrderHistoryModel>> fetchCompletedOrders() async {
-    final res = await _api.get('/users/me/orders', queryParameters: {'status': 'completed'});
+    final res = await _api
+        .get('/users/me/orders', queryParameters: {'status': 'completed'});
     final list = res['data'] as List<dynamic>? ?? [];
     return list
         .map((e) => OrderHistoryModel.fromJson(e as Map<String, dynamic>))
