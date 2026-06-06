@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/api_client.dart';
 import '../../../cart/domain/cart_item.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
+import '../../../lists/data/models/order_history_model.dart';
+import '../../../lists/presentation/providers/orders_provider.dart';
 import '../../../order/data/order_service.dart';
 import 'payment_success_page.dart';
 
@@ -35,6 +39,7 @@ class _OrderPageState extends State<OrderPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedPayment = 0;
+  int _selectedRequirement = 0;
   bool _noUtensils = true;
   bool _isOrdering = false;
   OrderService? _orderService;
@@ -44,6 +49,17 @@ class _OrderPageState extends State<OrderPage>
     'Apple Pay',
     'Kakao Pay',
     'Global Payments',
+  ];
+
+  static const _storeRequirements = [
+    'No requirement',
+    'Please make it less spicy',
+    'Please keep sauce on the side',
+    'Please avoid pork',
+    'Please avoid seafood',
+    'Please avoid nuts',
+    'Please label spicy items',
+    'Please call if an item is unavailable',
   ];
 
   String _formatPrice(int price) => price
@@ -72,13 +88,40 @@ class _OrderPageState extends State<OrderPage>
     if (_isOrdering) return;
     setState(() => _isOrdering = true);
 
+    final orderItems = _orderHistoryItems;
+    final ordersProvider = context.read<OrdersProvider>();
+    final cartProvider = context.read<CartProvider>();
+    int? remoteOrderId;
+
     try {
       final type = _tabController.index == 0 ? 'DELIVERY' : 'PICKUP';
-      await _orderService?.createOrder(type: type);
+      final remoteOrder = await _orderService?.createOrder(
+        type: type,
+        totalAmount: widget.totalPrice,
+        items: orderItems
+            .map((item) => {
+                  'quantity': item.quantity,
+                  'price': item.unitPrice,
+                })
+            .toList(),
+      );
+      remoteOrderId = (remoteOrder?['id'] as num?)?.toInt();
     } catch (_) {
-      // 서버 장바구니가 비어있을 수 있으나 UI 흐름은 계속 진행
+      // 실기기 테스트 중 서버 연결/장바구니 상태가 불안정해도 로컬 주문 내역은 유지한다.
     } finally {
       if (mounted) setState(() => _isOrdering = false);
+    }
+
+    if (!mounted) return;
+    await ordersProvider.recordLocalOrder(
+      remoteOrderId: remoteOrderId,
+      storeName: 'Simin Jokbal Bossam Sillim',
+      storeImageUrl: widget.menuImagePath,
+      totalAmount: widget.totalPrice,
+      items: orderItems,
+    );
+    if (widget.cartItems != null) {
+      cartProvider.clear();
     }
 
     if (!mounted) return;
@@ -88,6 +131,29 @@ class _OrderPageState extends State<OrderPage>
         builder: (_) => PaymentSuccessPage(totalPrice: widget.totalPrice),
       ),
     );
+  }
+
+  List<OrderHistoryItemModel> get _orderHistoryItems {
+    final cartItems = widget.cartItems;
+    if (cartItems != null && cartItems.isNotEmpty) {
+      return cartItems
+          .map((item) => OrderHistoryItemModel(
+                name: item.menuName,
+                imageUrl: item.imagePath,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+              ))
+          .toList();
+    }
+
+    return [
+      OrderHistoryItemModel(
+        name: widget.menuName,
+        imageUrl: widget.menuImagePath,
+        quantity: 1,
+        unitPrice: widget.totalPrice,
+      ),
+    ];
   }
 
   @override
@@ -191,45 +257,49 @@ class _OrderPageState extends State<OrderPage>
       return _Card(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: items.map((item) => Padding(
-            padding: EdgeInsets.only(bottom: items.last == item ? 0 : 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(item.imagePath, width: 64, height: 64, fit: BoxFit.cover),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item.menuName,
-                          style: const TextStyle(
-                            fontFamily: 'Pretendard',
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                          )),
-                      const SizedBox(height: 2),
-                      Text(item.optionsSummary, style: _subtitleStyle),
-                      const SizedBox(height: 4),
-                      Text(
-                        '₩${_formatPrice(item.totalPrice)}  ×${item.quantity}',
-                        style: const TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+          children: items
+              .map((item) => Padding(
+                    padding:
+                        EdgeInsets.only(bottom: items.last == item ? 0 : 12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.asset(item.imagePath,
+                              width: 64, height: 64, fit: BoxFit.cover),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          )).toList(),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(item.menuName,
+                                  style: const TextStyle(
+                                    fontFamily: 'Pretendard',
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  )),
+                              const SizedBox(height: 2),
+                              Text(item.optionsSummary, style: _subtitleStyle),
+                              const SizedBox(height: 4),
+                              Text(
+                                '₩${_formatPrice(item.totalPrice)}  ×${item.quantity}',
+                                style: const TextStyle(
+                                  fontFamily: 'Pretendard',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ))
+              .toList(),
         ),
       );
     }
@@ -295,8 +365,7 @@ class _OrderPageState extends State<OrderPage>
               shape: BoxShape.circle,
               border: Border.all(color: const Color(0xFFE4E6E8), width: 1),
             ),
-            child:
-                Image.asset(widget.menuImagePath, fit: BoxFit.cover),
+            child: Image.asset(widget.menuImagePath, fit: BoxFit.cover),
           ),
           const SizedBox(width: 10),
           const Expanded(
@@ -326,8 +395,7 @@ class _OrderPageState extends State<OrderPage>
           ),
           const SizedBox(width: 8),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               border: Border.all(color: const Color(0xFFDDDDDD)),
               borderRadius: BorderRadius.circular(6),
@@ -352,7 +420,7 @@ class _OrderPageState extends State<OrderPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Store Requirment',
+            'Store requirement',
             style: TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 15,
@@ -362,29 +430,79 @@ class _OrderPageState extends State<OrderPage>
           ),
           const SizedBox(height: 10),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border:
-                  Border.all(color: const Color(0xFFDDDDDD), width: 1),
+              border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
             ),
-            child: const Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'No requirment',
-                    style: TextStyle(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: _selectedRequirement,
+                isExpanded: true,
+                icon: const Icon(Icons.keyboard_arrow_down,
+                    size: 20, color: AppColors.textSecondary),
+                borderRadius: BorderRadius.circular(12),
+                menuMaxHeight: 320,
+                selectedItemBuilder: (context) {
+                  return _storeRequirements.map((label) {
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    );
+                  }).toList();
+                },
+                items: _storeRequirements.asMap().entries.map((entry) {
+                  return DropdownMenuItem<int>(
+                    value: entry.key,
+                    child: Text(
+                      entry.value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value == null) return;
+                  setState(() => _selectedRequirement = value);
+                },
+                style: const TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+                dropdownColor: AppColors.bgWhite,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            child: _selectedRequirement == 0
+                ? const SizedBox.shrink()
+                : Text(
+                    _storeRequirements[_selectedRequirement],
+                    key: ValueKey(_selectedRequirement),
+                    style: const TextStyle(
                       fontFamily: 'Pretendard',
-                      fontSize: 13,
+                      fontSize: 12,
                       color: AppColors.textSecondary,
+                      height: 1.25,
                     ),
                   ),
-                ),
-                Icon(Icons.keyboard_arrow_down,
-                    size: 20, color: AppColors.textSecondary),
-              ],
-            ),
           ),
           const SizedBox(height: 12),
           GestureDetector(
@@ -408,8 +526,7 @@ class _OrderPageState extends State<OrderPage>
                     ),
                   ),
                   child: _noUtensils
-                      ? const Icon(Icons.check,
-                          size: 14, color: Colors.white)
+                      ? const Icon(Icons.check, size: 14, color: Colors.white)
                       : null,
                 ),
                 const SizedBox(width: 10),
@@ -472,9 +589,8 @@ class _OrderPageState extends State<OrderPage>
                       style: TextStyle(
                         fontFamily: 'Pretendard',
                         fontSize: 14,
-                        fontWeight: selected
-                            ? FontWeight.w500
-                            : FontWeight.w400,
+                        fontWeight:
+                            selected ? FontWeight.w500 : FontWeight.w400,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -504,12 +620,10 @@ class _OrderPageState extends State<OrderPage>
           ),
           const SizedBox(height: 10),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border:
-                  Border.all(color: const Color(0xFFDDDDDD), width: 1),
+              border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
             ),
             child: const Row(
               children: [

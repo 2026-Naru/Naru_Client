@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
+import '../../../../shared/widgets/main_tab_page.dart';
+import '../../../likes/data/models/favorite_store_model.dart';
 import '../../../likes/presentation/pages/favorites_page.dart';
 import '../../../likes/presentation/providers/favorites_provider.dart';
 import '../../../lists/presentation/pages/order_history_page.dart';
+import '../../../lists/presentation/providers/orders_provider.dart';
 import '../providers/user_provider.dart';
 
 class MyPage extends StatefulWidget {
@@ -15,20 +20,73 @@ class MyPage extends StatefulWidget {
   State<MyPage> createState() => _MyPageState();
 }
 
-class _MyPageState extends State<MyPage> {
+class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
+  static const _fallbackAddress = _MyPageAddress(
+    title: 'Sillim-dong, Gwanak-gu, Seoul',
+    subtitle: 'South Korea',
+  );
+
+  _MyPageAddress _address = _fallbackAddress;
+  ValueNotifier<int>? _mainTabNotifier;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _loadAddress();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserProvider>().fetch();
       context.read<FavoritesProvider>().fetch();
+      context.read<OrdersProvider>().fetchAll();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final notifier = MainTabScope.of(context);
+    if (_mainTabNotifier == notifier) return;
+
+    _mainTabNotifier?.removeListener(_handleMainTabChanged);
+    _mainTabNotifier = notifier;
+    _mainTabNotifier?.addListener(_handleMainTabChanged);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _mainTabNotifier?.removeListener(_handleMainTabChanged);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadAddress();
+    }
+  }
+
+  void _handleMainTabChanged() {
+    if (_mainTabNotifier?.value == 4) {
+      _loadAddress();
+      context.read<OrdersProvider>().fetchAll();
+    }
+  }
+
+  Future<void> _loadAddress() async {
+    final address = await _MyPageAddressResolver.resolve();
+    if (!mounted) return;
+    setState(() => _address = address);
   }
 
   @override
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
-    final favCount = context.watch<FavoritesProvider>().count;
+    final favoritesProvider = context.watch<FavoritesProvider>();
+    final ordersProvider = context.watch<OrdersProvider>();
+    final favCount = favoritesProvider.count;
+    final orderCount = ordersProvider.all.length;
+    final favoritePreviewStores = favoritesProvider.favorites.take(3).toList();
     return Scaffold(
       backgroundColor: AppColors.bgLight,
       body: SafeArea(
@@ -120,7 +178,7 @@ class _MyPageState extends State<MyPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Seoul Bangyidong Parkdream',
+                                  _address.title,
                                   style: AppTextStyles.caption.copyWith(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -130,7 +188,7 @@ class _MyPageState extends State<MyPage> {
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  '2102 - 39gil',
+                                  _address.subtitle,
                                   style: AppTextStyles.caption.copyWith(
                                     fontSize: 10.5,
                                     color: AppColors.textSecondary,
@@ -163,17 +221,15 @@ class _MyPageState extends State<MyPage> {
                     _InfoCard(
                       child: SizedBox(
                         height: 34,
-                        child: Center(
-                          child: _InfoRow(
-                            label: 'Total Orders',
-                            value: '-',
-                            showArrow: true,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    const OrderHistoryPage(isStandalone: true),
-                              ),
+                        child: _InfoRow(
+                          label: 'Total Orders',
+                          value: '$orderCount',
+                          showArrow: true,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const OrderHistoryPage(isStandalone: true),
                             ),
                           ),
                         ),
@@ -195,21 +251,10 @@ class _MyPageState extends State<MyPage> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          const Row(
-                            children: [
-                              _StoreThumb(
-                                label: 'Kyochon Chicken',
-                                imagePath:
-                                    'assets/images/cat_chicken_single.png',
-                              ),
-                              SizedBox(width: 8),
-                              _StoreThumb(
-                                label: 'Yupki Ddukbokki',
-                                imagePath: 'assets/images/food_tteokbokki.png',
-                              ),
-                            ],
-                          ),
+                          if (favoritePreviewStores.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            _LikedStoresPreview(stores: favoritePreviewStores),
+                          ],
                         ],
                       ),
                     ),
@@ -290,6 +335,83 @@ class _MyPageState extends State<MyPage> {
       ),
       bottomNavigationBar: const NaruBottomNavBar(currentIndex: 4),
     );
+  }
+}
+
+class _MyPageAddress {
+  final String title;
+  final String subtitle;
+
+  const _MyPageAddress({
+    required this.title,
+    required this.subtitle,
+  });
+}
+
+class _MyPageAddressResolver {
+  static Future<_MyPageAddress> resolve() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return _MyPageState._fallbackAddress;
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return _MyPageState._fallbackAddress;
+      }
+
+      final lastKnownPosition = await Geolocator.getLastKnownPosition();
+      final position = lastKnownPosition ??
+          await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              timeLimit: Duration(seconds: 8),
+            ),
+          );
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      if (placemarks.isEmpty) return _MyPageState._fallbackAddress;
+
+      return _fromPlacemark(placemarks.first);
+    } catch (_) {
+      return _MyPageState._fallbackAddress;
+    }
+  }
+
+  static _MyPageAddress _fromPlacemark(Placemark placemark) {
+    final title = _joinUnique([
+      placemark.subLocality,
+      placemark.locality,
+      placemark.subAdministrativeArea,
+      placemark.administrativeArea,
+    ]);
+
+    final subtitle = _joinUnique([
+      placemark.street,
+      placemark.country,
+    ]);
+
+    return _MyPageAddress(
+      title: title.isEmpty ? _MyPageState._fallbackAddress.title : title,
+      subtitle:
+          subtitle.isEmpty ? _MyPageState._fallbackAddress.subtitle : subtitle,
+    );
+  }
+
+  static String _joinUnique(List<String?> values) {
+    final normalized = <String>[];
+    for (final value in values) {
+      final trimmed = value?.trim();
+      if (trimmed == null || trimmed.isEmpty) continue;
+      if (normalized.contains(trimmed)) continue;
+      normalized.add(trimmed);
+    }
+    return normalized.join(', ');
   }
 }
 
@@ -461,13 +583,50 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _StoreThumb extends StatelessWidget {
-  static const double _thumbWidth = 110;
-  static const double _thumbHeight = 100;
+class _LikedStoresPreview extends StatelessWidget {
+  static const double _gap = 8;
 
+  final List<FavoriteStoreModel> stores;
+
+  const _LikedStoresPreview({required this.stores});
+
+  @override
+  Widget build(BuildContext context) {
+    final previewStores = stores.take(3).toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth =
+            ((constraints.maxWidth - (_gap * 2)) / 3).clamp(76.0, 110.0);
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < previewStores.length; i++) ...[
+              if (i > 0) const SizedBox(width: _gap),
+              _StoreThumb(
+                width: itemWidth.toDouble(),
+                label: previewStores[i].name,
+                imageUrl: previewStores[i].imageUrl,
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _StoreThumb extends StatelessWidget {
+  final double width;
   final String label;
-  final String imagePath;
-  const _StoreThumb({required this.label, required this.imagePath});
+  final String? imageUrl;
+
+  const _StoreThumb({
+    required this.width,
+    required this.label,
+    required this.imageUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -476,27 +635,64 @@ class _StoreThumb extends StatelessWidget {
       children: [
         Container(
           clipBehavior: Clip.hardEdge,
-          width: _thumbWidth,
-          height: _thumbHeight,
+          width: width,
+          height: width * 0.86,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(9),
             border: Border.all(color: const Color(0xFF7B7B7B), width: 0.8),
             color: AppColors.bgLight,
           ),
-          child: Image.asset(imagePath, fit: BoxFit.cover),
+          child: _buildImage(),
         ),
         const SizedBox(height: 6),
-        Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            fontSize: 10.5,
-            color: AppColors.textSecondary,
-            height: 1.2,
+        SizedBox(
+          width: width,
+          child: Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 10.5,
+              color: AppColors.textSecondary,
+              height: 1.2,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+
+  Widget _buildImage() {
+    final url = imageUrl?.trim();
+    if (url == null || url.isEmpty) return const _StoreThumbFallback();
+
+    if (url.startsWith('assets/')) {
+      return Image.asset(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const _StoreThumbFallback(),
+      );
+    }
+
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => const _StoreThumbFallback(),
+    );
+  }
+}
+
+class _StoreThumbFallback extends StatelessWidget {
+  const _StoreThumbFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Icon(
+        Icons.storefront_outlined,
+        size: 28,
+        color: AppColors.textMuted,
+      ),
     );
   }
 }

@@ -1,16 +1,23 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/services/api_client.dart';
 import '../../data/models/order_history_model.dart';
 import '../../data/order_history_service.dart';
 
 class OrdersProvider extends ChangeNotifier {
+  static const _localOrdersKey = 'naru_local_orders';
+
   OrderHistoryService? _service;
 
+  List<OrderHistoryModel> _all = [];
   List<OrderHistoryModel> _pending = [];
   List<OrderHistoryModel> _completed = [];
   bool _isLoading = false;
   String? _error;
 
+  List<OrderHistoryModel> get all => _all;
   List<OrderHistoryModel> get pending => _pending;
   List<OrderHistoryModel> get completed => _completed;
   bool get isLoading => _isLoading;
@@ -21,15 +28,44 @@ class OrdersProvider extends ChangeNotifier {
     _service = OrderHistoryService(api);
   }
 
+  Future<void> fetchAll() async {
+    if (_service == null) await init();
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    final localOrders = await _loadLocalOrders();
+
+    try {
+      final remoteOrders = await _service!.fetchAllOrders();
+      _all = _sortOrders([...localOrders, ...remoteOrders]);
+    } catch (e) {
+      if (localOrders.isNotEmpty) {
+        _all = _sortOrders(localOrders);
+      }
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> fetchPending() async {
     if (_service == null) await init();
     _isLoading = true;
     _error = null;
     notifyListeners();
 
+    final localOrders =
+        (await _loadLocalOrders()).where((order) => order.isPending).toList();
+
     try {
-      _pending = await _service!.fetchPendingOrders();
+      final remoteOrders = await _service!.fetchPendingOrders();
+      _pending = _sortOrders([...localOrders, ...remoteOrders]);
     } catch (e) {
+      if (localOrders.isNotEmpty) {
+        _pending = _sortOrders(localOrders);
+      }
       _error = e.toString();
     } finally {
       _isLoading = false;
@@ -43,13 +79,99 @@ class OrdersProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    final localOrders = (await _loadLocalOrders())
+        .where((order) => order.status == 'COMPLETED')
+        .toList();
+
     try {
-      _completed = await _service!.fetchCompletedOrders();
+      final remoteOrders = await _service!.fetchCompletedOrders();
+      _completed = _sortOrders([...localOrders, ...remoteOrders]);
     } catch (e) {
+      if (localOrders.isNotEmpty) {
+        _completed = _sortOrders(localOrders);
+      }
       _error = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> recordLocalOrder({
+    int? remoteOrderId,
+    required String storeName,
+    String? storeImageUrl,
+    required int totalAmount,
+    required List<OrderHistoryItemModel> items,
+    String status = 'PAID',
+  }) async {
+    final localOrders = await _loadLocalOrders();
+    final order = OrderHistoryModel(
+      id: remoteOrderId ?? -DateTime.now().microsecondsSinceEpoch,
+      status: status,
+      storeName: storeName,
+      storeImageUrl: storeImageUrl,
+      totalAmount: totalAmount,
+      orderedAt: DateTime.now().toIso8601String(),
+      items: items,
+      isLocal: true,
+    );
+
+    final updatedLocalOrders = _sortOrders([order, ...localOrders]);
+    await _saveLocalOrders(updatedLocalOrders);
+    _all = _sortOrders([order, ..._all]);
+    if (order.isPending) {
+      _pending = _sortOrders([order, ..._pending]);
+    }
+    if (order.status == 'COMPLETED') {
+      _completed = _sortOrders([order, ..._completed]);
+    }
+    _error = null;
+    notifyListeners();
+  }
+
+  List<OrderHistoryModel> _sortOrders(List<OrderHistoryModel> orders) {
+    final deduped = <String, OrderHistoryModel>{};
+    for (final order in orders) {
+      final key = order.id > 0 ? 'order:${order.id}' : 'local:${order.id}';
+      final existing = deduped[key];
+      if (existing != null && !order.isLocal) continue;
+      deduped[key] = order;
+    }
+
+    final list = deduped.values.toList();
+    list.sort((a, b) => _orderTime(b).compareTo(_orderTime(a)));
+    return list;
+  }
+
+  DateTime _orderTime(OrderHistoryModel order) {
+    return DateTime.tryParse(order.orderedAt) ??
+        DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
+  Future<List<OrderHistoryModel>> _loadLocalOrders() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_localOrdersKey);
+      if (raw == null || raw.isEmpty) return const [];
+
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      return decoded
+          .map(
+              (e) => OrderHistoryModel.fromLocalJson(e as Map<String, dynamic>))
+          .where((order) => order.id != 0)
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<void> _saveLocalOrders(List<OrderHistoryModel> orders) async {
+    final prefs = await SharedPreferences.getInstance();
+    final localOrders = orders.where((order) => order.isLocal).toList();
+    final encoded = jsonEncode(
+      localOrders.map((order) => order.toLocalJson()).toList(),
+    );
+    await prefs.setString(_localOrdersKey, encoded);
   }
 }

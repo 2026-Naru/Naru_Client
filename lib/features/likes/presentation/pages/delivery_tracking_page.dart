@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import 'delivery_completed_page.dart';
 
 class DeliveryTrackingPage extends StatefulWidget {
   final int totalPrice;
@@ -19,6 +20,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
   // 0: Order Confirmed, 1: Preparing, 2: Out for Delivery, 3: Delivered
   int _currentStep = 0;
   Timer? _progressTimer;
+  bool _didOpenCompletedPage = false;
   BitmapDescriptor? _deliveryPin;
   BitmapDescriptor? _blueDotPin;
   Set<Marker> _markers = const {};
@@ -71,12 +73,28 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
       if (stepIndex >= _stepDurations.length) return;
       _progressTimer = Timer(Duration(seconds: _stepDurations[stepIndex]), () {
         if (!mounted) return;
-        setState(() => _currentStep = stepIndex + 1);
+        final nextStep = stepIndex + 1;
+        setState(() => _currentStep = nextStep);
         stepIndex++;
+        if (nextStep == _steps.length - 1) {
+          _openCompletedPage();
+          return;
+        }
         scheduleNext();
       });
     }
+
     scheduleNext();
+  }
+
+  void _openCompletedPage() {
+    if (_didOpenCompletedPage) return;
+    _didOpenCompletedPage = true;
+    _progressTimer?.cancel();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const DeliveryCompletedPage()),
+    );
   }
 
   Future<void> _initMarkers() async {
@@ -111,7 +129,8 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
       final innerRRect =
           RRect.fromRectAndRadius(innerRect, const Radius.circular(10));
 
-      final byteData = await rootBundle.load('assets/images/delivery_mascot.png');
+      final byteData =
+          await rootBundle.load('assets/images/delivery_mascot.png');
       final codec = await ui.instantiateImageCodec(
         byteData.buffer.asUint8List(),
         targetWidth: 56,
@@ -152,7 +171,8 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
           .toImage(canvasW.toInt(), canvasH.toInt());
       final pngBytes = await image.toByteData(format: ui.ImageByteFormat.png);
       if (pngBytes == null) {
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+        return BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueOrange);
       }
       return BitmapDescriptor.bytes(pngBytes.buffer.asUint8List());
     } catch (_) {
@@ -167,11 +187,9 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
       final canvas = Canvas(recorder);
       const center = Offset(size / 2, size / 2);
       canvas.drawCircle(center, 9, Paint()..color = Colors.white);
-      canvas.drawCircle(
-          center, 7, Paint()..color = const Color(0xFF46A8FF));
-      final image = await recorder
-          .endRecording()
-          .toImage(size.toInt(), size.toInt());
+      canvas.drawCircle(center, 7, Paint()..color = const Color(0xFF46A8FF));
+      final image =
+          await recorder.endRecording().toImage(size.toInt(), size.toInt());
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
       if (bytes == null) {
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue);
@@ -266,12 +284,12 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
               GestureDetector(
                 onTap: () => Navigator.maybePop(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                        color: const Color(0xFFCCCCCC), width: 1),
+                    border:
+                        Border.all(color: const Color(0xFFCCCCCC), width: 1),
                   ),
                   child: const Text(
                     'Order Cancel',
@@ -321,13 +339,13 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                           : const Color(0xFFCCCCCC),
                       border: isCurrent
                           ? Border.all(
-                              color: AppColors.brandOrange.withValues(alpha: 0.3),
+                              color:
+                                  AppColors.brandOrange.withValues(alpha: 0.3),
                               width: 3)
                           : null,
                     ),
                     child: isCompleted && !isCurrent
-                        ? const Icon(Icons.check,
-                            size: 8, color: Colors.white)
+                        ? const Icon(Icons.check, size: 8, color: Colors.white)
                         : null,
                   ),
                   if (!isLast)
@@ -354,9 +372,8 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                       style: TextStyle(
                         fontFamily: 'Pretendard',
                         fontSize: 14,
-                        fontWeight: isCurrent
-                            ? FontWeight.w600
-                            : FontWeight.w400,
+                        fontWeight:
+                            isCurrent ? FontWeight.w600 : FontWeight.w400,
                         color: isCompleted
                             ? AppColors.textPrimary
                             : AppColors.textSecondary,

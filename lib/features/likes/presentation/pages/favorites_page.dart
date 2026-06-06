@@ -119,6 +119,8 @@ class _FavoriteStoreCard extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (_) => StoreDetailPage(
+            storeId: store.storeId,
+            syncFavoriteRemote: store.syncRemote,
             storeName: store.name,
             storeSubtitle: store.categoryName ?? '',
             heroImagePath: store.imageUrl ?? 'assets/images/food_jokbal.png',
@@ -147,9 +149,7 @@ class _FavoriteStoreCard extends StatelessWidget {
                 border: Border.all(color: const Color(0xFFE4E6E8), width: 1),
               ),
               child: store.imageUrl != null
-                  ? Image.network(store.imageUrl!, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          const Icon(Icons.store, color: AppColors.textMuted))
+                  ? _favoriteStoreImage(store.imageUrl!)
                   : const Icon(Icons.store, color: AppColors.textMuted),
             ),
             const SizedBox(width: 12),
@@ -181,8 +181,9 @@ class _FavoriteStoreCard extends StatelessWidget {
               ),
             ),
             GestureDetector(
-              onTap: () =>
-                  context.read<FavoritesProvider>().remove(store.storeId),
+              onTap: () => context
+                  .read<FavoritesProvider>()
+                  .remove(store.storeId, syncRemote: store.syncRemote),
               child: const Icon(Icons.favorite,
                   color: AppColors.accentOrange, size: 22),
             ),
@@ -191,6 +192,18 @@ class _FavoriteStoreCard extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _favoriteStoreImage(String imagePath) {
+  if (imagePath.startsWith('assets/')) {
+    return Image.asset(imagePath, fit: BoxFit.cover);
+  }
+  return Image.network(
+    imagePath,
+    fit: BoxFit.cover,
+    errorBuilder: (_, __, ___) =>
+        const Icon(Icons.store, color: AppColors.textMuted),
+  );
 }
 
 class _LikesPromoBanner extends StatelessWidget {
