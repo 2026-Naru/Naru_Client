@@ -1489,16 +1489,24 @@ class _RatingRow extends StatelessWidget {
       height: 20,
       child: Row(
         children: [
-          SvgPicture.asset('assets/images/ic_star.svg', width: 14, height: 14),
-          const SizedBox(width: 1),
+          SvgPicture.asset(
+            'assets/images/icon_star.svg',
+            width: 16,
+            height: 16,
+          ),
+          const SizedBox(width: 3),
           Text(rating,
               style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
               overflow: TextOverflow.ellipsis),
           const Text(' (2,002)',
               style: AppTextStyles.caption, overflow: TextOverflow.ellipsis),
           const SizedBox(width: 7),
-          SvgPicture.asset('assets/images/ic_time.svg', width: 16, height: 16),
-          const SizedBox(width: 2),
+          SvgPicture.asset(
+            'assets/images/icon_time.svg',
+            width: 18,
+            height: 18,
+          ),
+          const SizedBox(width: 3),
           Expanded(
             child: Text(time,
                 style: AppTextStyles.caption.copyWith(
