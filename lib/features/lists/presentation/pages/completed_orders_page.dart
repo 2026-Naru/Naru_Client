@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../providers/orders_provider.dart';
 import '../../data/models/order_history_model.dart';
 
@@ -15,7 +16,12 @@ class _CompletedOrdersPageState extends State<CompletedOrdersPage> {
   String _selectedCategory = 'ALL';
 
   static const _categories = [
-    'ALL', 'Korean', 'Street', 'BBQ', 'Chicken', 'Asian'
+    'ALL',
+    'Korean',
+    'Street',
+    'BBQ',
+    'Chicken',
+    'Asian'
   ];
 
   @override
@@ -70,9 +76,8 @@ class _CompletedOrdersPageState extends State<CompletedOrdersPage> {
                           fontFamily: 'Pretendard',
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: selected
-                              ? Colors.white
-                              : AppColors.textSecondary,
+                          color:
+                              selected ? Colors.white : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -144,9 +149,7 @@ class _CompletedOrderRow extends StatelessWidget {
   final OrderHistoryModel order;
   const _CompletedOrderRow({required this.order});
 
-  static String _formatPrice(int price) => price
-      .toString()
-      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+  static String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +167,8 @@ class _CompletedOrderRow extends StatelessWidget {
               color: const Color(0xFFF3F5F7),
             ),
             child: order.storeImageUrl != null
-                ? Image.network(order.storeImageUrl!, fit: BoxFit.cover,
+                ? Image.network(order.storeImageUrl!,
+                    fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) =>
                         const Icon(Icons.store, color: AppColors.textMuted))
                 : const Icon(Icons.store, color: AppColors.textMuted),
@@ -196,7 +200,7 @@ class _CompletedOrderRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '₩${_formatPrice(order.totalAmount)}',
+                  _formatPrice(order.totalAmount),
                   style: const TextStyle(
                     fontFamily: 'Pretendard',
                     fontSize: 12,
@@ -210,8 +214,7 @@ class _CompletedOrderRow extends StatelessWidget {
           GestureDetector(
             onTap: () {},
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.brandOrange,
                 borderRadius: BorderRadius.circular(20),

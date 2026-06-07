@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../widgets/order_step_indicator.dart';
 
 class OrderFlowPage extends StatefulWidget {
@@ -53,8 +54,7 @@ class _OrderFlowPageState extends State<OrderFlowPage> {
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: OrderStepIndicator(
-                      currentStep: _step, totalSteps: 5),
+                  child: OrderStepIndicator(currentStep: _step, totalSteps: 5),
                 ),
               ),
             ],
@@ -80,8 +80,8 @@ class _OrderFlowPageState extends State<OrderFlowPage> {
                         borderRadius: BorderRadius.circular(21),
                       ),
                       child: Text('Top 1',
-                          style: AppTextStyles.caption.copyWith(
-                              color: const Color(0xFF787E81))),
+                          style: AppTextStyles.caption
+                              .copyWith(color: const Color(0xFF787E81))),
                     ),
                     const SizedBox(height: 8),
                     const Text('Half [Jok, Bo Set]', style: AppTextStyles.h1),
@@ -95,8 +95,8 @@ class _OrderFlowPageState extends State<OrderFlowPage> {
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textPrimary)),
                         Text(' (132)',
-                            style: AppTextStyles.caption.copyWith(
-                                color: AppColors.textMuted)),
+                            style: AppTextStyles.caption
+                                .copyWith(color: AppColors.textMuted)),
                         const Icon(Icons.chevron_right,
                             size: 16, color: AppColors.textMuted),
                       ],
@@ -104,8 +104,8 @@ class _OrderFlowPageState extends State<OrderFlowPage> {
                     const SizedBox(height: 8),
                     Text(
                       'Cold Makguksu + Tuna Mayo Rice Balls + Fresh Wrap Vegetables + Drink + Dried Radish Side Dish Set',
-                      style: AppTextStyles.body.copyWith(
-                          color: AppColors.textMuted),
+                      style: AppTextStyles.body
+                          .copyWith(color: AppColors.textMuted),
                     ),
                     _divider(),
                     _Section(
@@ -184,12 +184,12 @@ class _OrderFlowPageState extends State<OrderFlowPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('Minimum Order',
-                    style: AppTextStyles.caption.copyWith(
-                        color: const Color(0xFF343638))),
+                    style: AppTextStyles.caption
+                        .copyWith(color: const Color(0xFF343638))),
                 const SizedBox(height: 2),
-                Text('₩ 15,000',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                        color: const Color(0xFF343638))),
+                Text(CurrencyFormatter.formatKrw(15000),
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: const Color(0xFF343638))),
               ],
             ),
             const SizedBox(width: 22),
@@ -203,8 +203,10 @@ class _OrderFlowPageState extends State<OrderFlowPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   alignment: Alignment.center,
-                  child: const Text('Order ₩38,000',
-                      style: AppTextStyles.button),
+                  child: Text(
+                    CurrencyFormatter.krwTextToUsd('Order ₩38,000'),
+                    style: AppTextStyles.button,
+                  ),
                 ),
               ),
             ),
@@ -258,9 +260,8 @@ class _Section extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: active
-                                ? AppColors.primary
-                                : AppColors.border,
+                            color:
+                                active ? AppColors.primary : AppColors.border,
                             width: active ? 5 : 1.5,
                           ),
                         ),
@@ -270,9 +271,9 @@ class _Section extends StatelessWidget {
                           style: AppTextStyles.body.copyWith(fontSize: 16)),
                     ],
                   ),
-                  Text(options[i].price,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600, fontSize: 16)),
+                  Text(CurrencyFormatter.krwTextToUsd(options[i].price),
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(fontWeight: FontWeight.w600, fontSize: 16)),
                 ],
               ),
             ),

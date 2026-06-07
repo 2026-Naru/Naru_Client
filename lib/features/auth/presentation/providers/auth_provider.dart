@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/exceptions/app_exception.dart';
 import '../../../../core/services/api_client.dart';
 import '../../../../core/services/token_storage.dart';
 import '../../data/auth_remote_repository.dart';
@@ -49,7 +50,9 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = e is AppException && e.statusCode == 401
+          ? '존재하지 않은 이메일 또는 비밀번호 입니다'
+          : e.toString();
       _status = AuthStatus.error;
       notifyListeners();
       return false;

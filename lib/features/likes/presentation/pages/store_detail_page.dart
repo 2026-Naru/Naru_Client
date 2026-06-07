@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
 import '../../data/models/favorite_store_model.dart';
 import '../providers/favorites_provider.dart';
@@ -324,7 +325,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             ),
           ),
         Text(
-          value,
+          CurrencyFormatter.krwTextToUsd(value),
           style: const TextStyle(
             fontFamily: 'Pretendard',
             fontSize: 13,
@@ -914,7 +915,7 @@ class _MenuItemRow extends StatelessWidget {
                     (opt) => Padding(
                       padding: const EdgeInsets.only(bottom: 2),
                       child: Text(
-                        '• $opt',
+                        '• ${CurrencyFormatter.krwTextToUsd(opt)}',
                         style: const TextStyle(
                           fontFamily: 'Pretendard',
                           fontSize: 12,

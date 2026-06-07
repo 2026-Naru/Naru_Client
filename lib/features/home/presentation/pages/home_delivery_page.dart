@@ -405,7 +405,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                 padding: EdgeInsets.fromLTRB(16, 20, 16, 0),
                 child: _SectionHeader(
                   title: 'Stores with Free Delivery',
-                  subtitle: 'Order now for ₩0 delivery',
+                  subtitle: 'Order now for \$0.00 delivery',
                 ),
               ),
               const SizedBox(height: 20),
@@ -1523,7 +1523,7 @@ class _PromoBanner extends StatelessWidget {
                 ),
                 SizedBox(height: 6),
                 Text(
-                  'Discover the benefit\nof ₩0 delivery',
+                  'Discover the benefit\nof \$0.00 delivery',
                   style: AppTextStyles.h2,
                 ),
               ],

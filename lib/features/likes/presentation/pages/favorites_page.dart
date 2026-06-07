@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
+import '../../../cart/presentation/pages/cart_list_page.dart';
+import '../../../home/presentation/pages/search_page.dart' as home_search;
 import '../providers/favorites_provider.dart';
 import '../../data/models/favorite_store_model.dart';
 import 'store_detail_page.dart';
@@ -29,11 +31,11 @@ class _FavoritesPageState extends State<FavoritesPage> {
       body: SafeArea(
         child: Column(
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
               child: Row(
                 children: [
-                  Text(
+                  const Text(
                     'Likes',
                     style: TextStyle(
                       fontFamily: 'Pretendard',
@@ -43,11 +45,46 @@ class _FavoritesPageState extends State<FavoritesPage> {
                       height: 1.08,
                     ),
                   ),
-                  Spacer(),
-                  Icon(Icons.search, size: 21, color: AppColors.textPrimary),
-                  SizedBox(width: 10),
-                  Icon(Icons.shopping_cart_outlined,
-                      size: 21, color: AppColors.textPrimary),
+                  const Spacer(),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const home_search.SearchPage(),
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.search,
+                      size: 24,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CartListPage(),
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 24,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ],
               ),
             ),

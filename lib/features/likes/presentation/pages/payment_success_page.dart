@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import 'delivery_tracking_page.dart';
 
 class PaymentSuccessPage extends StatelessWidget {
@@ -7,9 +8,7 @@ class PaymentSuccessPage extends StatelessWidget {
 
   const PaymentSuccessPage({super.key, required this.totalPrice});
 
-  String _formatPrice(int price) => price
-      .toString()
-      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+  String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +101,7 @@ class PaymentSuccessPage extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '₩${_formatPrice(totalPrice)}',
+                          _formatPrice(totalPrice),
                           style: const TextStyle(
                             fontFamily: 'Pretendard',
                             fontSize: 14,
@@ -128,7 +127,7 @@ class PaymentSuccessPage extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '₩${_formatPrice(totalPrice)}',
+                          _formatPrice(totalPrice),
                           style: const TextStyle(
                             fontFamily: 'Pretendard',
                             fontSize: 16,

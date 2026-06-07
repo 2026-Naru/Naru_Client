@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../home/presentation/pages/search_page.dart' as home_search;
 import 'order_page.dart';
 
 class CartPage extends StatefulWidget {
@@ -85,10 +87,7 @@ class _CartPageState extends State<CartPage>
   }
 
   String _formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+$)'),
-          (m) => '${m[1]},',
-        );
+    return CurrencyFormatter.formatKrw(price);
   }
 
   @override
@@ -151,7 +150,25 @@ class _CartPageState extends State<CartPage>
               ),
             ),
           ),
-          const SizedBox(width: 40),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const home_search.SearchPage(),
+              ),
+            ),
+            icon: const Icon(
+              Icons.search,
+              size: 22,
+              color: AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );
@@ -264,7 +281,7 @@ class _CartPageState extends State<CartPage>
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '₩${_formatPrice(_menuTotal)}',
+                    _formatPrice(_menuTotal),
                     style: const TextStyle(
                       fontFamily: 'Pretendard',
                       fontSize: 16,
@@ -373,7 +390,7 @@ class _CartPageState extends State<CartPage>
                             ),
                           ),
                           Text(
-                            e.priceLabel,
+                            CurrencyFormatter.krwTextToUsd(e.priceLabel),
                             style: const TextStyle(
                               fontFamily: 'Pretendard',
                               fontSize: 13,
@@ -532,7 +549,7 @@ class _CartPageState extends State<CartPage>
                       ),
                     ),
                     Text(
-                      '₩${_formatPrice(_subtotal)}',
+                      _formatPrice(_subtotal),
                       style: const TextStyle(
                         fontFamily: 'Pretendard',
                         fontSize: 14,
@@ -558,7 +575,7 @@ class _CartPageState extends State<CartPage>
                       ),
                     ),
                     Text(
-                      '₩${_formatPrice(_totalPayment)}',
+                      _formatPrice(_totalPayment),
                       style: const TextStyle(
                         fontFamily: 'Pretendard',
                         fontSize: 15,
@@ -591,7 +608,7 @@ class _CartPageState extends State<CartPage>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '₩${_formatPrice(_totalPayment)}',
+                _formatPrice(_totalPayment),
                 style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 17,

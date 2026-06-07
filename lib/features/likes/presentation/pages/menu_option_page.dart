@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../cart/presentation/pages/cart_list_page.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import 'cart_page.dart';
@@ -55,11 +56,7 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
   }
 
   String get _orderLabel {
-    final formatted = _totalPrice.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+$)'),
-          (m) => '${m[1]},',
-        );
-    return 'Order Now ₩$formatted';
+    return 'Order Now ${CurrencyFormatter.formatKrw(_totalPrice)}';
   }
 
   void _addToCart() {
@@ -349,12 +346,11 @@ class _OptionSection extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    opt.priceLabel,
+                    CurrencyFormatter.krwTextToUsd(opt.priceLabel),
                     style: TextStyle(
                       fontFamily: 'Pretendard',
                       fontSize: 14,
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -461,11 +457,11 @@ class _BottomBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'Minimum Order',
                 style: TextStyle(
                   fontFamily: 'Pretendard',
@@ -474,8 +470,8 @@ class _BottomBar extends StatelessWidget {
                 ),
               ),
               Text(
-                '₩ 15,000',
-                style: TextStyle(
+                CurrencyFormatter.formatKrw(15000),
+                style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,

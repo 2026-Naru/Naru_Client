@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../likes/presentation/pages/cart_page.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../cart/presentation/pages/cart_list_page.dart';
 import '../../../likes/presentation/pages/menu_option_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -34,6 +35,75 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
   late Animation<Offset> _slideOutAnim;
   late Animation<Offset> _slideInAnim;
   Timer? _rankTimer;
+
+  static const _deliveryResults = [
+    _SearchResultData(
+      name: 'Yupki Ddukbokki Sillim',
+      tags: ['Tteokbokki', 'Street Food'],
+      rating: '4.9',
+      reviewCount: '2,002',
+      pickUpTime: '20min',
+      walkingTime: '5 min',
+      label: 'Tteokbokki\n₩12,000',
+      imagePath: 'assets/images/food_tteokbokki.png',
+      keywords: ['엽떡', '떡볶이', '분식', 'yupki', 'yeopgi'],
+    ),
+    _SearchResultData(
+      name: 'Simin Jokbal Bossam Sillim',
+      tags: ['Jokbal', 'Bossam'],
+      rating: '5.0',
+      reviewCount: '2,002',
+      pickUpTime: '40min',
+      walkingTime: '8 min',
+      label: 'Jokbal\n₩38,000',
+      imagePath: 'assets/images/food_jokbal.png',
+      keywords: ['족발', '보쌈', '마왕족발', 'simin', 'mawang'],
+    ),
+    _SearchResultData(
+      name: 'Musa Kimchi BBQ',
+      tags: ['Korean BBQ', 'Grilled Pork'],
+      rating: '4.7',
+      reviewCount: '1,846',
+      pickUpTime: '25~35min',
+      walkingTime: '9 min',
+      label: 'BBQ\n₩16,000',
+      imagePath: 'assets/images/food_jokbal.png',
+      keywords: ['고기', '김치', '삼겹살', 'korean bbq', 'bbq'],
+    ),
+    _SearchResultData(
+      name: 'Rakungfu MALATANG',
+      tags: ['MALATANG', 'Self MALATANG'],
+      rating: '3.2',
+      reviewCount: '132',
+      pickUpTime: '15~20min',
+      walkingTime: '13 min',
+      label: 'MALATANG\n₩10,000',
+      imagePath: 'assets/images/food_tteokbokki.png',
+      keywords: ['마라탕', '라쿵푸', 'rakungfu', 'mala'],
+    ),
+    _SearchResultData(
+      name: 'Nene Chicken Sillim',
+      tags: ['Chicken', 'Wings'],
+      rating: '4.8',
+      reviewCount: '3,102',
+      pickUpTime: '20~30min',
+      walkingTime: '10 min',
+      label: 'Chicken\n₩18,000',
+      imagePath: 'assets/images/food_jokbal.png',
+      keywords: ['치킨', '네네치킨', 'fried chicken'],
+    ),
+    _SearchResultData(
+      name: 'Cafe Bombom Sillim',
+      tags: ['Coffee', 'Dessert'],
+      rating: '5.0',
+      reviewCount: '1,245',
+      pickUpTime: '10~15min',
+      walkingTime: '3 min',
+      label: 'Preparing',
+      imagePath: 'assets/images/food_cafe.png',
+      keywords: ['카페', '커피', '디저트', 'cafe', 'coffee'],
+    ),
+  ];
 
   @override
   void initState() {
@@ -103,10 +173,10 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
             _buildTopBar(context),
             _buildTabs(),
             Expanded(
-              child: _tabController.index == 1
-                  ? const _PickupDefaultContent()
-                  : (_hasQuery
-                      ? _buildSearchResults()
+              child: _hasQuery
+                  ? _buildSearchResults()
+                  : (_tabController.index == 1
+                      ? const _PickupDefaultContent()
                       : _buildDefaultContent()),
             ),
           ],
@@ -177,15 +247,7 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const CartPage(
-                  menuName: 'Half [Jok, Bo Set]',
-                  selectedSize: 'Small (2–3 servings)',
-                  selectedJokbal: 'Choice Jokbal',
-                  selectedDrink: 'Drink Choice 500ml',
-                  totalPrice: 38000,
-                  quantity: 1,
-                  menuImagePath: 'assets/images/food_jokbal.png',
-                ),
+                builder: (_) => const CartListPage(),
               ),
             ),
             child: const Icon(Icons.shopping_cart_outlined,
@@ -405,9 +467,13 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
 
   Widget _buildSearchResults() {
     final query = _searchController.text.trim().toLowerCase();
+    final source = _tabController.index == 1
+        ? _PickupDefaultContent.stores
+        : _deliveryResults;
+    final results = source.where((item) => item.matches(query)).toList();
 
-    if (query == 'malatang') {
-      return const _MalatangResults();
+    if (results.isNotEmpty) {
+      return _SearchResultsContent(results: results);
     }
 
     return const Center(
@@ -432,7 +498,7 @@ class _PickupDefaultContent extends StatelessWidget {
     _FilterChip(icon: 'assets/icons/black_star.svg', label: 'Highest Rated'),
   ];
 
-  static const _stores = [
+  static const stores = [
     _SearchResultData(
       name: 'Simin Jokbal Bossam Sillim',
       tags: ['Jokbal', 'Bossam'],
@@ -442,6 +508,18 @@ class _PickupDefaultContent extends StatelessWidget {
       walkingTime: '8 min',
       label: 'Jokbal\n₩38,000',
       imagePath: 'assets/images/food_jokbal.png',
+      keywords: ['족발', '보쌈', '마왕족발', 'simin', 'mawang'],
+    ),
+    _SearchResultData(
+      name: 'Musa Kimchi BBQ',
+      tags: ['Korean BBQ', 'Grilled Pork'],
+      rating: '4.7',
+      reviewCount: '1,846',
+      pickUpTime: '25~35min',
+      walkingTime: '9 min',
+      label: 'BBQ\n₩16,000',
+      imagePath: 'assets/images/food_jokbal.png',
+      keywords: ['고기', '김치', '삼겹살', 'korean bbq', 'bbq'],
     ),
     _SearchResultData(
       name: 'Yupki Ddukbokki Sillim',
@@ -452,6 +530,7 @@ class _PickupDefaultContent extends StatelessWidget {
       walkingTime: '5 min',
       label: 'Tteokbokki\n₩12,000',
       imagePath: 'assets/images/food_tteokbokki.png',
+      keywords: ['엽떡', '떡볶이', '분식', 'yupki', 'yeopgi'],
     ),
     _SearchResultData(
       name: 'Rakungfu MALATANG',
@@ -462,6 +541,7 @@ class _PickupDefaultContent extends StatelessWidget {
       walkingTime: '13 min',
       label: 'Preparing',
       imagePath: 'assets/images/food_tteokbokki.png',
+      keywords: ['마라탕', '라쿵푸', 'rakungfu', 'mala'],
     ),
     _SearchResultData(
       name: 'Cafe Bombom Sillim',
@@ -472,6 +552,7 @@ class _PickupDefaultContent extends StatelessWidget {
       walkingTime: '3 min',
       label: 'Preparing',
       imagePath: 'assets/images/food_cafe.png',
+      keywords: ['카페', '커피', '디저트', 'cafe', 'coffee'],
     ),
     _SearchResultData(
       name: 'Nene Chicken Sillim',
@@ -482,6 +563,7 @@ class _PickupDefaultContent extends StatelessWidget {
       walkingTime: '10 min',
       label: 'Chicken\n₩18,000',
       imagePath: 'assets/images/food_jokbal.png',
+      keywords: ['치킨', '네네치킨', 'fried chicken'],
     ),
   ];
 
@@ -519,7 +601,7 @@ class _PickupDefaultContent extends StatelessWidget {
         Expanded(
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-            itemCount: _stores.length,
+            itemCount: stores.length,
             separatorBuilder: (_, __) => const Divider(
               height: 24,
               thickness: 1,
@@ -531,14 +613,14 @@ class _PickupDefaultContent extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (_) => MenuOptionPage(
                     rank: 'Top ${i + 1}',
-                    menuName: _stores[i].name,
-                    description: _stores[i].tags.join(', '),
-                    imagePath: _stores[i].imagePath,
+                    menuName: stores[i].name,
+                    description: stores[i].tags.join(', '),
+                    imagePath: stores[i].imagePath,
                   ),
                 ),
               ),
               behavior: HitTestBehavior.opaque,
-              child: _SearchResultRow(item: _stores[i]),
+              child: _SearchResultRow(item: stores[i]),
             ),
           ),
         ),
@@ -547,69 +629,18 @@ class _PickupDefaultContent extends StatelessWidget {
   }
 }
 
-// ── Malatang search results ──────────────────────────────────────────────────
+// ── Search results ───────────────────────────────────────────────────────────
 
-class _MalatangResults extends StatelessWidget {
+class _SearchResultsContent extends StatelessWidget {
+  final List<_SearchResultData> results;
+
   static const _filters = [
     _FilterChip(icon: 'assets/icons/black_clock.svg', label: 'reservation'),
     _FilterChip(icon: 'assets/icons/promo.svg', label: 'promo now'),
     _FilterChip(icon: 'assets/icons/black_star.svg', label: 'Highest Rated'),
   ];
 
-  static const _results = [
-    _SearchResultData(
-      name: 'Rakungfu MALATANG',
-      tags: ['MALATANG', 'Self MALATANG'],
-      rating: '3.2',
-      reviewCount: '132',
-      pickUpTime: '15~20min',
-      walkingTime: '13 min',
-      label: 'MALATANG\n₩10,000',
-      imagePath: 'assets/images/food_tteokbokki.png',
-    ),
-    _SearchResultData(
-      name: 'Rakungfu MALATANG',
-      tags: ['MALATANG', 'Self MALATANG'],
-      rating: '3.2',
-      reviewCount: '132',
-      pickUpTime: '15~20min',
-      walkingTime: '13 min',
-      label: 'MALATANG\n₩10,000',
-      imagePath: 'assets/images/food_tteokbokki.png',
-    ),
-    _SearchResultData(
-      name: 'Rakungfu MALATANG',
-      tags: ['MALATANG', 'Self MALATANG'],
-      rating: '3.2',
-      reviewCount: '132',
-      pickUpTime: '15~20min',
-      walkingTime: '13 min',
-      label: 'Preparing',
-      imagePath: 'assets/images/food_tteokbokki.png',
-    ),
-    _SearchResultData(
-      name: 'Rakungfu MALATANG',
-      tags: ['MALATANG', 'Self MALATANG'],
-      rating: '3.2',
-      reviewCount: '132',
-      pickUpTime: '15~20min',
-      walkingTime: '13 min',
-      label: 'Preparing',
-      imagePath: 'assets/images/food_tteokbokki.png',
-    ),
-    _SearchResultData(
-      name: 'Rakungfu MALATANG',
-      tags: ['MALATANG', 'Self MALATANG'],
-      rating: '3.2',
-      reviewCount: '132',
-      pickUpTime: '15~20min',
-      walkingTime: '13 min',
-      label: 'MALATANG\n₩10,000',
-      imagePath: 'assets/images/food_tteokbokki.png',
-    ),
-  ];
-
-  const _MalatangResults();
+  const _SearchResultsContent({required this.results});
 
   @override
   Widget build(BuildContext context) {
@@ -644,24 +675,22 @@ class _MalatangResults extends StatelessWidget {
         Expanded(
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            itemCount: _results.length,
+            itemCount: results.length,
             separatorBuilder: (_, __) => const SizedBox(height: 16),
             itemBuilder: (context, i) => GestureDetector(
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => MenuOptionPage(
-                    rank: _results[i].label.contains('₩')
-                        ? 'Top ${i + 1}'
-                        : 'Top ${i + 1}',
-                    menuName: _results[i].name,
-                    description: _results[i].tags.join(', '),
-                    imagePath: _results[i].imagePath,
+                    rank: 'Top ${i + 1}',
+                    menuName: results[i].name,
+                    description: results[i].tags.join(', '),
+                    imagePath: results[i].imagePath,
                   ),
                 ),
               ),
               behavior: HitTestBehavior.opaque,
-              child: _SearchResultRow(item: _results[i]),
+              child: _SearchResultRow(item: results[i]),
             ),
           ),
         ),
@@ -739,7 +768,7 @@ class _SearchResultRow extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Text(
-                  item.label,
+                  CurrencyFormatter.krwTextToUsd(item.label),
                   style: TextStyle(
                     fontFamily: 'Pretendard',
                     fontSize: isPreparing ? 13 : 11,
@@ -998,6 +1027,7 @@ class _FilterChip {
 class _SearchResultData {
   final String name;
   final List<String> tags;
+  final List<String> keywords;
   final String rating;
   final String reviewCount;
   final String pickUpTime;
@@ -1014,5 +1044,24 @@ class _SearchResultData {
     required this.walkingTime,
     required this.label,
     required this.imagePath,
+    this.keywords = const [],
   });
+
+  bool matches(String query) {
+    final normalizedQuery = _normalize(query);
+    if (normalizedQuery.isEmpty) return true;
+
+    final haystack = [
+      name,
+      ...tags,
+      ...keywords,
+      label,
+    ].map(_normalize).join();
+
+    return haystack.contains(normalizedQuery);
+  }
+
+  static String _normalize(String value) {
+    return value.toLowerCase().replaceAll(RegExp(r'[\s.,&()~+\-/]+'), '');
+  }
 }
