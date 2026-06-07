@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../data/models/order_history_model.dart';
 import '../providers/orders_provider.dart';
 
@@ -157,9 +158,7 @@ class _OrderHistoryRow extends StatelessWidget {
 
   const _OrderHistoryRow({required this.order});
 
-  static String _formatPrice(int price) => price
-      .toString()
-      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+  static String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +227,7 @@ class _OrderHistoryRow extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '₩${_formatPrice(order.totalAmount)}',
+                      _formatPrice(order.totalAmount),
                       style: const TextStyle(
                         fontFamily: 'Pretendard',
                         fontSize: 11,

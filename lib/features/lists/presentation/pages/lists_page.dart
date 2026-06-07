@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../cart/presentation/pages/cart_list_page.dart';
+import '../../../home/presentation/pages/search_page.dart' as home_search;
 import '../../../../shared/widgets/bottom_nav_bar.dart';
 import 'order_history_page.dart';
 import 'pending_orders_page.dart';
@@ -37,15 +39,43 @@ class _ListsPageState extends State<ListsPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 20, 16, 0),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 16, 0),
               child: Row(
                 children: [
-                  Text('Lists', style: AppTextStyles.h3),
-                  Spacer(),
-                  Icon(Icons.search, size: 24),
-                  SizedBox(width: 6),
-                  Icon(Icons.shopping_cart_outlined, size: 24),
+                  const Text('Lists', style: AppTextStyles.h3),
+                  const Spacer(),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const home_search.SearchPage(),
+                      ),
+                    ),
+                    icon: const Icon(Icons.search, size: 24),
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CartListPage(),
+                      ),
+                    ),
+                    icon: const Icon(Icons.shopping_cart_outlined, size: 24),
+                  ),
                 ],
               ),
             ),

@@ -13,7 +13,7 @@ class UnauthorizedException extends AppException {
 }
 
 class NotFoundException extends AppException {
-  const NotFoundException(String message) : super(message, statusCode: 404);
+  const NotFoundException(super.message) : super(statusCode: 404);
 }
 
 class NetworkException extends AppException {

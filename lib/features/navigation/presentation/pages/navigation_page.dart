@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../../shared/widgets/main_tab_page.dart';
 import 'navigation_search_page.dart';
@@ -596,7 +597,7 @@ class _PickCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    item.price,
+                    CurrencyFormatter.krwTextToUsd(item.price),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

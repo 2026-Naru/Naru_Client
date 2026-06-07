@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import 'delivery_completed_page.dart';
 
 class DeliveryTrackingPage extends StatefulWidget {
@@ -42,9 +43,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
   static const LatLng _storeLocation = LatLng(37.55658, 126.92335);
   static const LatLng _userLocation = LatLng(37.55645, 126.92245);
 
-  String _formatPrice(int price) => price
-      .toString()
-      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+  String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
 
   String get _confirmedTime {
     final now = DateTime.now();
@@ -419,7 +418,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                 ),
               ),
               Text(
-                '₩${_formatPrice(widget.totalPrice)}',
+                _formatPrice(widget.totalPrice),
                 style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 14,
@@ -445,7 +444,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                 ),
               ),
               Text(
-                '₩${_formatPrice(widget.totalPrice)}',
+                _formatPrice(widget.totalPrice),
                 style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 15,

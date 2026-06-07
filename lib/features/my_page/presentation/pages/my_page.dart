@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../../shared/widgets/main_tab_page.dart';
 import '../../../likes/data/models/favorite_store_model.dart';
@@ -416,95 +417,80 @@ class _MyPageAddressResolver {
 }
 
 class _ExchangeAmountCard extends StatelessWidget {
-  static const double _cardWidth = 359.2;
   static const double _cardHeight = 114.5;
 
   final int balanceKrw;
   const _ExchangeAmountCard({required this.balanceKrw});
 
-  static String _fmt(int v) => v
-      .toString()
-      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
-
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardWidth = constraints.maxWidth < _cardWidth
-            ? constraints.maxWidth
-            : _cardWidth;
-
-        return Center(
-          child: Container(
-            width: cardWidth,
-            height: _cardHeight,
-            decoration: BoxDecoration(
-              color: AppColors.bgWhite,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFF2A2A2A), width: 1.1),
+    return Container(
+      width: double.infinity,
+      height: _cardHeight,
+      decoration: BoxDecoration(
+        color: AppColors.bgWhite,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF2A2A2A), width: 1.1),
+      ),
+      padding: const EdgeInsets.fromLTRB(17, 10, 17, 12),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: 0,
+            top: 17,
+            child: Text(
+              'Exchanged amount',
+              style: AppTextStyles.caption.copyWith(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+                height: 1.1,
+              ),
             ),
-            padding: const EdgeInsets.fromLTRB(17, 10, 17, 12),
-            child: Stack(
-              clipBehavior: Clip.none,
+          ),
+          Positioned(
+            right: 0,
+            top: -10,
+            child: Image.asset(
+              'assets/images/mypage_lang.png',
+              width: 95,
+              height: 95,
+              fit: BoxFit.contain,
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 46,
+            child: Container(height: 1, color: const Color(0xFF1F1F1F)),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Positioned(
-                  left: 0,
-                  top: 17,
-                  child: Text(
-                    'Exchanged amount',
-                    style: AppTextStyles.caption.copyWith(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                      height: 1.1,
-                    ),
+                Text(
+                  CurrencyFormatter.formatKrw(balanceKrw),
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.1,
                   ),
                 ),
-                Positioned(
-                  right: 0,
-                  top: -10,
-                  child: Image.asset(
-                    'assets/images/mypage_lang.png',
-                    width: 95,
-                    height: 95,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 46,
-                  child: Container(height: 1, color: const Color(0xFF1F1F1F)),
-                ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '₩${_fmt(balanceKrw)}',
-                        style: AppTextStyles.caption.copyWith(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      const Icon(
-                        Icons.chevron_right_rounded,
-                        size: 26,
-                        color: AppColors.textPrimary,
-                      ),
-                    ],
-                  ),
+                const SizedBox(width: 2),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 26,
+                  color: AppColors.textPrimary,
                 ),
               ],
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

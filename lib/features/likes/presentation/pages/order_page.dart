@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/api_client.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../cart/domain/cart_item.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../lists/data/models/order_history_model.dart';
@@ -62,9 +63,7 @@ class _OrderPageState extends State<OrderPage>
     'Please call if an item is unavailable',
   ];
 
-  String _formatPrice(int price) => price
-      .toString()
-      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+  String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
 
   @override
   void initState() {
@@ -285,7 +284,7 @@ class _OrderPageState extends State<OrderPage>
                               Text(item.optionsSummary, style: _subtitleStyle),
                               const SizedBox(height: 4),
                               Text(
-                                '₩${_formatPrice(item.totalPrice)}  ×${item.quantity}',
+                                '${_formatPrice(item.totalPrice)}  ×${item.quantity}',
                                 style: const TextStyle(
                                   fontFamily: 'Pretendard',
                                   fontSize: 14,
@@ -337,7 +336,7 @@ class _OrderPageState extends State<OrderPage>
                 Text(widget.selectedDrink, style: _subtitleStyle),
                 const SizedBox(height: 8),
                 Text(
-                  '₩${_formatPrice(widget.totalPrice)}',
+                  _formatPrice(widget.totalPrice),
                   style: const TextStyle(
                     fontFamily: 'Pretendard',
                     fontSize: 15,
@@ -690,7 +689,7 @@ class _OrderPageState extends State<OrderPage>
                 ),
               ),
               Text(
-                '₩${_formatPrice(widget.totalPrice)}',
+                _formatPrice(widget.totalPrice),
                 style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 14,
@@ -716,7 +715,7 @@ class _OrderPageState extends State<OrderPage>
                 ),
               ),
               Text(
-                '₩${_formatPrice(widget.totalPrice)}',
+                _formatPrice(widget.totalPrice),
                 style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 15,

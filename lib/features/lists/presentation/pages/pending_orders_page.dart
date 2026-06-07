@@ -15,7 +15,12 @@ class _PendingOrdersPageState extends State<PendingOrdersPage> {
   String _selectedCategory = 'ALL';
 
   static const _categories = [
-    'ALL', 'Korean', 'Street', 'BBQ', 'Chicken', 'Asian'
+    'ALL',
+    'Korean',
+    'Street',
+    'BBQ',
+    'Chicken',
+    'Asian'
   ];
 
   @override
@@ -70,9 +75,8 @@ class _PendingOrdersPageState extends State<PendingOrdersPage> {
                           fontFamily: 'Pretendard',
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: selected
-                              ? Colors.white
-                              : AppColors.textSecondary,
+                          color:
+                              selected ? Colors.white : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -160,9 +164,10 @@ class _PendingOrderRow extends StatelessWidget {
               color: const Color(0xFFF3F5F7),
             ),
             child: order.storeImageUrl != null
-                ? Image.network(order.storeImageUrl!, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
-                        Icons.store, color: AppColors.textMuted))
+                ? Image.network(order.storeImageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        const Icon(Icons.store, color: AppColors.textMuted))
                 : const Icon(Icons.store, color: AppColors.textMuted),
           ),
           const SizedBox(width: 14),
@@ -170,9 +175,9 @@ class _PendingOrderRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Pending  |  Order',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Pretendard',
                     fontSize: 12,
                     fontWeight: FontWeight.w400,

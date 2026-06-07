@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../home/presentation/pages/search_page.dart' as home_search;
 import '../../domain/cart_item.dart';
 import '../providers/cart_provider.dart';
 import '../../../likes/presentation/pages/order_page.dart';
@@ -9,10 +11,7 @@ class CartListPage extends StatelessWidget {
   const CartListPage({super.key});
 
   static String formatPrice(int price) {
-    return price.toString().replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+$)'),
-      (m) => '${m[1]},',
-    );
+    return CurrencyFormatter.formatKrw(price);
   }
 
   @override
@@ -61,7 +60,25 @@ class CartListPage extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 40),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
+            ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const home_search.SearchPage(),
+              ),
+            ),
+            icon: const Icon(
+              Icons.search,
+              size: 22,
+              color: AppColors.textPrimary,
+            ),
+          ),
         ],
       ),
     );
@@ -99,8 +116,7 @@ class CartListPage extends StatelessWidget {
         GestureDetector(
           onTap: () => Navigator.maybePop(context),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
             decoration: BoxDecoration(
               color: AppColors.brandOrange,
               borderRadius: BorderRadius.circular(28),
@@ -162,7 +178,7 @@ class CartListPage extends StatelessWidget {
               children: [
                 _SummaryRow(
                   label: 'Subtotal',
-                  value: '₩${formatPrice(cart.subtotal)}',
+                  value: formatPrice(cart.subtotal),
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),
@@ -170,12 +186,12 @@ class CartListPage extends StatelessWidget {
                 ),
                 _SummaryRow(
                   label: 'Delivery Fee',
-                  value: '₩${formatPrice(CartProvider.deliveryFee)}',
+                  value: formatPrice(CartProvider.deliveryFee),
                 ),
                 const SizedBox(height: 10),
                 _SummaryRow(
                   label: 'Discount',
-                  value: '-₩${formatPrice(CartProvider.discount)}',
+                  value: '-${formatPrice(CartProvider.discount)}',
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 10),
@@ -183,7 +199,7 @@ class CartListPage extends StatelessWidget {
                 ),
                 _SummaryRow(
                   label: 'Total',
-                  value: '₩${formatPrice(cart.total)}',
+                  value: formatPrice(cart.total),
                   isBold: true,
                 ),
               ],
@@ -227,7 +243,7 @@ class CartListPage extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Text(
-              'Checkout ₩${formatPrice(cart.total)}',
+              'Checkout ${formatPrice(cart.total)}',
               style: const TextStyle(
                 fontFamily: 'Pretendard',
                 fontSize: 16,
@@ -315,7 +331,7 @@ class _CartItemCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '₩${CartListPage.formatPrice(item.totalPrice)}',
+                        CartListPage.formatPrice(item.totalPrice),
                         style: const TextStyle(
                           fontFamily: 'Pretendard',
                           fontSize: 15,

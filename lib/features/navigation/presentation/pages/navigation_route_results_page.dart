@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/widgets/main_tab_page.dart';
 import '../widgets/map_view.dart';
 
@@ -252,9 +253,9 @@ class _NavigationRouteResultsPageState
                           color: AppColors.textSecondary,
                         ),
                       ),
-                      const Text(
-                        _fare,
-                        style: TextStyle(
+                      Text(
+                        CurrencyFormatter.krwTextToUsd(_fare),
+                        style: const TextStyle(
                           fontFamily: 'Pretendard',
                           fontSize: 13,
                           color: AppColors.textSecondary,
@@ -277,25 +278,25 @@ class _NavigationRouteResultsPageState
                         ),
                       ),
                       const SizedBox(height: 14),
-                      const SingleChildScrollView(
+                      SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _SpecCard(
+                            const _SpecCard(
                               label: 'Number of\npeople in your\nfamily',
                               value: '3',
                               dark: true,
                             ),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             _SpecCard(
                               label: 'Price per\nperson',
-                              value: '₩1,750',
+                              value: CurrencyFormatter.krwTextToUsd('₩1,750'),
                               dark: false,
                             ),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             _SpecCard(
                               label: 'Total',
-                              value: '₩5,250',
+                              value: CurrencyFormatter.krwTextToUsd('₩5,250'),
                               dark: true,
                             ),
                           ],

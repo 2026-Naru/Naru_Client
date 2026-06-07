@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/widgets/main_tab_page.dart';
 
 // _RouteResult is passed from results page — redeclare here as a simple data class
@@ -282,11 +283,11 @@ class _NavigationRouteDetailPageState extends State<NavigationRouteDetailPage> {
                       ),
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      '₩1,750',
-                      style: TextStyle(
+                      CurrencyFormatter.krwTextToUsd('₩1,750'),
+                      style: const TextStyle(
                         fontFamily: 'Pretendard',
                         fontSize: 13,
                         color: AppColors.textSecondary,
@@ -375,28 +376,28 @@ class _NavigationRouteDetailPageState extends State<NavigationRouteDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                     child: Row(
                       children: [
-                        Expanded(
+                        const Expanded(
                           child: _SpecCard(
                             label: 'Number of people\nin your family',
                             value: '3',
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: _SpecCard(
                             label: 'Price per\nperson',
-                            value: '₩1,750',
+                            value: CurrencyFormatter.krwTextToUsd('₩1,750'),
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: _SpecCard(
                             label: 'Total',
-                            value: '₩5,250',
+                            value: CurrencyFormatter.krwTextToUsd('₩5,250'),
                           ),
                         ),
                       ],
