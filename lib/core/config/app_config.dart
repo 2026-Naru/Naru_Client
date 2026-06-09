@@ -1,7 +1,7 @@
 class AppConfig {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://iminjun-ui-MacBookPro.local:3000/api/v1',
+    defaultValue: 'http://localhost:3000/api/v1',
   );
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 15);

@@ -11,14 +11,21 @@ import 'delivery_completed_page.dart';
 
 class DeliveryTrackingPage extends StatefulWidget {
   final int totalPrice;
-  const DeliveryTrackingPage({super.key, required this.totalPrice});
+  final bool isPickup;
+
+  const DeliveryTrackingPage({
+    super.key,
+    required this.totalPrice,
+    required this.isPickup,
+  });
 
   @override
   State<DeliveryTrackingPage> createState() => _DeliveryTrackingPageState();
 }
 
 class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
-  // 0: Order Confirmed, 1: Preparing, 2: Out for Delivery, 3: Delivered
+  // Delivery: Order Confirmed, Preparing, Out for Delivery, Delivered
+  // Pickup: Order Confirmed, Preparing, Ready for Pickup
   int _currentStep = 0;
   Timer? _progressTimer;
   bool _didOpenCompletedPage = false;
@@ -26,14 +33,22 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
   BitmapDescriptor? _blueDotPin;
   Set<Marker> _markers = const {};
 
-  static const _steps = [
+  static const _deliverySteps = [
     'Order Confirmed',
     'Preparing',
     'Out for Delivery',
     'Delivered',
   ];
 
+  static const _pickupSteps = [
+    'Order Confirmed',
+    'Preparing',
+    'Ready for Pickup',
+  ];
+
   static const _stepDurations = [5, 8, 10]; // seconds between steps
+
+  List<String> get _steps => widget.isPickup ? _pickupSteps : _deliverySteps;
 
   static const CameraPosition _camera = CameraPosition(
     target: LatLng(37.55645, 126.92245),
@@ -69,13 +84,13 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
   void _startProgressTimer() {
     int stepIndex = 0;
     void scheduleNext() {
-      if (stepIndex >= _stepDurations.length) return;
+      if (stepIndex >= _steps.length - 1) return;
       _progressTimer = Timer(Duration(seconds: _stepDurations[stepIndex]), () {
         if (!mounted) return;
         final nextStep = stepIndex + 1;
         setState(() => _currentStep = nextStep);
         stepIndex++;
-        if (nextStep == _steps.length - 1) {
+        if (!widget.isPickup && nextStep == _steps.length - 1) {
           _openCompletedPage();
           return;
         }
@@ -231,9 +246,9 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                   const SizedBox(height: 20),
                   _buildTimeline(),
                   const SizedBox(height: 28),
-                  const Text(
-                    'Delivery Details',
-                    style: TextStyle(
+                  Text(
+                    widget.isPickup ? 'Pickup Details' : 'Delivery Details',
+                    style: const TextStyle(
                       fontFamily: 'Pretendard',
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -259,9 +274,11 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "We're confirming your order",
-                style: TextStyle(
+              Text(
+                widget.isPickup
+                    ? "We're preparing your pickup"
+                    : "We're confirming your order",
+                style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -270,9 +287,11 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'You can cancel your order\nuntil it has been confirmed.',
-                style: TextStyle(
+              Text(
+                widget.isPickup
+                    ? 'Your order will be ready for pickup soon.'
+                    : 'You can cancel your order\nuntil it has been confirmed.',
+                style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 13,
                   color: AppColors.textSecondary,

@@ -1,5 +1,9 @@
 class CartItem {
   final String id;
+  final int? menuId;
+  final int? storeId;
+  final String? storeName;
+  final String? storeImagePath;
   final String menuName;
   final String imagePath;
   final String selectedSize;
@@ -10,6 +14,10 @@ class CartItem {
 
   CartItem({
     required this.id,
+    this.menuId,
+    this.storeId,
+    this.storeName,
+    this.storeImagePath,
     required this.menuName,
     required this.imagePath,
     required this.selectedSize,
@@ -21,5 +29,6 @@ class CartItem {
 
   int get totalPrice => unitPrice * quantity;
 
-  String get optionsSummary => '$selectedSize · $selectedJokbal · $selectedDrink';
+  String get optionsSummary =>
+      '$selectedSize · $selectedJokbal · $selectedDrink';
 }

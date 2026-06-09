@@ -7,11 +7,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/services/api_client.dart';
 import '../../../../shared/widgets/main_tab_page.dart';
 import '../../../cart/presentation/pages/cart_list_page.dart';
 import '../../../likes/presentation/pages/store_detail_page.dart';
 import '../../../likes/presentation/providers/favorites_provider.dart';
 import '../../data/category_dummy_data.dart';
+import '../../data/store_service.dart';
 import '../../domain/category_model.dart';
 import '../widgets/delivery_pickup_tab.dart';
 import 'category_detail_page.dart';
@@ -121,12 +123,16 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
   Timer? _bannerTimer;
   String _locationLabel = _HomeLocationLabel.fallback;
   ValueNotifier<int>? _mainTabNotifier;
+  StoreService? _storeService;
+  List<NaruStore> _stores = const [];
+  bool _isLoadingStores = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadLocationLabel();
+    _initStores();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FavoritesProvider>().fetch();
     });
@@ -175,6 +181,30 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
   void _handleMainTabChanged() {
     if (_mainTabNotifier?.value == 0) {
       _loadLocationLabel(forceRefresh: true);
+      _loadStores();
+    }
+  }
+
+  Future<void> _initStores() async {
+    final api = await ApiClient.getInstance();
+    if (!mounted) return;
+    _storeService = StoreService(api);
+    await _loadStores();
+  }
+
+  Future<void> _loadStores() async {
+    final service = _storeService;
+    if (service == null || _isLoadingStores) return;
+    setState(() => _isLoadingStores = true);
+    try {
+      final stores = await service.fetchNearbyStores();
+      if (!mounted) return;
+      setState(() => _stores = stores);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _stores = const []);
+    } finally {
+      if (mounted) setState(() => _isLoadingStores = false);
     }
   }
 
@@ -357,45 +387,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               const SizedBox(height: 20),
               SizedBox(
                 height: 250,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: const [
-                    _StoreCard(
-                      storeId: 2,
-                      imagePath: 'assets/images/food_tteokbokki.png',
-                      name: 'Yupki Ddukbokki Sillim',
-                      storeSubtitle: 'Spicy Korean street food',
-                      preset: StoreDetailPreset.tteokbokki,
-                      rating: '4.9',
-                      time: '20min',
-                      tags: ['pick up', 'new'],
-                    ),
-                    SizedBox(width: 14),
-                    _StoreCard(
-                      storeId: 1,
-                      imagePath: 'assets/images/food_jokbal.png',
-                      name: 'Simin Jokbal & Bossam',
-                      detailName: 'Simin Jokbal Bossam Sillim',
-                      storeSubtitle: 'Korean jokbal and bossam',
-                      preset: StoreDetailPreset.jokbal,
-                      rating: '5.0',
-                      time: '40min',
-                      tags: ['pick up', 'new'],
-                    ),
-                    SizedBox(width: 14),
-                    _StoreCard(
-                      storeId: 1,
-                      imagePath: 'assets/images/food_jokbal.png',
-                      name: 'Simin Jokbal & Bossam',
-                      detailName: 'Simin Jokbal Bossam Sillim',
-                      storeSubtitle: 'Korean jokbal and bossam',
-                      preset: StoreDetailPreset.jokbal,
-                      rating: '5.0',
-                      time: '40min',
-                      tags: ['pick up', 'new'],
-                    ),
-                  ],
+                child: _StoreRail(
+                  stores: _stores,
+                  isLoading: _isLoadingStores,
                 ),
               ),
               const SizedBox(height: 20),
@@ -411,16 +405,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               const SizedBox(height: 20),
               SizedBox(
                 height: 286,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: const [
-                    _FreeDeliveryCard(),
-                    SizedBox(width: 14),
-                    _FreeDeliveryCard(),
-                    SizedBox(width: 14),
-                    _FreeDeliveryCard(),
-                  ],
+                child: _FreeDeliveryRail(
+                  stores: _stores,
+                  isLoading: _isLoadingStores,
                 ),
               ),
               const SizedBox(height: 20),
@@ -501,34 +488,9 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               const SizedBox(height: 20),
               SizedBox(
                 height: 250,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: const [
-                    _CafeCard(
-                      name: 'Cafe Bombom Sillim',
-                      subtitle: 'Fresh coffee and sweet drinks',
-                      imagePath: 'assets/images/food_cafe.png',
-                      rating: '5.0',
-                      time: '15min',
-                    ),
-                    SizedBox(width: 14),
-                    _CafeCard(
-                      name: 'Bback Dabang sillim',
-                      subtitle: 'Coffee and bakery near you',
-                      imagePath: 'assets/images/food_cafe.png',
-                      rating: '4.8',
-                      time: '18min',
-                    ),
-                    SizedBox(width: 14),
-                    _CafeCard(
-                      name: 'Ediya Coffee Sillim',
-                      subtitle: 'Coffee for pick up',
-                      imagePath: 'assets/images/food_cafe.png',
-                      rating: '4.7',
-                      time: '16min',
-                    ),
-                  ],
+                child: _CafeRail(
+                  stores: _stores,
+                  isLoading: _isLoadingStores,
                 ),
               ),
               const SizedBox(height: 20),
@@ -1035,14 +997,150 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
+class _StoreRail extends StatelessWidget {
+  final List<NaruStore> stores;
+  final bool isLoading;
+
+  const _StoreRail({
+    required this.stores,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleStores = stores.isEmpty ? _fallbackStores : stores.take(6);
+
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: visibleStores.length,
+      separatorBuilder: (_, __) => const SizedBox(width: 14),
+      itemBuilder: (_, index) {
+        final store = visibleStores.elementAt(index);
+        return _StoreCard.fromStore(
+          store,
+          tags: [
+            if (isLoading) 'syncing',
+            store.categoryName ?? 'nearby',
+            'order',
+          ],
+        );
+      },
+    );
+  }
+
+  static const _fallbackStores = [
+    NaruStore(
+      id: 2,
+      name: 'Yupki Ddukbokki Sillim',
+      description: 'Spicy Korean street food',
+      imageUrl: 'assets/images/food_tteokbokki.png',
+      rating: 4.9,
+      reviewCount: 132,
+      categoryName: 'Street',
+      deliveryTime: '20min',
+    ),
+    NaruStore(
+      id: 1,
+      name: 'Simin Jokbal Bossam Sillim',
+      description: 'Korean jokbal and bossam',
+      imageUrl: 'assets/images/food_jokbal.png',
+      rating: 5.0,
+      reviewCount: 2002,
+      categoryName: 'Korean',
+      deliveryTime: '40min',
+    ),
+  ];
+}
+
+class _FreeDeliveryRail extends StatelessWidget {
+  final List<NaruStore> stores;
+  final bool isLoading;
+
+  const _FreeDeliveryRail({
+    required this.stores,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleStores = stores.isEmpty ? _StoreRail._fallbackStores : stores;
+
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: visibleStores.take(6).length,
+      separatorBuilder: (_, __) => const SizedBox(width: 14),
+      itemBuilder: (_, index) {
+        return _FreeDeliveryCard(store: visibleStores.elementAt(index));
+      },
+    );
+  }
+}
+
+class _CafeRail extends StatelessWidget {
+  final List<NaruStore> stores;
+  final bool isLoading;
+
+  const _CafeRail({
+    required this.stores,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cafes = stores
+        .where((store) =>
+            store.name.toLowerCase().contains('coffee') ||
+            store.name.toLowerCase().contains('cafe') ||
+            (store.categoryName ?? '').toLowerCase().contains('coffee'))
+        .toList();
+    final visibleStores = cafes.isEmpty ? _fallbackCafes : cafes;
+
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: visibleStores.take(6).length,
+      separatorBuilder: (_, __) => const SizedBox(width: 14),
+      itemBuilder: (_, index) {
+        final store = visibleStores.elementAt(index);
+        return _StoreCard.fromStore(store, tags: const ['coffee', 'pick up']);
+      },
+    );
+  }
+
+  static const _fallbackCafes = [
+    NaruStore(
+      id: 4,
+      name: 'Ediya Coffee Sillim',
+      description: 'Coffee for pick up',
+      imageUrl: 'assets/images/food_cafe.png',
+      rating: 4.7,
+      reviewCount: 421,
+      categoryName: 'Coffee',
+      deliveryTime: '16min',
+    ),
+    NaruStore(
+      id: 0,
+      name: 'Cafe Bombom Sillim',
+      description: 'Fresh coffee and sweet drinks',
+      imageUrl: 'assets/images/food_cafe.png',
+      rating: 5.0,
+      reviewCount: 0,
+      categoryName: 'Coffee',
+      deliveryTime: '15min',
+    ),
+  ];
+}
+
 class _StoreCard extends StatelessWidget {
   final int? storeId;
   final String imagePath;
   final String name;
-  final String? detailName;
   final String storeSubtitle;
   final StoreDetailPreset preset;
   final String rating;
+  final int reviewCount;
   final String time;
   final List<String> tags;
 
@@ -1050,13 +1148,27 @@ class _StoreCard extends StatelessWidget {
     this.storeId,
     required this.imagePath,
     required this.name,
-    this.detailName,
     required this.storeSubtitle,
     required this.preset,
     required this.rating,
+    this.reviewCount = 0,
     required this.time,
     required this.tags,
   });
+
+  factory _StoreCard.fromStore(NaruStore store, {List<String>? tags}) {
+    return _StoreCard(
+      storeId: store.id == 0 ? null : store.id,
+      imagePath: store.displayImage,
+      name: store.name,
+      storeSubtitle: store.description,
+      preset: _presetForStore(store),
+      rating: store.rating.toStringAsFixed(1),
+      reviewCount: store.reviewCount,
+      time: store.deliveryTime,
+      tags: tags ?? [store.categoryName ?? 'nearby', 'order'],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1066,13 +1178,14 @@ class _StoreCard extends StatelessWidget {
         MaterialPageRoute(
           builder: (_) => StoreDetailPage(
             storeId: storeId,
-            storeName: detailName ?? name,
+            storeName: name,
             storeSubtitle: storeSubtitle,
             heroImagePath: imagePath,
             logoImagePath: imagePath,
             preset: preset,
             rating: rating,
             deliveryTime: time,
+            reviewCount: '($reviewCount)',
             bottomNavIndex: 0,
           ),
         ),
@@ -1090,8 +1203,11 @@ class _StoreCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(imagePath,
-                  width: 198, height: 129, fit: BoxFit.cover),
+              child: _StoreImage(
+                imagePath: imagePath,
+                width: 198,
+                height: 129,
+              ),
             ),
             const SizedBox(height: 10),
             SizedBox(
@@ -1123,24 +1239,79 @@ class _StoreCard extends StatelessWidget {
   }
 }
 
-class _FreeDeliveryCard extends StatelessWidget {
-  const _FreeDeliveryCard();
+StoreDetailPreset _presetForStore(NaruStore store) {
+  final value = '${store.name} ${store.categoryName ?? ''}'.toLowerCase();
+  if (value.contains('tteok') || value.contains('ddukbokki')) {
+    return StoreDetailPreset.tteokbokki;
+  }
+  if (value.contains('chicken')) return StoreDetailPreset.chicken;
+  if (value.contains('pizza')) return StoreDetailPreset.pizza;
+  if (value.contains('burger') || value.contains('lotteria')) {
+    return StoreDetailPreset.burger;
+  }
+  if (value.contains('coffee') || value.contains('cafe')) {
+    return StoreDetailPreset.cafe;
+  }
+  if (value.contains('jjukkumi')) return StoreDetailPreset.jjukkumi;
+  return StoreDetailPreset.jokbal;
+}
+
+class _StoreImage extends StatelessWidget {
+  final String imagePath;
+  final double width;
+  final double height;
+
+  const _StoreImage({
+    required this.imagePath,
+    required this.width,
+    required this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(imagePath,
+          width: width, height: height, fit: BoxFit.cover);
+    }
+    return Image.network(
+      imagePath,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        width: width,
+        height: height,
+        color: AppColors.bgLight,
+        alignment: Alignment.center,
+        child: const Icon(Icons.store, color: AppColors.textMuted),
+      ),
+    );
+  }
+}
+
+class _FreeDeliveryCard extends StatelessWidget {
+  final NaruStore? store;
+
+  const _FreeDeliveryCard({this.store});
+
+  @override
+  Widget build(BuildContext context) {
+    final data = store ?? _StoreRail._fallbackStores.first;
+
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => const StoreDetailPage(
-            storeId: 1,
-            storeName: 'Simin Jokbal Bossam Sillim',
-            storeSubtitle: 'Korean jokbal and bossam',
-            heroImagePath: 'assets/images/food_jokbal.png',
-            logoImagePath: 'assets/images/food_jokbal.png',
-            preset: StoreDetailPreset.jokbal,
-            rating: '5.0',
-            deliveryTime: '40min',
+          builder: (_) => StoreDetailPage(
+            storeId: data.id == 0 ? null : data.id,
+            storeName: data.name,
+            storeSubtitle: data.description,
+            heroImagePath: data.displayImage,
+            logoImagePath: data.displayImage,
+            preset: _presetForStore(data),
+            rating: data.rating.toStringAsFixed(1),
+            reviewCount: '(${data.reviewCount})',
+            deliveryTime: data.deliveryTime,
             bottomNavIndex: 0,
           ),
         ),
@@ -1160,11 +1331,10 @@ class _FreeDeliveryCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    'assets/images/food_jokbal.png',
+                  child: _StoreImage(
+                    imagePath: data.displayImage,
                     width: 198,
                     height: 129,
-                    fit: BoxFit.cover,
                   ),
                 ),
                 Positioned(
@@ -1204,18 +1374,23 @@ class _FreeDeliveryCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            const SizedBox(
+            SizedBox(
               width: 198,
-              child: Text('Simin Jokbal & Bossam',
-                  style: AppTextStyles.bodyMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
+              child: Text(
+                data.name,
+                style: AppTextStyles.bodyMedium,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             const SizedBox(height: 4),
-            const SizedBox(
+            SizedBox(
               width: 198,
               height: 20,
-              child: _RatingRow(rating: '5.0', time: '40min'),
+              child: _RatingRow(
+                rating: data.rating.toStringAsFixed(1),
+                time: data.deliveryTime,
+              ),
             ),
             const SizedBox(height: 13),
             SizedBox(
@@ -1366,111 +1541,6 @@ class _FranchiseCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
                   ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CafeCard extends StatelessWidget {
-  final String name;
-  final String subtitle;
-  final String imagePath;
-  final String rating;
-  final String time;
-
-  const _CafeCard({
-    required this.name,
-    required this.subtitle,
-    required this.imagePath,
-    required this.rating,
-    required this.time,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => StoreDetailPage(
-            storeName: name,
-            storeSubtitle: subtitle,
-            heroImagePath: imagePath,
-            logoImagePath: imagePath,
-            preset: StoreDetailPreset.cafe,
-            rating: rating,
-            deliveryTime: time,
-            bottomNavIndex: 0,
-          ),
-        ),
-      ),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: 222,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderDark),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(imagePath,
-                  width: 198, height: 129, fit: BoxFit.cover),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: 198,
-              child: Text(name,
-                  style: AppTextStyles.bodyMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
-            ),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: 198,
-              height: 20,
-              child: Row(
-                children: [
-                  SvgPicture.asset('assets/icons/star.svg',
-                      width: 14, height: 14),
-                  const SizedBox(width: 4),
-                  Text(rating,
-                      style: AppTextStyles.body
-                          .copyWith(fontWeight: FontWeight.w600)),
-                  const Text(' (2,002)', style: AppTextStyles.caption),
-                  const SizedBox(width: 7),
-                  SvgPicture.asset('assets/icons/clock.svg',
-                      width: 16, height: 16),
-                  const SizedBox(width: 4),
-                  Text(time,
-                      style: AppTextStyles.caption.copyWith(
-                          color: const Color(0xFF333333),
-                          fontWeight: FontWeight.w500)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 13),
-            SizedBox(
-              width: 198,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.bgLight,
-                  borderRadius: BorderRadius.circular(21),
-                ),
-                child: const Text(
-                  'available for pick up',
-                  style: AppTextStyles.caption,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),

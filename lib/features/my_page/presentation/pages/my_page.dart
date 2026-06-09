@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
@@ -72,6 +73,13 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
       _loadAddress();
       context.read<OrdersProvider>().fetchAll();
     }
+  }
+
+  void _showExchangeCurrencyDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => const _ExchangeCurrencyDialog(),
+    );
   }
 
   Future<void> _loadAddress() async {
@@ -217,7 +225,10 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _ExchangeAmountCard(balanceKrw: user?.balanceKrw ?? 0),
+                    _ExchangeAmountCard(
+                      balanceKrw: user?.balanceKrw ?? 0,
+                      onTap: _showExchangeCurrencyDialog,
+                    ),
                     const SizedBox(height: 12),
                     _InfoCard(
                       child: SizedBox(
@@ -416,80 +427,361 @@ class _MyPageAddressResolver {
   }
 }
 
-class _ExchangeAmountCard extends StatelessWidget {
-  static const double _cardHeight = 114.5;
+class _ExchangeCurrencyDialog extends StatefulWidget {
+  const _ExchangeCurrencyDialog();
 
-  final int balanceKrw;
-  const _ExchangeAmountCard({required this.balanceKrw});
+  @override
+  State<_ExchangeCurrencyDialog> createState() =>
+      _ExchangeCurrencyDialogState();
+}
+
+class _ExchangeCurrencyDialogState extends State<_ExchangeCurrencyDialog> {
+  static const double _krwPerUsd = 1350;
+
+  final TextEditingController _amountController = TextEditingController();
+  String _inputValue = '';
+  bool _isUsdToKrw = true;
+
+  String get _sourceCode => _isUsdToKrw ? 'USD' : 'KRW';
+  String get _sourceName => _isUsdToKrw ? 'US Dollar' : 'Korean Won';
+  String get _targetCode => _isUsdToKrw ? 'KRW' : 'USD';
+  String get _targetName => _isUsdToKrw ? 'Korean Won' : 'US Dollar';
+
+  double get _convertedValue {
+    final amount = double.tryParse(_inputValue) ?? 0;
+    return _isUsdToKrw ? amount * _krwPerUsd : amount / _krwPerUsd;
+  }
+
+  String get _convertedText {
+    if (_isUsdToKrw) {
+      return _formatKrw(_convertedValue.round());
+    }
+    return '\$${_convertedValue.toStringAsFixed(2)} USD';
+  }
+
+  String _formatKrw(int value) {
+    final raw = value.abs().toString();
+    final buffer = StringBuffer();
+    for (var i = 0; i < raw.length; i++) {
+      if (i > 0 && (raw.length - i) % 3 == 0) {
+        buffer.write(',');
+      }
+      buffer.write(raw[i]);
+    }
+    final sign = value < 0 ? '-' : '';
+    return '${sign}KRW ${buffer.toString()}';
+  }
+
+  void _swapDirection() {
+    setState(() {
+      _isUsdToKrw = !_isUsdToKrw;
+      _amountController.clear();
+      _inputValue = '';
+    });
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: _cardHeight,
-      decoration: BoxDecoration(
-        color: AppColors.bgWhite,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF2A2A2A), width: 1.1),
+    return Dialog(
+      backgroundColor: AppColors.bgWhite,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
       ),
-      padding: const EdgeInsets.fromLTRB(17, 10, 17, 12),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: 0,
-            top: 17,
-            child: Text(
-              'Exchanged amount',
-              style: AppTextStyles.caption.copyWith(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-                height: 1.1,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 0,
-            top: -10,
-            child: Image.asset(
-              'assets/images/mypage_lang.png',
-              width: 95,
-              height: 95,
-              fit: BoxFit.contain,
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 46,
-            child: Container(height: 1, color: const Color(0xFF1F1F1F)),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Row(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 18),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  CurrencyFormatter.formatKrw(balanceKrw),
-                  style: AppTextStyles.caption.copyWith(
-                    fontSize: 20,
+                  'Exchange Currency',
+                  style: AppTextStyles.h2.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
-                    height: 1.1,
                   ),
                 ),
-                const SizedBox(width: 2),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  size: 26,
-                  color: AppColors.textPrimary,
+                const SizedBox(height: 26),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: _CurrencyInfo(
+                        code: _sourceCode,
+                        name: _sourceName,
+                      ),
+                    ),
+                    const SizedBox(width: 58),
+                    Expanded(
+                      child: _CurrencyInfo(
+                        code: _targetCode,
+                        name: _targetName,
+                      ),
+                    ),
+                  ],
+                ),
+                Transform.translate(
+                  offset: const Offset(0, -42),
+                  child: Center(
+                    child: IconButton.filled(
+                      onPressed: _swapDirection,
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.brandOrange,
+                        foregroundColor: Colors.white,
+                        fixedSize: const Size(44, 44),
+                      ),
+                      icon: Icon(
+                        _isUsdToKrw
+                            ? Icons.arrow_forward_rounded
+                            : Icons.arrow_back_rounded,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Enter $_sourceCode amount',
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _amountController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                  ],
+                  onChanged: (value) => setState(() => _inputValue = value),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  decoration: InputDecoration(
+                    prefixText: '$_sourceCode ',
+                    hintText: 'Enter $_sourceCode amount',
+                    hintStyle: AppTextStyles.body.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+                    filled: true,
+                    fillColor: AppColors.bgInput,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: AppColors.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(
+                        color: AppColors.brandOrange,
+                        width: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF4EF),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.brandOrange.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Converted Amount ($_targetCode)',
+                        style: AppTextStyles.caption.copyWith(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _convertedText,
+                        style: AppTextStyles.h2.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.brandOrange,
+                      textStyle: AppTextStyles.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    child: const Text('Close'),
+                  ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CurrencyInfo extends StatelessWidget {
+  final String code;
+  final String name;
+
+  const _CurrencyInfo({
+    required this.code,
+    required this.name,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          code,
+          style: AppTextStyles.h2.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+            height: 1.1,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          name,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTextStyles.caption.copyWith(
+            fontSize: 12,
+            color: AppColors.textSecondary,
+            height: 1.2,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExchangeAmountCard extends StatelessWidget {
+  static const double _cardHeight = 114.5;
+
+  final int balanceKrw;
+  final VoidCallback? onTap;
+
+  const _ExchangeAmountCard({
+    required this.balanceKrw,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: double.infinity,
+        height: _cardHeight,
+        decoration: BoxDecoration(
+          color: AppColors.bgWhite,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFF2A2A2A), width: 1.1),
+        ),
+        padding: const EdgeInsets.fromLTRB(17, 10, 17, 12),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: 0,
+              top: 17,
+              child: Text(
+                'Exchanged amount',
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  height: 1.1,
+                ),
+              ),
+            ),
+            Positioned(
+              right: 0,
+              top: -10,
+              child: Image.asset(
+                'assets/images/mypage_lang.png',
+                width: 95,
+                height: 95,
+                fit: BoxFit.contain,
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 46,
+              child: Container(height: 1, color: const Color(0xFF1F1F1F)),
+            ),
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    CurrencyFormatter.formatKrw(balanceKrw),
+                    style: AppTextStyles.caption.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    size: 26,
+                    color: AppColors.textPrimary,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

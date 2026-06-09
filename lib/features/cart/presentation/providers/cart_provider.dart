@@ -16,6 +16,10 @@ class CartProvider extends ChangeNotifier {
   int get total => subtotal + deliveryFee - discount;
 
   void addItem({
+    int? menuId,
+    int? storeId,
+    String? storeName,
+    String? storeImagePath,
     required String menuName,
     required String imagePath,
     required String selectedSize,
@@ -37,6 +41,10 @@ class CartProvider extends ChangeNotifier {
     } else {
       _items.add(CartItem(
         id: '${menuName}_${DateTime.now().millisecondsSinceEpoch}',
+        menuId: menuId,
+        storeId: storeId,
+        storeName: storeName,
+        storeImagePath: storeImagePath,
         menuName: menuName,
         imagePath: imagePath,
         selectedSize: selectedSize,
