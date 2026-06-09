@@ -5,8 +5,13 @@ import 'delivery_tracking_page.dart';
 
 class PaymentSuccessPage extends StatelessWidget {
   final int totalPrice;
+  final bool isPickup;
 
-  const PaymentSuccessPage({super.key, required this.totalPrice});
+  const PaymentSuccessPage({
+    super.key,
+    required this.totalPrice,
+    required this.isPickup,
+  });
 
   String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
 
@@ -16,7 +21,10 @@ class PaymentSuccessPage extends StatelessWidget {
       onTap: () => Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => DeliveryTrackingPage(totalPrice: totalPrice),
+          builder: (_) => DeliveryTrackingPage(
+            totalPrice: totalPrice,
+            isPickup: isPickup,
+          ),
         ),
       ),
       child: Scaffold(
@@ -71,7 +79,7 @@ class PaymentSuccessPage extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Your delivery is on the way.',
+                'Your order is being prepared.',
                 style: TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 14,

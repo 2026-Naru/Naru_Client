@@ -7,6 +7,11 @@ import '../../../cart/presentation/providers/cart_provider.dart';
 import 'cart_page.dart';
 
 class MenuOptionPage extends StatefulWidget {
+  final int? menuId;
+  final int? storeId;
+  final String? storeName;
+  final String? storeImagePath;
+  final int? basePrice;
   final String rank;
   final String menuName;
   final String description;
@@ -14,6 +19,11 @@ class MenuOptionPage extends StatefulWidget {
 
   const MenuOptionPage({
     super.key,
+    this.menuId,
+    this.storeId,
+    this.storeName,
+    this.storeImagePath,
+    this.basePrice,
     required this.rank,
     required this.menuName,
     required this.description,
@@ -36,6 +46,14 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
     _Option('Large (4–5 servings)', '₩58,000', 58000),
   ];
 
+  List<_Option> get _priceOptions {
+    final basePrice = widget.basePrice;
+    if (basePrice == null || basePrice <= 0) return _sizes;
+    return [
+      _Option('Menu price', CurrencyFormatter.formatKrw(basePrice), basePrice),
+    ];
+  }
+
   static const _jokbals = [
     _Option('Jokbal', '+ ₩0', 0),
     _Option('Medium (3–4 servings)', '+ ₩3,000', 3000),
@@ -49,7 +67,10 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
   ];
 
   int get _totalPrice {
-    final base = _sizes[_selectedSize].price;
+    final priceOptions = _priceOptions;
+    final selectedSize =
+        _selectedSize >= priceOptions.length ? 0 : _selectedSize;
+    final base = priceOptions[selectedSize].price;
     final jokbalAdd = _jokbals[_selectedJokbal].price;
     final drinkAdd = _drinks[_selectedDrink].price;
     return (base + jokbalAdd + drinkAdd) * _quantity;
@@ -60,11 +81,18 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
   }
 
   void _addToCart() {
-    final unitPrice = _sizes[_selectedSize].price +
+    final priceOptions = _priceOptions;
+    final selectedSize =
+        _selectedSize >= priceOptions.length ? 0 : _selectedSize;
+    final unitPrice = priceOptions[selectedSize].price +
         _jokbals[_selectedJokbal].price +
         _drinks[_selectedDrink].price;
 
     context.read<CartProvider>().addItem(
+          menuId: widget.menuId,
+          storeId: widget.storeId,
+          storeName: widget.storeName,
+          storeImagePath: widget.storeImagePath,
           menuName: widget.menuName,
           imagePath: widget.imagePath,
           selectedSize: _sizes[_selectedSize].label,
@@ -167,7 +195,7 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
                         const SizedBox(height: 20),
                         _OptionSection(
                           title: 'Price',
-                          options: _sizes,
+                          options: _priceOptions,
                           selectedIndex: _selectedSize,
                           onChanged: (i) => setState(() => _selectedSize = i),
                         ),
@@ -215,12 +243,20 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
               MaterialPageRoute(
                 builder: (_) => CartPage(
                   menuName: widget.menuName,
-                  selectedSize: _sizes[_selectedSize].label,
+                  selectedSize: _priceOptions[
+                          _selectedSize >= _priceOptions.length
+                              ? 0
+                              : _selectedSize]
+                      .label,
                   selectedJokbal: _jokbals[_selectedJokbal].label,
                   selectedDrink: 'Drink Choice 500ml',
                   totalPrice: _totalPrice,
                   quantity: _quantity,
                   menuImagePath: widget.imagePath,
+                  menuId: widget.menuId,
+                  storeId: widget.storeId,
+                  storeName: widget.storeName,
+                  storeImagePath: widget.storeImagePath,
                 ),
               ),
             ),
@@ -249,7 +285,29 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
         ),
       ),
       flexibleSpace: FlexibleSpaceBar(
-        background: Image.asset(widget.imagePath, fit: BoxFit.cover),
+        background: _MenuOptionImage(imagePath: widget.imagePath),
+      ),
+    );
+  }
+}
+
+class _MenuOptionImage extends StatelessWidget {
+  final String imagePath;
+
+  const _MenuOptionImage({required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(imagePath, fit: BoxFit.cover);
+    }
+    return Image.network(
+      imagePath,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        color: AppColors.bgLight,
+        alignment: Alignment.center,
+        child: const Icon(Icons.fastfood, color: AppColors.textMuted),
       ),
     );
   }

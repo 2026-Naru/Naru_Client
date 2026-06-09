@@ -11,6 +11,10 @@ import '../../../order/data/order_service.dart';
 import 'payment_success_page.dart';
 
 class OrderPage extends StatefulWidget {
+  final int? menuId;
+  final int? storeId;
+  final String? storeName;
+  final String? storeImagePath;
   final String menuName;
   final String selectedSize;
   final String selectedJokbal;
@@ -22,6 +26,10 @@ class OrderPage extends StatefulWidget {
 
   const OrderPage({
     super.key,
+    this.menuId,
+    this.storeId,
+    this.storeName,
+    this.storeImagePath,
     required this.menuName,
     required this.selectedSize,
     required this.selectedJokbal,
@@ -36,11 +44,10 @@ class OrderPage extends StatefulWidget {
   State<OrderPage> createState() => _OrderPageState();
 }
 
-class _OrderPageState extends State<OrderPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _OrderPageState extends State<OrderPage> {
   int _selectedPayment = 0;
   int _selectedRequirement = 0;
+  int _selectedMethod = 0; // 0: Store Delivery, 1: Pick up
   bool _noUtensils = true;
   bool _isOrdering = false;
   OrderService? _orderService;
@@ -63,16 +70,19 @@ class _OrderPageState extends State<OrderPage>
     'Please call if an item is unavailable',
   ];
 
+  static const _orderMethods = [
+    _DeliveryMethod('Store Delivery', 'Arrives in 39–54 min'),
+    _DeliveryMethod('Pick up', 'Pick up in 24–45 min'),
+  ];
+
+  bool get _isPickupOrder => _selectedMethod == 1;
+
   String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: 2,
-      vsync: this,
-      initialIndex: widget.isPickup ? 1 : 0,
-    );
+    _selectedMethod = widget.isPickup ? 1 : 0;
     _initOrderService();
   }
 
@@ -93,16 +103,34 @@ class _OrderPageState extends State<OrderPage>
     int? remoteOrderId;
 
     try {
-      final type = _tabController.index == 0 ? 'DELIVERY' : 'PICKUP';
+      final type = _isPickupOrder ? 'PICKUP' : 'DELIVERY';
+      final directItems = widget.cartItems != null
+          ? orderItems
+              .map((item) => {
+                    if (_cartItemFor(item)?.menuId != null)
+                      'menuId': _cartItemFor(item)!.menuId,
+                    if (_cartItemFor(item)?.storeId != null)
+                      'storeId': _cartItemFor(item)!.storeId,
+                    'name': item.name,
+                    'imageUrl': item.imageUrl,
+                    'quantity': item.quantity,
+                    'price': item.unitPrice,
+                  })
+              .toList()
+          : [
+              {
+                if (widget.menuId != null) 'menuId': widget.menuId,
+                if (widget.storeId != null) 'storeId': widget.storeId,
+                'name': widget.menuName,
+                'imageUrl': widget.menuImagePath,
+                'quantity': 1,
+                'price': widget.totalPrice,
+              }
+            ];
       final remoteOrder = await _orderService?.createOrder(
         type: type,
         totalAmount: widget.totalPrice,
-        items: orderItems
-            .map((item) => {
-                  'quantity': item.quantity,
-                  'price': item.unitPrice,
-                })
-            .toList(),
+        items: directItems,
       );
       remoteOrderId = (remoteOrder?['id'] as num?)?.toInt();
     } catch (_) {
@@ -114,8 +142,8 @@ class _OrderPageState extends State<OrderPage>
     if (!mounted) return;
     await ordersProvider.recordLocalOrder(
       remoteOrderId: remoteOrderId,
-      storeName: 'Simin Jokbal Bossam Sillim',
-      storeImageUrl: widget.menuImagePath,
+      storeName: _displayStoreName,
+      storeImageUrl: _displayStoreImage,
       totalAmount: widget.totalPrice,
       items: orderItems,
     );
@@ -127,7 +155,10 @@ class _OrderPageState extends State<OrderPage>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PaymentSuccessPage(totalPrice: widget.totalPrice),
+        builder: (_) => PaymentSuccessPage(
+          totalPrice: widget.totalPrice,
+          isPickup: _isPickupOrder,
+        ),
       ),
     );
   }
@@ -155,15 +186,46 @@ class _OrderPageState extends State<OrderPage>
     ];
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  CartItem? _cartItemFor(OrderHistoryItemModel item) {
+    final cartItems = widget.cartItems;
+    if (cartItems == null) return null;
+    for (final cartItem in cartItems) {
+      if (cartItem.menuName == item.name &&
+          cartItem.quantity == item.quantity &&
+          cartItem.unitPrice == item.unitPrice) {
+        return cartItem;
+      }
+    }
+    return null;
+  }
+
+  String get _displayStoreName {
+    final cartItems = widget.cartItems;
+    if (widget.storeName != null && widget.storeName!.isNotEmpty) {
+      return widget.storeName!;
+    }
+    if (cartItems != null && cartItems.isNotEmpty) {
+      final storeName = cartItems.first.storeName;
+      if (storeName != null && storeName.isNotEmpty) return storeName;
+    }
+    return 'Delivery order';
+  }
+
+  String get _displayStoreImage {
+    final cartItems = widget.cartItems;
+    if (widget.storeImagePath != null && widget.storeImagePath!.isNotEmpty) {
+      return widget.storeImagePath!;
+    }
+    if (cartItems != null && cartItems.isNotEmpty) {
+      final storeImage = cartItems.first.storeImagePath;
+      if (storeImage != null && storeImage.isNotEmpty) return storeImage;
+    }
+    return widget.menuImagePath;
   }
 
   @override
   Widget build(BuildContext context) {
-    final buttonLabel = widget.isPickup ? 'Pick Up Order' : 'Delivery Order';
+    final buttonLabel = _isPickupOrder ? 'Pick Up Order' : 'Delivery Order';
 
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
@@ -171,7 +233,6 @@ class _OrderPageState extends State<OrderPage>
         child: Column(
           children: [
             _buildTopBar(context),
-            _buildTabs(),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -181,6 +242,8 @@ class _OrderPageState extends State<OrderPage>
                     _buildMenuCard(),
                     const SizedBox(height: 12),
                     _buildStoreCard(),
+                    const SizedBox(height: 12),
+                    _buildOrderMethodCard(),
                     const SizedBox(height: 12),
                     _buildRequirementCard(),
                     const SizedBox(height: 12),
@@ -226,27 +289,6 @@ class _OrderPageState extends State<OrderPage>
           const SizedBox(width: 40),
         ],
       ),
-    );
-  }
-
-  Widget _buildTabs() {
-    return TabBar(
-      controller: _tabController,
-      labelColor: AppColors.textPrimary,
-      unselectedLabelColor: AppColors.inactive,
-      indicatorColor: AppColors.textPrimary,
-      indicatorWeight: 2,
-      labelStyle: const TextStyle(
-        fontFamily: 'Pretendard',
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-      ),
-      unselectedLabelStyle: const TextStyle(
-        fontFamily: 'Pretendard',
-        fontSize: 15,
-        fontWeight: FontWeight.w400,
-      ),
-      tabs: const [Tab(text: 'Delivery'), Tab(text: 'Pickup')],
     );
   }
 
@@ -408,6 +450,75 @@ class _OrderPageState extends State<OrderPage>
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderMethodCard() {
+    return _Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Choose your order method',
+            style: TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ..._orderMethods.asMap().entries.map((entry) {
+            final selected = entry.key == _selectedMethod;
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: entry.key == _orderMethods.length - 1 ? 0 : 10,
+              ),
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedMethod = entry.key),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: selected
+                          ? AppColors.textPrimary
+                          : const Color(0xFFDDDDDD),
+                      width: selected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.value.title,
+                        style: const TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        entry.value.subtitle,
+                        style: const TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -795,4 +906,11 @@ class _Card extends StatelessWidget {
       child: child,
     );
   }
+}
+
+class _DeliveryMethod {
+  final String title;
+  final String subtitle;
+
+  const _DeliveryMethod(this.title, this.subtitle);
 }

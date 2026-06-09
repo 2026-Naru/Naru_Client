@@ -5,6 +5,10 @@ import '../../../home/presentation/pages/search_page.dart' as home_search;
 import 'order_page.dart';
 
 class CartPage extends StatefulWidget {
+  final int? menuId;
+  final int? storeId;
+  final String? storeName;
+  final String? storeImagePath;
   final String menuName;
   final String selectedSize;
   final String selectedJokbal;
@@ -15,6 +19,10 @@ class CartPage extends StatefulWidget {
 
   const CartPage({
     super.key,
+    this.menuId,
+    this.storeId,
+    this.storeName,
+    this.storeImagePath,
     required this.menuName,
     required this.selectedSize,
     required this.selectedJokbal,
@@ -28,9 +36,7 @@ class CartPage extends StatefulWidget {
   State<CartPage> createState() => _CartPageState();
 }
 
-class _CartPageState extends State<CartPage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _CartPageState extends State<CartPage> {
   int _quantity = 1;
   int _selectedMethod = 1; // 0: Store Delivery, 1: Pick up
   final Set<String> _addedExtras = {};
@@ -54,13 +60,6 @@ class _CartPageState extends State<CartPage>
   void initState() {
     super.initState();
     _quantity = widget.quantity;
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   int get _extrasTotal {
@@ -86,6 +85,12 @@ class _CartPageState extends State<CartPage>
     return '${widget.selectedDrink} · ${selectedExtras.join(' · ')}';
   }
 
+  String get _displayStoreName =>
+      widget.storeName ?? 'Simin Jokbal Bossam Sillim';
+
+  String get _displayStoreImage =>
+      widget.storeImagePath ?? widget.menuImagePath;
+
   String _formatPrice(int price) {
     return CurrencyFormatter.formatKrw(price);
   }
@@ -98,7 +103,6 @@ class _CartPageState extends State<CartPage>
         child: Column(
           children: [
             _buildTopBar(context),
-            _buildDeliveryTabs(),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -174,27 +178,6 @@ class _CartPageState extends State<CartPage>
     );
   }
 
-  Widget _buildDeliveryTabs() {
-    return TabBar(
-      controller: _tabController,
-      labelColor: AppColors.textPrimary,
-      unselectedLabelColor: AppColors.inactive,
-      indicatorColor: AppColors.textPrimary,
-      indicatorWeight: 2,
-      labelStyle: const TextStyle(
-        fontFamily: 'Pretendard',
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-      ),
-      unselectedLabelStyle: const TextStyle(
-        fontFamily: 'Pretendard',
-        fontSize: 15,
-        fontWeight: FontWeight.w400,
-      ),
-      tabs: const [Tab(text: 'Delivery'), Tab(text: 'Pickup')],
-    );
-  }
-
   Widget _buildStoreHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
@@ -208,12 +191,12 @@ class _CartPageState extends State<CartPage>
               shape: BoxShape.circle,
               border: Border.all(color: const Color(0xFFE4E6E8), width: 1),
             ),
-            child: Image.asset(widget.menuImagePath, fit: BoxFit.cover),
+            child: _CartPageImage(imagePath: _displayStoreImage),
           ),
           const SizedBox(width: 10),
-          const Text(
-            'Simin Jokbal Bossam Sillim',
-            style: TextStyle(
+          Text(
+            _displayStoreName,
+            style: const TextStyle(
               fontFamily: 'Pretendard',
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -328,11 +311,10 @@ class _CartPageState extends State<CartPage>
             const SizedBox(width: 10),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                widget.menuImagePath,
+              child: _CartPageSizedImage(
+                imagePath: widget.menuImagePath,
                 width: 72,
                 height: 72,
-                fit: BoxFit.cover,
               ),
             ),
           ],
@@ -633,6 +615,10 @@ class _CartPageState extends State<CartPage>
                 context,
                 MaterialPageRoute(
                   builder: (_) => OrderPage(
+                    menuId: widget.menuId,
+                    storeId: widget.storeId,
+                    storeName: _displayStoreName,
+                    storeImagePath: _displayStoreImage,
                     menuName: widget.menuName,
                     selectedSize: widget.selectedSize,
                     selectedJokbal: widget.selectedJokbal,
@@ -663,6 +649,61 @@ class _CartPageState extends State<CartPage>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CartPageImage extends StatelessWidget {
+  final String imagePath;
+
+  const _CartPageImage({required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(imagePath, fit: BoxFit.cover);
+    }
+    return Image.network(
+      imagePath,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        color: AppColors.bgLight,
+        alignment: Alignment.center,
+        child: const Icon(Icons.store, color: AppColors.textMuted),
+      ),
+    );
+  }
+}
+
+class _CartPageSizedImage extends StatelessWidget {
+  final String imagePath;
+  final double width;
+  final double height;
+
+  const _CartPageSizedImage({
+    required this.imagePath,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(imagePath,
+          width: width, height: height, fit: BoxFit.cover);
+    }
+    return Image.network(
+      imagePath,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        width: width,
+        height: height,
+        color: AppColors.bgLight,
+        alignment: Alignment.center,
+        child: const Icon(Icons.fastfood, color: AppColors.textMuted),
       ),
     );
   }

@@ -225,6 +225,9 @@ class CartListPage extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (_) => OrderPage(
+                storeId: cart.items.first.storeId,
+                storeName: cart.items.first.storeName,
+                storeImagePath: cart.items.first.storeImagePath,
                 menuName: cart.items.first.menuName,
                 selectedSize: cart.items.first.selectedSize,
                 selectedJokbal: cart.items.first.selectedJokbal,
@@ -281,11 +284,10 @@ class _CartItemCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                item.imagePath,
+              child: _CartItemImage(
+                imagePath: item.imagePath,
                 width: 72,
                 height: 72,
-                fit: BoxFit.cover,
               ),
             ),
             const SizedBox(width: 12),
@@ -348,6 +350,39 @@ class _CartItemCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _CartItemImage extends StatelessWidget {
+  final String imagePath;
+  final double width;
+  final double height;
+
+  const _CartItemImage({
+    required this.imagePath,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(imagePath,
+          width: width, height: height, fit: BoxFit.cover);
+    }
+    return Image.network(
+      imagePath,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        width: width,
+        height: height,
+        color: AppColors.bgLight,
+        alignment: Alignment.center,
+        child: const Icon(Icons.fastfood, color: AppColors.textMuted),
       ),
     );
   }

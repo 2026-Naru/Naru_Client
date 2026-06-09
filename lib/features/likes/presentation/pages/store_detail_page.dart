@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/api_client.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
+import '../../../home/data/store_service.dart';
 import '../../data/models/favorite_store_model.dart';
 import '../providers/favorites_provider.dart';
 import 'menu_option_page.dart';
@@ -53,17 +55,56 @@ class _StoreDetailPageState extends State<StoreDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isUpdatingFavorite = false;
+  StoreService? _storeService;
+  List<NaruMenu> _remoteMenus = const [];
+  List<NaruReview> _remoteReviews = const [];
+  bool _isLoadingRemoteData = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _initRemoteData();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initRemoteData() async {
+    if (widget.storeId == null) return;
+    final api = await ApiClient.getInstance();
+    if (!mounted) return;
+    _storeService = StoreService(api);
+    await _loadRemoteData();
+  }
+
+  Future<void> _loadRemoteData() async {
+    final service = _storeService;
+    final storeId = widget.storeId;
+    if (service == null || storeId == null || _isLoadingRemoteData) return;
+    setState(() => _isLoadingRemoteData = true);
+    try {
+      final results = await Future.wait([
+        service.fetchMenus(storeId),
+        service.fetchReviews(storeId),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _remoteMenus = results[0] as List<NaruMenu>;
+        _remoteReviews = results[1] as List<NaruReview>;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _remoteMenus = const [];
+        _remoteReviews = const [];
+      });
+    } finally {
+      if (mounted) setState(() => _isLoadingRemoteData = false);
+    }
   }
 
   @override
@@ -338,7 +379,21 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   Widget _buildPopularMenu() {
-    final menus = _menusForPreset(widget.preset);
+    final menus = _remoteMenus.isNotEmpty
+        ? _remoteMenus.asMap().entries.map((entry) {
+            final menu = entry.value;
+            return _MenuItem(
+              menuId: menu.id,
+              rank: entry.key == 0 ? 'Top 1' : 'Menu ${entry.key + 1}',
+              name: menu.name,
+              description: menu.description,
+              options: ['Menu price: ₩${menu.price}'],
+              imagePath: menu.displayImage,
+              price: menu.price,
+              allergyNotice: menu.allergyNotice,
+            );
+          }).toList()
+        : _menusForPreset(widget.preset);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -365,9 +420,17 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             ),
           ),
           const SizedBox(height: 16),
+          if (_isLoadingRemoteData)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16),
+              child: LinearProgressIndicator(minHeight: 2),
+            ),
           ...menus.asMap().entries.map((e) => _MenuItemRow(
                 item: e.value,
                 isLast: e.key == menus.length - 1,
+                storeId: widget.storeId,
+                storeName: widget.storeName,
+                storeImagePath: widget.heroImagePath,
               )),
         ],
       ),
@@ -654,15 +717,37 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   Widget _buildAllergySection() {
-    const allergens = [
-      _Allergen(label: 'Peanut', sublabel: 'For topping', icon: Icons.eco),
-      _Allergen(
-          label: 'Tomato', sublabel: 'For tomato', icon: Icons.local_florist),
-      _Allergen(
-          label: 'Milk', sublabel: 'For garneing', icon: Icons.water_drop),
-      _Allergen(label: 'Meat', sublabel: 'For all menu', icon: Icons.set_meal),
-      _Allergen(label: 'Egg', sublabel: 'For bread', icon: Icons.egg_outlined),
-    ];
+    final remoteAllergens = _remoteMenus
+        .expand((menu) => (menu.allergyNotice ?? '')
+            .split(',')
+            .map((value) => value.trim())
+            .where((value) => value.isNotEmpty))
+        .toSet()
+        .map((value) => _Allergen(
+              label: value,
+              sublabel: 'Menu notice',
+              icon: Icons.info_outline,
+            ))
+        .toList();
+
+    final allergens = remoteAllergens.isNotEmpty
+        ? remoteAllergens
+        : const [
+            _Allergen(
+                label: 'Peanut', sublabel: 'For topping', icon: Icons.eco),
+            _Allergen(
+                label: 'Tomato',
+                sublabel: 'For tomato',
+                icon: Icons.local_florist),
+            _Allergen(
+                label: 'Milk',
+                sublabel: 'For garneing',
+                icon: Icons.water_drop),
+            _Allergen(
+                label: 'Meat', sublabel: 'For all menu', icon: Icons.set_meal),
+            _Allergen(
+                label: 'Egg', sublabel: 'For bread', icon: Icons.egg_outlined),
+          ];
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -702,6 +787,10 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   Widget _buildReviewSection() {
     final reviewImage = _reviewImageForPreset(widget.preset);
     final reviewTexts = _reviewTextsForPreset(widget.preset);
+    final remoteReviews = _remoteReviews
+        .where((review) => review.content.trim().isNotEmpty)
+        .take(3)
+        .toList();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -771,24 +860,58 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             ],
           ),
           const SizedBox(height: 20),
-          _ReviewCard(
-            name: 'Jake',
-            flag: '🇺🇸',
-            timeAgo: 'last week',
-            text: reviewTexts.first,
-            imagePath: reviewImage,
-          ),
-          const SizedBox(height: 20),
-          _ReviewCard(
-            name: 'Kimana',
-            flag: '🇰🇷',
-            timeAgo: 'last week',
-            text: reviewTexts.last,
-            imagePath: reviewImage,
-          ),
+          if (_isLoadingRemoteData)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16),
+              child: LinearProgressIndicator(minHeight: 2),
+            ),
+          if (remoteReviews.isNotEmpty)
+            ...remoteReviews.map(
+              (review) => Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: _ReviewCard(
+                  name: review.userName,
+                  rating: review.rating,
+                  flag: _flagForCountry(review.country),
+                  timeAgo: review.timeAgo,
+                  text: review.content,
+                  imagePath: widget.heroImagePath,
+                ),
+              ),
+            )
+          else ...[
+            _ReviewCard(
+              name: 'Jake',
+              flag: '🇺🇸',
+              timeAgo: 'last week',
+              text: reviewTexts.first,
+              imagePath: reviewImage,
+            ),
+            const SizedBox(height: 20),
+            _ReviewCard(
+              name: 'Kimana',
+              flag: '🇰🇷',
+              timeAgo: 'last week',
+              text: reviewTexts.last,
+              imagePath: reviewImage,
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  String _flagForCountry(String? country) {
+    switch ((country ?? '').toUpperCase()) {
+      case 'KR':
+      case 'KOREA':
+        return 'KR';
+      case 'US':
+      case 'USA':
+        return 'US';
+      default:
+        return country?.toUpperCase() ?? '';
+    }
   }
 
   String _reviewImageForPreset(StoreDetailPreset preset) {
@@ -854,7 +977,17 @@ class _StoreDetailPageState extends State<StoreDetailPage>
 class _MenuItemRow extends StatelessWidget {
   final _MenuItem item;
   final bool isLast;
-  const _MenuItemRow({required this.item, required this.isLast});
+  final int? storeId;
+  final String storeName;
+  final String storeImagePath;
+
+  const _MenuItemRow({
+    required this.item,
+    required this.isLast,
+    required this.storeId,
+    required this.storeName,
+    required this.storeImagePath,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -863,6 +996,11 @@ class _MenuItemRow extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (_) => MenuOptionPage(
+            menuId: item.menuId,
+            storeId: storeId,
+            storeName: storeName,
+            storeImagePath: storeImagePath,
+            basePrice: item.price,
             rank: item.rank,
             menuName: item.name,
             description: item.description,
@@ -931,11 +1069,10 @@ class _MenuItemRow extends StatelessWidget {
             const SizedBox(width: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                item.imagePath,
+              child: _DetailImage(
+                imagePath: item.imagePath,
                 width: 80,
                 height: 80,
-                fit: BoxFit.cover,
               ),
             ),
           ],
@@ -991,6 +1128,7 @@ class _AllergenBadge extends StatelessWidget {
 
 class _ReviewCard extends StatelessWidget {
   final String name;
+  final int rating;
   final String flag;
   final String timeAgo;
   final String text;
@@ -998,6 +1136,7 @@ class _ReviewCard extends StatelessWidget {
 
   const _ReviewCard({
     required this.name,
+    this.rating = 5,
     required this.flag,
     required this.timeAgo,
     required this.text,
@@ -1047,8 +1186,13 @@ class _ReviewCard extends StatelessWidget {
                   children: [
                     ...List.generate(
                       5,
-                      (_) => const Icon(Icons.star_rounded,
-                          color: Color(0xFFFFC107), size: 12),
+                      (index) => Icon(
+                        Icons.star_rounded,
+                        color: index < rating
+                            ? const Color(0xFFFFC107)
+                            : const Color(0xFFE5E5E5),
+                        size: 12,
+                      ),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -1078,11 +1222,10 @@ class _ReviewCard extends StatelessWidget {
         const SizedBox(height: 10),
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: Image.asset(
-            imagePath,
+          child: _DetailImage(
+            imagePath: imagePath,
             height: 130,
             width: double.infinity,
-            fit: BoxFit.cover,
           ),
         ),
       ],
@@ -1091,19 +1234,58 @@ class _ReviewCard extends StatelessWidget {
 }
 
 class _MenuItem {
+  final int? menuId;
   final String rank;
   final String name;
   final String description;
   final List<String> options;
   final String imagePath;
+  final int? price;
+  final String? allergyNotice;
 
   const _MenuItem({
+    this.menuId,
     required this.rank,
     required this.name,
     required this.description,
     required this.options,
     required this.imagePath,
+    this.price,
+    this.allergyNotice,
   });
+}
+
+class _DetailImage extends StatelessWidget {
+  final String imagePath;
+  final double width;
+  final double height;
+
+  const _DetailImage({
+    required this.imagePath,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(imagePath,
+          width: width, height: height, fit: BoxFit.cover);
+    }
+    return Image.network(
+      imagePath,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        width: width,
+        height: height,
+        color: AppColors.bgLight,
+        alignment: Alignment.center,
+        child: const Icon(Icons.fastfood, color: AppColors.textMuted),
+      ),
+    );
+  }
 }
 
 class _Allergen {
