@@ -6,11 +6,13 @@ import 'delivery_tracking_page.dart';
 class PaymentSuccessPage extends StatelessWidget {
   final int totalPrice;
   final bool isPickup;
+  final int orderId;
 
   const PaymentSuccessPage({
     super.key,
     required this.totalPrice,
     required this.isPickup,
+    required this.orderId,
   });
 
   String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
@@ -24,6 +26,7 @@ class PaymentSuccessPage extends StatelessWidget {
           builder: (_) => DeliveryTrackingPage(
             totalPrice: totalPrice,
             isPickup: isPickup,
+            orderId: orderId,
           ),
         ),
       ),

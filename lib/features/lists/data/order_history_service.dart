@@ -31,4 +31,11 @@ class OrderHistoryService {
         .map((e) => OrderHistoryModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  Future<void> updateOrderStatus({
+    required int orderId,
+    required String status,
+  }) async {
+    await _api.patch('/orders/$orderId/status', data: {'status': status});
+  }
 }

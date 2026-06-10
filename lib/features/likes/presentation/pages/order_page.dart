@@ -144,7 +144,7 @@ class _OrderPageState extends State<OrderPage> {
     }
 
     if (!mounted) return;
-    await ordersProvider.recordLocalOrder(
+    final recordedOrder = await ordersProvider.recordLocalOrder(
       remoteOrderId: remoteOrderId,
       storeName: _displayStoreName,
       storeImageUrl: _displayStoreImage,
@@ -162,6 +162,7 @@ class _OrderPageState extends State<OrderPage> {
         builder: (_) => PaymentSuccessPage(
           totalPrice: widget.totalPrice,
           isPickup: _isPickupOrder,
+          orderId: recordedOrder.id,
         ),
       ),
     );

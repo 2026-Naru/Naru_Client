@@ -67,6 +67,28 @@ class OrderHistoryModel {
     };
   }
 
+  OrderHistoryModel copyWith({
+    int? id,
+    String? status,
+    String? storeName,
+    String? storeImageUrl,
+    int? totalAmount,
+    String? orderedAt,
+    List<OrderHistoryItemModel>? items,
+    bool? isLocal,
+  }) {
+    return OrderHistoryModel(
+      id: id ?? this.id,
+      status: status ?? this.status,
+      storeName: storeName ?? this.storeName,
+      storeImageUrl: storeImageUrl ?? this.storeImageUrl,
+      totalAmount: totalAmount ?? this.totalAmount,
+      orderedAt: orderedAt ?? this.orderedAt,
+      items: items ?? this.items,
+      isLocal: isLocal ?? this.isLocal,
+    );
+  }
+
   bool get isPending =>
       status == 'PAID' || status == 'COOKING' || status == 'DELIVERING';
 

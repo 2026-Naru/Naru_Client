@@ -8,7 +8,6 @@ import '../../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../../shared/widgets/main_tab_page.dart';
 import 'navigation_search_page.dart';
 import 'navigation_store_detail_page.dart';
-import 'select_location_page.dart';
 import '../widgets/map_view.dart';
 
 class NavigationPage extends StatelessWidget {
@@ -239,28 +238,6 @@ class NavigationPage extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 9),
-                        GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const SelectLocationPage(),
-                            ),
-                          ),
-                          child: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: const BoxDecoration(
-                              color: AppColors.accentOrange,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.turn_right_rounded,
-                              size: 26,
-                              color: Colors.white,
                             ),
                           ),
                         ),
