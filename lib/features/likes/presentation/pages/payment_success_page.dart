@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import 'delivery_tracking_page.dart';
 
-class PaymentSuccessPage extends StatelessWidget {
+class PaymentSuccessPage extends StatefulWidget {
   final int totalPrice;
   final bool isPickup;
   final int orderId;
@@ -15,21 +17,48 @@ class PaymentSuccessPage extends StatelessWidget {
     required this.orderId,
   });
 
+  @override
+  State<PaymentSuccessPage> createState() => _PaymentSuccessPageState();
+}
+
+class _PaymentSuccessPageState extends State<PaymentSuccessPage> {
+  Timer? _trackingTimer;
+  bool _didOpenTracking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _trackingTimer = Timer(const Duration(milliseconds: 2300), _openTracking);
+  }
+
+  @override
+  void dispose() {
+    _trackingTimer?.cancel();
+    super.dispose();
+  }
+
   String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
+
+  void _openTracking() {
+    if (_didOpenTracking || !mounted) return;
+    _didOpenTracking = true;
+    _trackingTimer?.cancel();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DeliveryTrackingPage(
+          totalPrice: widget.totalPrice,
+          isPickup: widget.isPickup,
+          orderId: widget.orderId,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DeliveryTrackingPage(
-            totalPrice: totalPrice,
-            isPickup: isPickup,
-            orderId: orderId,
-          ),
-        ),
-      ),
+      onTap: _openTracking,
       child: Scaffold(
         backgroundColor: AppColors.bgWhite,
         body: SafeArea(
@@ -112,7 +141,7 @@ class PaymentSuccessPage extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          _formatPrice(totalPrice),
+                          _formatPrice(widget.totalPrice),
                           style: const TextStyle(
                             fontFamily: 'Pretendard',
                             fontSize: 14,
@@ -138,7 +167,7 @@ class PaymentSuccessPage extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          _formatPrice(totalPrice),
+                          _formatPrice(widget.totalPrice),
                           style: const TextStyle(
                             fontFamily: 'Pretendard',
                             fontSize: 16,

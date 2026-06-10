@@ -44,7 +44,7 @@ class _DeliveryCompletedPageState extends State<DeliveryCompletedPage> {
 
   @override
   Widget build(BuildContext context) {
-    final actionLabel = widget.isPickup ? 'Pickup' : 'Delivery';
+    final fulfillmentLabel = widget.isPickup ? 'Pickup' : 'Delivery';
     final subtitle = widget.isPickup
         ? 'Your order is ready for pickup'
         : 'Your delivery has arrived';
@@ -80,7 +80,7 @@ class _DeliveryCompletedPageState extends State<DeliveryCompletedPage> {
                   height: 1.15,
                 ),
                 children: [
-                  TextSpan(text: '$actionLabel '),
+                  TextSpan(text: '$fulfillmentLabel '),
                   const TextSpan(
                     text: 'completed',
                     style: TextStyle(color: AppColors.brandOrange),
