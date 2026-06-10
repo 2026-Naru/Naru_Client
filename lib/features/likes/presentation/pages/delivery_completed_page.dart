@@ -6,7 +6,12 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 
 class DeliveryCompletedPage extends StatefulWidget {
-  const DeliveryCompletedPage({super.key});
+  final bool isPickup;
+
+  const DeliveryCompletedPage({
+    super.key,
+    required this.isPickup,
+  });
 
   @override
   State<DeliveryCompletedPage> createState() => _DeliveryCompletedPageState();
@@ -39,6 +44,11 @@ class _DeliveryCompletedPageState extends State<DeliveryCompletedPage> {
 
   @override
   Widget build(BuildContext context) {
+    final actionLabel = widget.isPickup ? 'Pickup' : 'Delivery';
+    final subtitle = widget.isPickup
+        ? 'Your order is ready for pickup'
+        : 'Your delivery has arrived';
+
     return Scaffold(
       backgroundColor: AppColors.bgWhite,
       body: SafeArea(
@@ -61,8 +71,8 @@ class _DeliveryCompletedPageState extends State<DeliveryCompletedPage> {
             const Spacer(flex: 2),
             RichText(
               textAlign: TextAlign.center,
-              text: const TextSpan(
-                style: TextStyle(
+              text: TextSpan(
+                style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
@@ -70,19 +80,19 @@ class _DeliveryCompletedPageState extends State<DeliveryCompletedPage> {
                   height: 1.15,
                 ),
                 children: [
-                  TextSpan(text: 'Delivery '),
-                  TextSpan(
+                  TextSpan(text: '$actionLabel '),
+                  const TextSpan(
                     text: 'completed',
                     style: TextStyle(color: AppColors.brandOrange),
                   ),
-                  TextSpan(text: '!'),
+                  const TextSpan(text: '!'),
                 ],
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Your delivery has arrived',
-              style: TextStyle(
+            Text(
+              subtitle,
+              style: const TextStyle(
                 fontFamily: 'Pretendard',
                 fontSize: 14,
                 color: AppColors.textPrimary,

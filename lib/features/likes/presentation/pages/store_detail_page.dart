@@ -5,6 +5,7 @@ import '../../../../core/services/api_client.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../shared/widgets/bottom_nav_bar.dart';
 import '../../../home/data/store_service.dart';
+import '../../../lists/presentation/providers/store_history_provider.dart';
 import '../../data/models/favorite_store_model.dart';
 import '../providers/favorites_provider.dart';
 import 'menu_option_page.dart';
@@ -65,6 +66,16 @@ class _StoreDetailPageState extends State<StoreDetailPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _initRemoteData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StoreHistoryProvider>().recordViewedStore(
+            storeId: widget.storeId,
+            name: widget.storeName,
+            description: widget.storeSubtitle,
+            imageUrl: widget.heroImagePath,
+            rating: double.tryParse(widget.rating) ?? 0,
+            reviewCount: _reviewCountValue,
+          );
+    });
   }
 
   @override
@@ -105,6 +116,11 @@ class _StoreDetailPageState extends State<StoreDetailPage>
     } finally {
       if (mounted) setState(() => _isLoadingRemoteData = false);
     }
+  }
+
+  int get _reviewCountValue {
+    final digits = widget.reviewCount.replaceAll(RegExp(r'[^0-9]'), '');
+    return int.tryParse(digits) ?? 0;
   }
 
   @override

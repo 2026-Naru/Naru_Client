@@ -4,9 +4,9 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../../cart/presentation/pages/cart_list_page.dart';
 import '../../../home/presentation/pages/search_page.dart' as home_search;
 import '../../../../shared/widgets/bottom_nav_bar.dart';
-import 'order_history_page.dart';
 import 'pending_orders_page.dart';
 import 'completed_orders_page.dart';
+import 'viewed_stores_history_page.dart';
 
 class ListsPage extends StatefulWidget {
   const ListsPage({super.key});
@@ -82,7 +82,7 @@ class _ListsPageState extends State<ListsPage>
             const SizedBox(height: 8),
             const Padding(
               padding: EdgeInsets.only(left: 20),
-              child: Text('Order History', style: AppTextStyles.title),
+              child: Text('History', style: AppTextStyles.title),
             ),
             // Tabs
             TabBar(
@@ -97,7 +97,7 @@ class _ListsPageState extends State<ListsPage>
                 fontWeight: FontWeight.w500,
               ),
               tabs: const [
-                Tab(text: 'Upcoming'),
+                Tab(text: 'Viewed'),
                 Tab(text: 'Pending'),
                 Tab(text: 'Completed'),
               ],
@@ -106,7 +106,7 @@ class _ListsPageState extends State<ListsPage>
               child: TabBarView(
                 controller: _tabController,
                 children: const [
-                  OrderHistoryPage(),
+                  ViewedStoresHistoryPage(),
                   PendingOrdersPage(),
                   CompletedOrdersPage(),
                 ],

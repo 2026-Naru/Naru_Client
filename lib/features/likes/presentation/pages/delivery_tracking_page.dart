@@ -4,19 +4,23 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../lists/presentation/providers/orders_provider.dart';
 import 'delivery_completed_page.dart';
 
 class DeliveryTrackingPage extends StatefulWidget {
   final int totalPrice;
   final bool isPickup;
+  final int orderId;
 
   const DeliveryTrackingPage({
     super.key,
     required this.totalPrice,
     required this.isPickup,
+    required this.orderId,
   });
 
   @override
@@ -90,7 +94,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
         final nextStep = stepIndex + 1;
         setState(() => _currentStep = nextStep);
         stepIndex++;
-        if (!widget.isPickup && nextStep == _steps.length - 1) {
+        if (nextStep == _steps.length - 1) {
           _openCompletedPage();
           return;
         }
@@ -101,13 +105,17 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
     scheduleNext();
   }
 
-  void _openCompletedPage() {
+  Future<void> _openCompletedPage() async {
     if (_didOpenCompletedPage) return;
     _didOpenCompletedPage = true;
     _progressTimer?.cancel();
+    await context.read<OrdersProvider>().completeOrder(widget.orderId);
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const DeliveryCompletedPage()),
+      MaterialPageRoute(
+        builder: (_) => DeliveryCompletedPage(isPickup: widget.isPickup),
+      ),
     );
   }
 

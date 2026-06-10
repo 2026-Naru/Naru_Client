@@ -97,7 +97,7 @@ class OrdersProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> recordLocalOrder({
+  Future<OrderHistoryModel> recordLocalOrder({
     int? remoteOrderId,
     required String storeName,
     String? storeImageUrl,
@@ -128,6 +128,49 @@ class OrdersProvider extends ChangeNotifier {
     }
     _error = null;
     notifyListeners();
+    return order;
+  }
+
+  Future<void> completeOrder(int orderId) async {
+    if (_service == null) await init();
+
+    if (orderId > 0) {
+      try {
+        await _service!
+            .updateOrderStatus(orderId: orderId, status: 'COMPLETED');
+      } catch (e) {
+        _error = e.toString();
+      }
+    }
+
+    final localOrders = await _loadLocalOrders();
+    final updatedLocalOrders = localOrders
+        .map((order) =>
+            order.id == orderId ? order.copyWith(status: 'COMPLETED') : order)
+        .toList();
+    await _saveLocalOrders(updatedLocalOrders);
+
+    _all = _sortOrders(_all
+        .map((order) =>
+            order.id == orderId ? order.copyWith(status: 'COMPLETED') : order)
+        .toList());
+    _pending = _sortOrders(
+      _pending
+          .map((order) =>
+              order.id == orderId ? order.copyWith(status: 'COMPLETED') : order)
+          .where((order) => order.isPending)
+          .toList(),
+    );
+
+    final completedOrder = [
+      ...updatedLocalOrders,
+      ..._all,
+    ].where((order) => order.id == orderId && order.status == 'COMPLETED');
+    if (completedOrder.isNotEmpty) {
+      _completed = _sortOrders([completedOrder.first, ..._completed]);
+    }
+
+    notifyListeners();
   }
 
   List<OrderHistoryModel> _sortOrders(List<OrderHistoryModel> orders) {
@@ -135,7 +178,11 @@ class OrdersProvider extends ChangeNotifier {
     for (final order in orders) {
       final key = order.id > 0 ? 'order:${order.id}' : 'local:${order.id}';
       final existing = deduped[key];
-      if (existing != null && !order.isLocal) continue;
+      if (existing != null && existing.isLocal && !order.isLocal) {
+        deduped[key] = order;
+        continue;
+      }
+      if (existing != null && !existing.isLocal && order.isLocal) continue;
       deduped[key] = order;
     }
 

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../widgets/map_view.dart';
-import 'select_location_page.dart';
 
 class NavigationStoreDetailPage extends StatefulWidget {
   final MapStorePin pin;
@@ -21,13 +20,6 @@ class NavigationStoreDetailPage extends StatefulWidget {
 class _NavigationStoreDetailPageState extends State<NavigationStoreDetailPage> {
   int _selectedTab = 0;
   bool _liked = false;
-
-  void _openSelectLocation() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const SelectLocationPage()),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,17 +42,15 @@ class _NavigationStoreDetailPageState extends State<NavigationStoreDetailPage> {
                   variant: MapViewVariant.selectedStore,
                   selectedStoreImagePath: widget.pin.imagePath,
                 ),
-                SafeArea(
+                const SafeArea(
                   bottom: false,
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
                       child: Row(
                         children: [
-                          const Expanded(child: _MapSearchPill()),
-                          const SizedBox(width: 10),
-                          _RouteButton(onTap: _openSelectLocation),
+                          Expanded(child: _MapSearchPill()),
                         ],
                       ),
                     ),
@@ -172,32 +162,6 @@ class _MapSearchPill extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _RouteButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _RouteButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: const BoxDecoration(
-          color: AppColors.accentOrange,
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(
-          Icons.turn_right_rounded,
-          color: Colors.white,
-          size: 24,
-        ),
       ),
     );
   }
