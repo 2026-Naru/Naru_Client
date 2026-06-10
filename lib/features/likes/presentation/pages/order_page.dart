@@ -113,6 +113,8 @@ class _OrderPageState extends State<OrderPage> {
                       'storeId': _cartItemFor(item)!.storeId,
                     'name': item.name,
                     'imageUrl': item.imageUrl,
+                    'image_url': item.imageUrl,
+                    'menu_image': item.imageUrl,
                     'quantity': item.quantity,
                     'price': item.unitPrice,
                   })
@@ -123,6 +125,8 @@ class _OrderPageState extends State<OrderPage> {
                 if (widget.storeId != null) 'storeId': widget.storeId,
                 'name': widget.menuName,
                 'imageUrl': widget.menuImagePath,
+                'image_url': widget.menuImagePath,
+                'menu_image': widget.menuImagePath,
                 'quantity': 1,
                 'price': widget.totalPrice,
               }
@@ -307,8 +311,11 @@ class _OrderPageState extends State<OrderPage> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(item.imagePath,
-                              width: 64, height: 64, fit: BoxFit.cover),
+                          child: _OrderImage(
+                            imagePath: item.imagePath,
+                            width: 64,
+                            height: 64,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -351,11 +358,10 @@ class _OrderPageState extends State<OrderPage> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              widget.menuImagePath,
+            child: _OrderImage(
+              imagePath: widget.menuImagePath,
               width: 64,
               height: 64,
-              fit: BoxFit.cover,
             ),
           ),
           const SizedBox(width: 12),
@@ -406,7 +412,7 @@ class _OrderPageState extends State<OrderPage> {
               shape: BoxShape.circle,
               border: Border.all(color: const Color(0xFFE4E6E8), width: 1),
             ),
-            child: Image.asset(widget.menuImagePath, fit: BoxFit.cover),
+            child: _OrderImage(imagePath: _displayStoreImage),
           ),
           const SizedBox(width: 10),
           const Expanded(
@@ -904,6 +910,44 @@ class _Card extends StatelessWidget {
         border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
       ),
       child: child,
+    );
+  }
+}
+
+class _OrderImage extends StatelessWidget {
+  final String imagePath;
+  final double? width;
+  final double? height;
+
+  const _OrderImage({
+    required this.imagePath,
+    this.width,
+    this.height,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(
+        imagePath,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+      );
+    }
+
+    return Image.network(
+      imagePath,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        width: width,
+        height: height,
+        color: AppColors.bgLight,
+        alignment: Alignment.center,
+        child: const Icon(Icons.restaurant, color: AppColors.textMuted),
+      ),
     );
   }
 }

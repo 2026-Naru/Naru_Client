@@ -129,9 +129,15 @@ class OrderHistoryItemModel {
     final menu = json['menus'] as Map<String, dynamic>?;
     return OrderHistoryItemModel(
       name: json['menu_name'] as String? ??
+          json['menuName'] as String? ??
+          json['name'] as String? ??
           menu?['name'] as String? ??
           'Ordered item',
-      imageUrl: json['menu_image'] as String? ?? menu?['image_url'] as String?,
+      imageUrl: json['menu_image'] as String? ??
+          json['menuImage'] as String? ??
+          json['image_url'] as String? ??
+          json['imageUrl'] as String? ??
+          menu?['image_url'] as String?,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       unitPrice: (json['unit_price'] as num?)?.toInt() ??
           (json['price'] as num?)?.toInt() ??
@@ -142,7 +148,9 @@ class OrderHistoryItemModel {
   factory OrderHistoryItemModel.fromLocalJson(Map<String, dynamic> json) {
     return OrderHistoryItemModel(
       name: json['name'] as String? ?? 'Ordered item',
-      imageUrl: json['imageUrl'] as String?,
+      imageUrl: json['imageUrl'] as String? ??
+          json['image_url'] as String? ??
+          json['menu_image'] as String?,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       unitPrice: (json['unitPrice'] as num?)?.toInt() ?? 0,
     );
