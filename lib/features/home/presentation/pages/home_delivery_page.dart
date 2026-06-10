@@ -219,6 +219,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     final isPickupMode = widget.selectedIndex == 1;
 
     return ListView(
+      padding: EdgeInsets.zero,
       physics: const BouncingScrollPhysics(),
       children: [
         Container(
