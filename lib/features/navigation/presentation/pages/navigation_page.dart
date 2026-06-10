@@ -53,7 +53,7 @@ class NavigationPage extends StatelessWidget {
     ),
     _TrendingItem(
       rank: 3,
-      title: 'FAMOUS HONGDAE TTEOKBOKKI',
+      title: 'FAMOUS Sillim TTEOKBOKKI',
       distance: '1.2km away',
       subtitle: '#Locals pick\n#Street food',
       imagePath: 'assets/images/food_tteokbokki.png',
@@ -77,7 +77,7 @@ class NavigationPage extends StatelessWidget {
       title: 'Small Octopus',
       subtitle: 'Small Octopus',
       price: '₩9,000',
-      imagePath: 'assets/images/banner_food.png',
+      imagePath: 'assets/images/smalloctopus.png',
     ),
   ];
 
@@ -288,7 +288,7 @@ class NavigationPage extends StatelessWidget {
                           style: AppTextStyles.title,
                         ),
                         highlighted: Text(
-                          'Hongdae',
+                          'Sillim',
                           style: TextStyle(
                             fontFamily: 'Pretendard',
                             fontSize: 16,
@@ -313,7 +313,7 @@ class NavigationPage extends StatelessWidget {
                       const SizedBox(height: 48),
                       const _SectionHeading(
                         leading: Text(
-                          'Hongdae Restaurant ',
+                          'Sillim Restaurant ',
                           style: TextStyle(
                             fontFamily: 'Pretendard',
                             fontSize: 15,
