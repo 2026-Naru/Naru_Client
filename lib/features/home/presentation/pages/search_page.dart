@@ -473,7 +473,10 @@ class _SearchPageState extends State<SearchPage> with TickerProviderStateMixin {
     final results = source.where((item) => item.matches(query)).toList();
 
     if (results.isNotEmpty) {
-      return _SearchResultsContent(results: results);
+      return _SearchResultsContent(
+        results: results,
+        initialIsPickup: _tabController.index == 1,
+      );
     }
 
     return const Center(
@@ -616,6 +619,7 @@ class _PickupDefaultContent extends StatelessWidget {
                     menuName: stores[i].name,
                     description: stores[i].tags.join(', '),
                     imagePath: stores[i].imagePath,
+                    initialIsPickup: true,
                   ),
                 ),
               ),
@@ -633,6 +637,7 @@ class _PickupDefaultContent extends StatelessWidget {
 
 class _SearchResultsContent extends StatelessWidget {
   final List<_SearchResultData> results;
+  final bool initialIsPickup;
 
   static const _filters = [
     _FilterChip(icon: 'assets/icons/black_clock.svg', label: 'reservation'),
@@ -640,7 +645,10 @@ class _SearchResultsContent extends StatelessWidget {
     _FilterChip(icon: 'assets/icons/black_star.svg', label: 'Highest Rated'),
   ];
 
-  const _SearchResultsContent({required this.results});
+  const _SearchResultsContent({
+    required this.results,
+    required this.initialIsPickup,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -686,6 +694,7 @@ class _SearchResultsContent extends StatelessWidget {
                     menuName: results[i].name,
                     description: results[i].tags.join(', '),
                     imagePath: results[i].imagePath,
+                    initialIsPickup: initialIsPickup,
                   ),
                 ),
               ),

@@ -16,6 +16,7 @@ class CartPage extends StatefulWidget {
   final int totalPrice;
   final int quantity;
   final String menuImagePath;
+  final bool initialIsPickup;
 
   const CartPage({
     super.key,
@@ -30,6 +31,7 @@ class CartPage extends StatefulWidget {
     required this.totalPrice,
     required this.quantity,
     required this.menuImagePath,
+    this.initialIsPickup = false,
   });
 
   @override
@@ -38,7 +40,7 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> {
   int _quantity = 1;
-  int _selectedMethod = 1; // 0: Store Delivery, 1: Pick up
+  int _selectedMethod = 0; // 0: Store Delivery, 1: Pick up
   final Set<String> _addedExtras = {};
 
   static const _extras = [
@@ -60,6 +62,7 @@ class _CartPageState extends State<CartPage> {
   void initState() {
     super.initState();
     _quantity = widget.quantity;
+    _selectedMethod = widget.initialIsPickup ? 1 : 0;
   }
 
   int get _extrasTotal {

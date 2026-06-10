@@ -144,32 +144,49 @@ class OrdersProvider extends ChangeNotifier {
     }
 
     final localOrders = await _loadLocalOrders();
-    final updatedLocalOrders = localOrders
-        .map((order) =>
-            order.id == orderId ? order.copyWith(status: 'COMPLETED') : order)
-        .toList();
-    await _saveLocalOrders(updatedLocalOrders);
+    OrderHistoryModel? completedOrder;
+    final updatedLocalOrders = <OrderHistoryModel>[];
 
-    _all = _sortOrders(_all
-        .map((order) =>
-            order.id == orderId ? order.copyWith(status: 'COMPLETED') : order)
-        .toList());
-    _pending = _sortOrders(
-      _pending
-          .map((order) =>
-              order.id == orderId ? order.copyWith(status: 'COMPLETED') : order)
-          .where((order) => order.isPending)
-          .toList(),
-    );
-
-    final completedOrder = [
-      ...updatedLocalOrders,
-      ..._all,
-    ].where((order) => order.id == orderId && order.status == 'COMPLETED');
-    if (completedOrder.isNotEmpty) {
-      _completed = _sortOrders([completedOrder.first, ..._completed]);
+    for (final order in localOrders) {
+      if (order.id == orderId) {
+        completedOrder = order.copyWith(status: 'COMPLETED');
+        updatedLocalOrders.add(completedOrder);
+      } else {
+        updatedLocalOrders.add(order);
+      }
     }
 
+    if (completedOrder == null) {
+      for (final order in _all) {
+        if (order.id == orderId) {
+          completedOrder = order.copyWith(status: 'COMPLETED');
+          if (completedOrder.isLocal) {
+            updatedLocalOrders.add(completedOrder);
+          }
+          break;
+        }
+      }
+    }
+
+    await _saveLocalOrders(_sortOrders(updatedLocalOrders));
+
+    if (completedOrder != null) {
+      _all = _sortOrders([
+        completedOrder,
+        ..._all.where((order) => order.id != orderId),
+      ]);
+    }
+    _pending = _sortOrders(
+      _pending.where((order) => order.id != orderId).toList(),
+    );
+    if (completedOrder != null) {
+      _completed = _sortOrders([
+        completedOrder,
+        ..._completed.where((order) => order.id != orderId),
+      ]);
+    }
+
+    _error = null;
     notifyListeners();
   }
 

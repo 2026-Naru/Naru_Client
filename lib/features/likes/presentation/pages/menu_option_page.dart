@@ -16,6 +16,7 @@ class MenuOptionPage extends StatefulWidget {
   final String menuName;
   final String description;
   final String imagePath;
+  final bool initialIsPickup;
 
   const MenuOptionPage({
     super.key,
@@ -28,6 +29,7 @@ class MenuOptionPage extends StatefulWidget {
     required this.menuName,
     required this.description,
     required this.imagePath,
+    this.initialIsPickup = false,
   });
 
   @override
@@ -257,6 +259,7 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
                   storeId: widget.storeId,
                   storeName: widget.storeName,
                   storeImagePath: widget.storeImagePath,
+                  initialIsPickup: widget.initialIsPickup,
                 ),
               ),
             ),

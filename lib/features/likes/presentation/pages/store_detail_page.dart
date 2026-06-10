@@ -447,6 +447,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
                 storeId: widget.storeId,
                 storeName: widget.storeName,
                 storeImagePath: widget.heroImagePath,
+                isPickupGetter: () => _tabController.index == 1,
               )),
         ],
       ),
@@ -733,37 +734,33 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   Widget _buildAllergySection() {
-    final remoteAllergens = _remoteMenus
-        .expand((menu) => (menu.allergyNotice ?? '')
-            .split(',')
-            .map((value) => value.trim())
-            .where((value) => value.isNotEmpty))
-        .toSet()
-        .map((value) => _Allergen(
-              label: value,
-              sublabel: 'Menu notice',
-              icon: Icons.info_outline,
-            ))
-        .toList();
-
-    final allergens = remoteAllergens.isNotEmpty
-        ? remoteAllergens
-        : const [
-            _Allergen(
-                label: 'Peanut', sublabel: 'For topping', icon: Icons.eco),
-            _Allergen(
-                label: 'Tomato',
-                sublabel: 'For tomato',
-                icon: Icons.local_florist),
-            _Allergen(
-                label: 'Milk',
-                sublabel: 'For garneing',
-                icon: Icons.water_drop),
-            _Allergen(
-                label: 'Meat', sublabel: 'For all menu', icon: Icons.set_meal),
-            _Allergen(
-                label: 'Egg', sublabel: 'For bread', icon: Icons.egg_outlined),
-          ];
+    const allergens = [
+      _Allergen(
+        label: 'Peanut',
+        sublabel: 'For topping',
+        assetPath: 'assets/images/peanut.png',
+      ),
+      _Allergen(
+        label: 'Tomato',
+        sublabel: 'For salad',
+        assetPath: 'assets/images/tomato.png',
+      ),
+      _Allergen(
+        label: 'Milk',
+        sublabel: 'For ripening',
+        assetPath: 'assets/images/milk.png',
+      ),
+      _Allergen(
+        label: 'Meat',
+        sublabel: 'For all menu',
+        assetPath: 'assets/images/meat.png',
+      ),
+      _Allergen(
+        label: 'Egg',
+        sublabel: 'For bread',
+        assetPath: 'assets/images/egg.png',
+      ),
+    ];
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -792,8 +789,9 @@ class _StoreDetailPageState extends State<StoreDetailPage>
           Wrap(
             spacing: 12,
             runSpacing: 12,
-            children:
-                allergens.map((a) => _AllergenBadge(allergen: a)).toList(),
+            children: allergens
+                .map((allergen) => _AllergenBadge(allergen: allergen))
+                .toList(),
           ),
         ],
       ),
@@ -996,6 +994,7 @@ class _MenuItemRow extends StatelessWidget {
   final int? storeId;
   final String storeName;
   final String storeImagePath;
+  final bool Function() isPickupGetter;
 
   const _MenuItemRow({
     required this.item,
@@ -1003,6 +1002,7 @@ class _MenuItemRow extends StatelessWidget {
     required this.storeId,
     required this.storeName,
     required this.storeImagePath,
+    required this.isPickupGetter,
   });
 
   @override
@@ -1021,6 +1021,7 @@ class _MenuItemRow extends StatelessWidget {
             menuName: item.name,
             description: item.description,
             imagePath: item.imagePath,
+            initialIsPickup: isPickupGetter(),
           ),
         ),
       ),
@@ -1100,43 +1101,74 @@ class _MenuItemRow extends StatelessWidget {
 
 class _AllergenBadge extends StatelessWidget {
   final _Allergen allergen;
+
   const _AllergenBadge({required this.allergen});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 72,
-      child: Column(
-        children: [
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF0EC),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFFFD5C8), width: 1),
+      width: 108,
+      height: 157,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(11, 11, 11, 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFCFCF),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.textPrimary, width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.14),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
             ),
-            child: Icon(allergen.icon, color: AppColors.brandOrange, size: 28),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            allergen.label,
-            style: const TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: AppColors.textPrimary, width: 1.2),
+              ),
+              alignment: Alignment.center,
+              child: Image.asset(
+                allergen.assetPath,
+                fit: BoxFit.contain,
+              ),
             ),
-          ),
-          Text(
-            allergen.sublabel,
-            style: const TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 9,
-              color: AppColors.textSecondary,
+            const SizedBox(height: 10),
+            Text(
+              allergen.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+                height: 1.1,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              allergen.sublabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: AppColors.textSecondary,
+                height: 1.15,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1307,11 +1339,11 @@ class _DetailImage extends StatelessWidget {
 class _Allergen {
   final String label;
   final String sublabel;
-  final IconData icon;
+  final String assetPath;
 
   const _Allergen({
     required this.label,
     required this.sublabel,
-    required this.icon,
+    required this.assetPath,
   });
 }
