@@ -20,6 +20,17 @@ class StoreService {
     return NaruStore.fromJson(data);
   }
 
+  Future<List<NaruStore>> searchStores(String query) async {
+    final res = await _api.get(
+      '/stores/search',
+      queryParameters: {'query': query},
+    );
+    final list = res['data'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => NaruStore.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<NaruMenu>> fetchMenus(int storeId) async {
     final res = await _api.get('/stores/$storeId/menus');
     final list = res['data'] as List<dynamic>? ?? [];
@@ -134,6 +145,7 @@ class NaruReview {
   final int rating;
   final String content;
   final String? country;
+  final String? imageUrl;
   final String createdAt;
   final String userName;
 
@@ -142,6 +154,7 @@ class NaruReview {
     required this.rating,
     required this.content,
     this.country,
+    this.imageUrl,
     required this.createdAt,
     required this.userName,
   });
@@ -153,6 +166,13 @@ class NaruReview {
       rating: (json['rating'] as num?)?.toInt() ?? 0,
       content: json['content'] as String? ?? '',
       country: json['country'] as String?,
+      imageUrl: json['image_url'] as String? ??
+          json['imageUrl'] as String? ??
+          json['review_image_url'] as String? ??
+          json['reviewImageUrl'] as String? ??
+          json['photo_url'] as String? ??
+          json['photoUrl'] as String? ??
+          json['image'] as String?,
       createdAt: json['created_at'] as String? ?? '',
       userName: user?['name'] as String? ?? 'Naru User',
     );

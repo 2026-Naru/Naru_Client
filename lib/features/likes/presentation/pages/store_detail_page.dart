@@ -57,6 +57,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   late TabController _tabController;
   bool _isUpdatingFavorite = false;
   StoreService? _storeService;
+  int? _resolvedStoreId;
   List<NaruMenu> _remoteMenus = const [];
   List<NaruReview> _remoteReviews = const [];
   bool _isLoadingRemoteData = false;
@@ -85,16 +86,16 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   Future<void> _initRemoteData() async {
-    if (widget.storeId == null) return;
     final api = await ApiClient.getInstance();
     if (!mounted) return;
     _storeService = StoreService(api);
+    _resolvedStoreId = widget.storeId ?? await _findStoreIdByName();
     await _loadRemoteData();
   }
 
   Future<void> _loadRemoteData() async {
     final service = _storeService;
-    final storeId = widget.storeId;
+    final storeId = _resolvedStoreId;
     if (service == null || storeId == null || _isLoadingRemoteData) return;
     setState(() => _isLoadingRemoteData = true);
     try {
@@ -116,6 +117,42 @@ class _StoreDetailPageState extends State<StoreDetailPage>
     } finally {
       if (mounted) setState(() => _isLoadingRemoteData = false);
     }
+  }
+
+  Future<int?> _findStoreIdByName() async {
+    final service = _storeService;
+    if (service == null) return null;
+
+    final queries = <String>[
+      widget.storeName,
+      ...widget.storeName
+          .split(RegExp(r'\s+'))
+          .where((word) => word.length > 2),
+    ];
+
+    for (final query in queries) {
+      try {
+        final stores = await service.searchStores(query);
+        final matched = _bestStoreMatch(stores);
+        if (matched != null && matched.id != 0) return matched.id;
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return null;
+  }
+
+  NaruStore? _bestStoreMatch(List<NaruStore> stores) {
+    if (stores.isEmpty) return null;
+    final target = widget.storeName.toLowerCase();
+    for (final store in stores) {
+      final name = store.name.toLowerCase();
+      if (name == target || name.contains(target) || target.contains(name)) {
+        return store;
+      }
+    }
+    return stores.first;
   }
 
   int get _reviewCountValue {
@@ -802,7 +839,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
     final reviewImage = _reviewImageForPreset(widget.preset);
     final reviewTexts = _reviewTextsForPreset(widget.preset);
     final remoteReviews = _remoteReviews
-        .where((review) => review.content.trim().isNotEmpty)
+        .where((review) => review.imageUrl?.trim().isNotEmpty ?? false)
         .take(3)
         .toList();
 
@@ -889,7 +926,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
                   flag: _flagForCountry(review.country),
                   timeAgo: review.timeAgo,
                   text: review.content,
-                  imagePath: widget.heroImagePath,
+                  imagePath: review.imageUrl!,
                 ),
               ),
             )
@@ -1258,16 +1295,18 @@ class _ReviewCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        Text(
-          text,
-          style: const TextStyle(
-            fontFamily: 'Pretendard',
-            fontSize: 13,
-            color: AppColors.textPrimary,
-            height: 1.5,
+        if (text.trim().isNotEmpty) ...[
+          Text(
+            text,
+            style: const TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 13,
+              color: AppColors.textPrimary,
+              height: 1.5,
+            ),
           ),
-        ),
-        const SizedBox(height: 10),
+          const SizedBox(height: 10),
+        ],
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: _DetailImage(
