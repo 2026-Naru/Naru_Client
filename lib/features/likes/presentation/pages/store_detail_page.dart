@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/api_client.dart';
@@ -933,7 +934,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
           else ...[
             _ReviewCard(
               name: 'Jake',
-              flag: '🇺🇸',
+              flag: 'US',
               timeAgo: 'last week',
               text: reviewTexts.first,
               imagePath: reviewImage,
@@ -941,7 +942,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             const SizedBox(height: 20),
             _ReviewCard(
               name: 'Kimana',
-              flag: '🇰🇷',
+              flag: 'KR',
               timeAgo: 'last week',
               text: reviewTexts.last,
               imagePath: reviewImage,
@@ -953,15 +954,41 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   String _flagForCountry(String? country) {
-    switch ((country ?? '').toUpperCase()) {
+    final rawCountry = country?.trim() ?? '';
+    final normalizedCountry = rawCountry.toUpperCase();
+
+    switch (normalizedCountry) {
       case 'KR':
+      case 'KOR':
       case 'KOREA':
+      case 'SOUTH KOREA':
+      case 'REPUBLIC OF KOREA':
+      case '대한민국':
+      case '한국':
+      case '🇰🇷':
         return 'KR';
       case 'US':
       case 'USA':
+      case 'AMERICA':
+      case 'UNITED STATES':
+      case 'UNITED STATES OF AMERICA':
+      case '미국':
+      case '🇺🇸':
         return 'US';
+      case 'JP':
+      case 'JPN':
+      case 'JAPAN':
+      case '🇯🇵':
+        return 'JP';
+      case 'CN':
+      case 'CHN':
+      case 'CHINA':
+      case '🇨🇳':
+        return 'CN';
       default:
-        return country?.toUpperCase() ?? '';
+        final lettersOnly = normalizedCountry.replaceAll(RegExp(r'[^A-Z]'), '');
+        if (lettersOnly.length >= 2) return lettersOnly.substring(0, 2);
+        return 'GL';
     }
   }
 
@@ -1264,7 +1291,7 @@ class _ReviewCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Text(flag, style: const TextStyle(fontSize: 12)),
+                    _CountryFlag(code: flag),
                   ],
                 ),
                 Row(
@@ -1317,6 +1344,49 @@ class _ReviewCard extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _CountryFlag extends StatelessWidget {
+  final String code;
+
+  const _CountryFlag({required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(2),
+      child: Container(
+        width: 22,
+        height: 15,
+        decoration: BoxDecoration(
+          color: AppColors.bgWhite,
+          border: Border.all(color: const Color(0xFFD8D8D8), width: 0.6),
+          borderRadius: BorderRadius.circular(2),
+        ),
+        child: SvgPicture.asset(
+          _flagAssetFor(code),
+          width: 22,
+          height: 15,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  String _flagAssetFor(String value) {
+    switch (value.trim().toUpperCase()) {
+      case 'KR':
+        return 'assets/images/flag_kr.svg';
+      case 'US':
+        return 'assets/images/flag_us.svg';
+      case 'JP':
+        return 'assets/images/flag_jp.svg';
+      case 'CN':
+        return 'assets/images/flag_cn.svg';
+      default:
+        return 'assets/images/flag_global.svg';
+    }
   }
 }
 

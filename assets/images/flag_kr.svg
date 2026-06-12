@@ -1,0 +1,21 @@
+<svg width="30" height="20" viewBox="0 0 30 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="30" height="20" fill="#FFFFFF"/>
+  <g transform="rotate(-33 15 10)">
+    <path d="M15 5A5 5 0 0 1 15 15A2.5 2.5 0 0 1 15 10A2.5 2.5 0 0 0 15 5Z" fill="#CD2E3A"/>
+    <path d="M15 15A5 5 0 0 1 15 5A2.5 2.5 0 0 1 15 10A2.5 2.5 0 0 0 15 15Z" fill="#0047A0"/>
+  </g>
+  <g stroke="#111111" stroke-width="1.05" stroke-linecap="square">
+    <path d="M6 4L10 2"/>
+    <path d="M7 6L11 4"/>
+    <path d="M8 8L12 6"/>
+    <path d="M20 14L24 12"/>
+    <path d="M19 16L23 14"/>
+    <path d="M18 18L22 16"/>
+    <path d="M20 2L24 4"/>
+    <path d="M19 4L23 6"/>
+    <path d="M18 6L22 8"/>
+    <path d="M6 16L10 18"/>
+    <path d="M7 14L11 16"/>
+    <path d="M8 12L12 14"/>
+  </g>
+</svg>

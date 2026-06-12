@@ -196,16 +196,89 @@ class OrdersProvider extends ChangeNotifier {
       final key = order.id > 0 ? 'order:${order.id}' : 'local:${order.id}';
       final existing = deduped[key];
       if (existing != null && existing.isLocal && !order.isLocal) {
-        deduped[key] = order;
+        deduped[key] = _mergeRemoteWithLocal(
+          remote: order,
+          local: existing,
+        );
         continue;
       }
-      if (existing != null && !existing.isLocal && order.isLocal) continue;
+      if (existing != null && !existing.isLocal && order.isLocal) {
+        deduped[key] = _mergeRemoteWithLocal(
+          remote: existing,
+          local: order,
+        );
+        continue;
+      }
       deduped[key] = order;
     }
 
     final list = deduped.values.toList();
     list.sort((a, b) => _orderTime(b).compareTo(_orderTime(a)));
     return list;
+  }
+
+  OrderHistoryModel _mergeRemoteWithLocal({
+    required OrderHistoryModel remote,
+    required OrderHistoryModel local,
+  }) {
+    return remote.copyWith(
+      storeName: _hasUsefulStoreName(remote.storeName)
+          ? remote.storeName
+          : local.storeName,
+      storeImageUrl: _nonEmpty(remote.storeImageUrl) ?? local.storeImageUrl,
+      totalAmount:
+          remote.totalAmount > 0 ? remote.totalAmount : local.totalAmount,
+      orderedAt: _nonEmpty(remote.orderedAt) ?? local.orderedAt,
+      items: _mergeItems(remote.items, local.items),
+      isLocal: local.isLocal,
+    );
+  }
+
+  List<OrderHistoryItemModel> _mergeItems(
+    List<OrderHistoryItemModel> remoteItems,
+    List<OrderHistoryItemModel> localItems,
+  ) {
+    if (!_hasUsefulItems(remoteItems)) return localItems;
+    if (localItems.isEmpty) return remoteItems;
+
+    return List.generate(remoteItems.length, (index) {
+      final remoteItem = remoteItems[index];
+      if (index >= localItems.length) return remoteItem;
+
+      final localItem = localItems[index];
+      return OrderHistoryItemModel(
+        name: _hasUsefulItemName(remoteItem.name)
+            ? remoteItem.name
+            : localItem.name,
+        imageUrl: _nonEmpty(remoteItem.imageUrl) ?? localItem.imageUrl,
+        quantity: remoteItem.quantity,
+        unitPrice: remoteItem.unitPrice > 0
+            ? remoteItem.unitPrice
+            : localItem.unitPrice,
+      );
+    });
+  }
+
+  bool _hasUsefulStoreName(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized.isNotEmpty &&
+        normalized != 'delivery order' &&
+        normalized != '알 수 없는 가게';
+  }
+
+  bool _hasUsefulItems(List<OrderHistoryItemModel> items) {
+    return items.any((item) => _hasUsefulItemName(item.name));
+  }
+
+  bool _hasUsefulItemName(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized.isNotEmpty && normalized != 'ordered item';
+  }
+
+  String? _nonEmpty(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    return trimmed;
   }
 
   DateTime _orderTime(OrderHistoryModel order) {

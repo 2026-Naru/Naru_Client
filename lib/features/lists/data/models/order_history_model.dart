@@ -42,13 +42,21 @@ class OrderHistoryModel {
   }
 
   factory OrderHistoryModel.fromJson(Map<String, dynamic> json) {
-    final store = json['stores'] as Map<String, dynamic>?;
+    final store = _mapFromRelation(json['stores']);
     final orderItems = json['order_items'] as List<dynamic>? ?? const [];
     return OrderHistoryModel(
-      id: json['id'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       status: json['status'] as String? ?? 'UNKNOWN',
-      storeName: store?['name'] as String? ?? '알 수 없는 가게',
-      storeImageUrl: store?['image_url'] as String?,
+      storeName: _stringFrom(store?['name']) ??
+          _stringFrom(json['store_name']) ??
+          _stringFrom(json['storeName']) ??
+          'Delivery order',
+      storeImageUrl: _stringFrom(store?['image_url']) ??
+          _stringFrom(store?['imageUrl']) ??
+          _stringFrom(json['store_image_url']) ??
+          _stringFrom(json['storeImageUrl']) ??
+          _stringFrom(json['image_url']) ??
+          _stringFrom(json['imageUrl']),
       totalAmount: (json['paid_amount'] as num?)?.toInt() ??
           (json['total_amount'] as num?)?.toInt() ??
           0,
@@ -122,6 +130,13 @@ class OrderHistoryModel {
     return storeImageUrl;
   }
 
+  String? get displayStoreImageUrl {
+    if (storeImageUrl != null && storeImageUrl!.trim().isNotEmpty) {
+      return storeImageUrl;
+    }
+    return displayImageUrl;
+  }
+
   String get formattedDate {
     if (orderedAt.isEmpty) return '';
     try {
@@ -132,6 +147,21 @@ class OrderHistoryModel {
       return orderedAt;
     }
   }
+}
+
+Map<String, dynamic>? _mapFromRelation(dynamic value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) return Map<String, dynamic>.from(value);
+  if (value is List && value.isNotEmpty) {
+    return _mapFromRelation(value.first);
+  }
+  return null;
+}
+
+String? _stringFrom(dynamic value) {
+  if (value == null) return null;
+  final text = value.toString().trim();
+  return text.isEmpty ? null : text;
 }
 
 class OrderHistoryItemModel {

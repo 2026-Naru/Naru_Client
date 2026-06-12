@@ -4,6 +4,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../data/models/order_history_model.dart';
 import '../providers/orders_provider.dart';
+import '../widgets/order_thumbnail.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   final bool isStandalone;
@@ -173,7 +174,12 @@ class _OrderHistoryRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _OrderImage(imageUrl: order.displayImageUrl),
+          OrderThumbnail(
+            imageUrl: order.displayImageUrl,
+            width: 76,
+            height: 76,
+            fallbackIcon: Icons.restaurant_outlined,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -184,7 +190,7 @@ class _OrderHistoryRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      order.itemSummary,
+                      order.storeName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -197,7 +203,7 @@ class _OrderHistoryRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      order.storeName,
+                      order.itemSummary,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -258,61 +264,6 @@ class _OrderHistoryRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _OrderImage extends StatelessWidget {
-  final String? imageUrl;
-
-  const _OrderImage({required this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 76,
-      height: 76,
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF8B8B8B), width: 0.9),
-        color: AppColors.bgLight,
-      ),
-      child: _buildImage(),
-    );
-  }
-
-  Widget _buildImage() {
-    final url = imageUrl?.trim();
-    if (url == null || url.isEmpty) return const _OrderImageFallback();
-
-    if (url.startsWith('assets/')) {
-      return Image.asset(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const _OrderImageFallback(),
-      );
-    }
-
-    return Image.network(
-      url,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => const _OrderImageFallback(),
-    );
-  }
-}
-
-class _OrderImageFallback extends StatelessWidget {
-  const _OrderImageFallback();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Icon(
-        Icons.restaurant_outlined,
-        size: 28,
-        color: AppColors.textMuted,
       ),
     );
   }
