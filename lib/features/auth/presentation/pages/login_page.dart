@@ -8,7 +8,18 @@ import '../providers/auth_provider.dart';
 import '../widgets/auth_input_field.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final bool autoLogin;
+  final String? initialEmail;
+  final String? initialPassword;
+  final int successInitialTab;
+
+  const LoginPage({
+    super.key,
+    this.autoLogin = false,
+    this.initialEmail,
+    this.initialPassword,
+    this.successInitialTab = 0,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -17,6 +28,17 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.text = widget.initialEmail ?? '';
+    _passwordController.text = widget.initialPassword ?? '';
+
+    if (widget.autoLogin) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _onLogin());
+    }
+  }
 
   @override
   void dispose() {
@@ -41,7 +63,11 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!mounted) return;
     if (success) {
-      Navigator.pushReplacementNamed(context, AppRouter.main);
+      Navigator.pushReplacementNamed(
+        context,
+        AppRouter.main,
+        arguments: widget.successInitialTab,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.errorMessage ?? '로그인에 실패했습니다.')),
@@ -93,8 +119,7 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 40),
                     Consumer<AuthProvider>(
                       builder: (context, auth, _) {
-                        final isLoading =
-                            auth.status == AuthStatus.loading;
+                        final isLoading = auth.status == AuthStatus.loading;
                         return GestureDetector(
                           onTap: isLoading ? null : _onLogin,
                           child: Container(

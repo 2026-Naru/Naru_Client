@@ -4,17 +4,21 @@ class AppStrings {
 
   // Onboarding
   static const String welcomeTitle = 'Welcome to Naru!';
-  static const String welcomeSubtitle = 'Agree to the terms below\nand join to Korean taste.';
+  static const String welcomeSubtitle =
+      'Agree to the terms below\nand join to Korean taste.';
 
   // Auth
   static const String loginTitle = "We're glad to see you again.";
   static const String loginSubtitle = 'Get started with using your email';
   static const String signupTitle = 'Please enter your details below';
-  static const String signupSubtitle = 'Looks like this is your first time with Naru!';
+  static const String signupSubtitle =
+      'Looks like this is your first time with Naru!';
   static const String login = 'Login';
   static const String signup = 'Sign up';
   static const String start = 'Start';
   static const String loginEmail = 'Login with E-mail';
+  static const String demoLoginEmail = 'naru@mail.com';
+  static const String demoLoginPassword = '1234';
   static const String email = 'E-mail';
   static const String username = 'Username';
   static const String password = 'Password';
