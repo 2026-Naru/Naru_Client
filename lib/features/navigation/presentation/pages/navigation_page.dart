@@ -365,7 +365,7 @@ class NavigationPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 48),
                       const Text(
-                        'Restaurant tour with friends',
+                        'Trending Neighborhoods',
                         style: AppTextStyles.bodyMedium,
                       ),
                       const SizedBox(height: 8),

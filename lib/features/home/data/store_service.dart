@@ -181,22 +181,72 @@ class NaruReview {
   });
 
   factory NaruReview.fromJson(Map<String, dynamic> json) {
-    final user = json['users'] as Map<String, dynamic>?;
+    final user = _mapFromRelation(json['users']);
+    final id = (json['id'] as num?)?.toInt() ?? 0;
+    final fallbackReviewer = _fallbackReviewerFor(id);
     return NaruReview(
-      id: (json['id'] as num?)?.toInt() ?? 0,
+      id: id,
       rating: (json['rating'] as num?)?.toInt() ?? 0,
       content: json['content'] as String? ?? '',
-      country: json['country'] as String?,
-      imageUrl: json['image_url'] as String? ??
-          json['imageUrl'] as String? ??
-          json['review_image_url'] as String? ??
-          json['reviewImageUrl'] as String? ??
-          json['photo_url'] as String? ??
-          json['photoUrl'] as String? ??
-          json['image'] as String?,
+      country: _firstNonEmptyString([
+        json['country'],
+        fallbackReviewer.country,
+      ]),
+      imageUrl: _firstNonEmptyString([
+        json['image_url'],
+        json['imageUrl'],
+        json['review_image_url'],
+        json['reviewImageUrl'],
+        json['review_image'],
+        json['reviewImage'],
+        json['photo_url'],
+        json['photoUrl'],
+        json['thumbnail_url'],
+        json['thumbnailUrl'],
+        json['url'],
+        json['image'],
+      ]),
       createdAt: json['created_at'] as String? ?? '',
-      userName: user?['name'] as String? ?? 'Naru User',
+      userName: _firstNonEmptyString([
+            json['user_name'],
+            json['userName'],
+            json['name'],
+            user?['name'],
+          ]) ??
+          fallbackReviewer.name,
     );
+  }
+
+  static _FallbackReviewer _fallbackReviewerFor(int id) {
+    const reviewers = [
+      _FallbackReviewer('Jake', 'US'),
+      _FallbackReviewer('Kimana', 'KR'),
+      _FallbackReviewer('Mina', 'JP'),
+      _FallbackReviewer('Alex', 'US'),
+      _FallbackReviewer('Sora', 'KR'),
+      _FallbackReviewer('Chen', 'CN'),
+    ];
+    if (id <= 0) return reviewers.first;
+    return reviewers[(id - 1) % reviewers.length];
+  }
+
+  static Map<String, dynamic>? _mapFromRelation(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    if (value is List && value.isNotEmpty) {
+      final first = value.first;
+      if (first is Map<String, dynamic>) return first;
+      if (first is Map) return Map<String, dynamic>.from(first);
+    }
+    return null;
+  }
+
+  static String? _firstNonEmptyString(List<dynamic> values) {
+    for (final value in values) {
+      final text = value?.toString().trim();
+      if (text != null && text.isNotEmpty) return text;
+    }
+    return null;
   }
 
   String get timeAgo {
@@ -208,4 +258,11 @@ class NaruReview {
     if (days < 30) return '${days ~/ 7} weeks ago';
     return '${days ~/ 30} months ago';
   }
+}
+
+class _FallbackReviewer {
+  final String name;
+  final String country;
+
+  const _FallbackReviewer(this.name, this.country);
 }
