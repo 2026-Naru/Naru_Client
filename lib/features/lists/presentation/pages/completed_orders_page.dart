@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../cart/presentation/pages/cart_list_page.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
 import '../providers/orders_provider.dart';
 import '../../data/models/order_history_model.dart';
 import '../widgets/order_thumbnail.dart';
@@ -152,6 +154,64 @@ class _CompletedOrderRow extends StatelessWidget {
 
   static String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
 
+  void _reorder(BuildContext context) {
+    final cart = context.read<CartProvider>();
+    final items = order.items.isNotEmpty
+        ? order.items
+        : [
+            OrderHistoryItemModel(
+              name: order.itemSummary,
+              imageUrl: order.displayImageUrl,
+              quantity: 1,
+              unitPrice: order.totalAmount,
+            ),
+          ];
+
+    for (final item in items) {
+      final quantity = item.quantity <= 0 ? 1 : item.quantity;
+      final unitPrice = item.unitPrice > 0
+          ? item.unitPrice
+          : (order.totalAmount / quantity).round();
+
+      cart.addItem(
+        menuId: item.menuId,
+        storeId: order.storeId,
+        storeName: order.storeName,
+        storeImagePath: order.displayStoreImageUrl,
+        menuName: item.name,
+        imagePath: item.imageUrl ??
+            order.displayStoreImageUrl ??
+            'assets/images/food_jokbal.png',
+        selectedSize: item.selectedSize ?? 'Menu price',
+        selectedJokbal: item.selectedJokbal ?? 'No extra',
+        selectedDrink: item.selectedDrink ?? 'No drink',
+        unitPrice: unitPrice,
+        quantity: quantity,
+      );
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${items.length} item${items.length == 1 ? '' : 's'} added to cart',
+          style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14),
+        ),
+        action: SnackBarAction(
+          label: 'View Cart',
+          textColor: AppColors.brandOrange,
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CartListPage()),
+          ),
+        ),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.textPrimary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -198,7 +258,7 @@ class _CompletedOrderRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           GestureDetector(
-            onTap: () {},
+            onTap: () => _reorder(context),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(

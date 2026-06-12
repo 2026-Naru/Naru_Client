@@ -99,6 +99,7 @@ class OrdersProvider extends ChangeNotifier {
 
   Future<OrderHistoryModel> recordLocalOrder({
     int? remoteOrderId,
+    int? storeId,
     required String storeName,
     String? storeImageUrl,
     required int totalAmount,
@@ -109,6 +110,7 @@ class OrdersProvider extends ChangeNotifier {
     final order = OrderHistoryModel(
       id: remoteOrderId ?? -DateTime.now().microsecondsSinceEpoch,
       status: status,
+      storeId: storeId,
       storeName: storeName,
       storeImageUrl: storeImageUrl,
       totalAmount: totalAmount,
@@ -222,6 +224,7 @@ class OrdersProvider extends ChangeNotifier {
     required OrderHistoryModel local,
   }) {
     return remote.copyWith(
+      storeId: remote.storeId ?? local.storeId,
       storeName: _hasUsefulStoreName(remote.storeName)
           ? remote.storeName
           : local.storeName,
@@ -247,6 +250,7 @@ class OrdersProvider extends ChangeNotifier {
 
       final localItem = localItems[index];
       return OrderHistoryItemModel(
+        menuId: remoteItem.menuId ?? localItem.menuId,
         name: _hasUsefulItemName(remoteItem.name)
             ? remoteItem.name
             : localItem.name,
@@ -255,6 +259,12 @@ class OrdersProvider extends ChangeNotifier {
         unitPrice: remoteItem.unitPrice > 0
             ? remoteItem.unitPrice
             : localItem.unitPrice,
+        selectedSize:
+            _nonEmpty(remoteItem.selectedSize) ?? localItem.selectedSize,
+        selectedJokbal:
+            _nonEmpty(remoteItem.selectedJokbal) ?? localItem.selectedJokbal,
+        selectedDrink:
+            _nonEmpty(remoteItem.selectedDrink) ?? localItem.selectedDrink,
       );
     });
   }

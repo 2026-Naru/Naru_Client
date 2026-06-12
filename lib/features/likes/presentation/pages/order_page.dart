@@ -146,6 +146,7 @@ class _OrderPageState extends State<OrderPage> {
     if (!mounted) return;
     final recordedOrder = await ordersProvider.recordLocalOrder(
       remoteOrderId: remoteOrderId,
+      storeId: widget.storeId,
       storeName: _displayStoreName,
       storeImageUrl: _displayStoreImage,
       totalAmount: widget.totalPrice,
@@ -173,20 +174,28 @@ class _OrderPageState extends State<OrderPage> {
     if (cartItems != null && cartItems.isNotEmpty) {
       return cartItems
           .map((item) => OrderHistoryItemModel(
+                menuId: item.menuId,
                 name: item.menuName,
                 imageUrl: item.imagePath,
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
+                selectedSize: item.selectedSize,
+                selectedJokbal: item.selectedJokbal,
+                selectedDrink: item.selectedDrink,
               ))
           .toList();
     }
 
     return [
       OrderHistoryItemModel(
+        menuId: widget.menuId,
         name: widget.menuName,
         imageUrl: widget.menuImagePath,
         quantity: 1,
         unitPrice: widget.totalPrice,
+        selectedSize: widget.selectedSize,
+        selectedJokbal: widget.selectedJokbal,
+        selectedDrink: widget.selectedDrink,
       ),
     ];
   }

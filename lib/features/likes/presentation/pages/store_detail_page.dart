@@ -21,6 +21,65 @@ enum StoreDetailPreset {
   jjukkumi,
 }
 
+StoreDetailPreset _presetForStoreIdentity({
+  required String storeName,
+  required String storeSubtitle,
+  required String heroImagePath,
+  required StoreDetailPreset fallback,
+}) {
+  final identity = '$storeName $heroImagePath'.toLowerCase();
+  final value = '$identity $storeSubtitle'.toLowerCase();
+
+  if (_containsAnyText(identity, const [
+    'ediya',
+    'coffee',
+    'cafe',
+    'bombom',
+    'bback',
+    'dabang',
+  ])) {
+    return StoreDetailPreset.cafe;
+  }
+  if (_containsAnyText(value, const ['tteokbokki', 'ddukbokki'])) {
+    return StoreDetailPreset.tteokbokki;
+  }
+  if (_containsAnyText(value, const ['burger', 'lotteria', 'bongus'])) {
+    return StoreDetailPreset.burger;
+  }
+  if (_containsAnyText(value, const [
+    'chicken',
+    'bhc',
+    'bbq',
+    'nene',
+    'goobne',
+    'gupne',
+    'puradak',
+  ])) {
+    return StoreDetailPreset.chicken;
+  }
+  if (_containsAnyText(value, const ['pizza', 'domino'])) {
+    return StoreDetailPreset.pizza;
+  }
+  if (_containsAnyText(value, const [
+    'coffee',
+    'cafe',
+    'bombom',
+    'bback',
+    'dabang',
+  ])) {
+    return StoreDetailPreset.cafe;
+  }
+  if (_containsAnyText(value, const ['jjukkumi'])) {
+    return StoreDetailPreset.jjukkumi;
+  }
+
+  return fallback;
+}
+
+bool _containsAnyText(String value, List<String> tokens) {
+  return tokens.any(value.contains);
+}
+
 class StoreDetailPage extends StatefulWidget {
   final int? storeId;
   final bool? syncFavoriteRemote;
@@ -62,6 +121,13 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   List<NaruMenu> _remoteMenus = const [];
   List<NaruReview> _remoteReviews = const [];
   bool _isLoadingRemoteData = false;
+
+  StoreDetailPreset get _effectivePreset => _presetForStoreIdentity(
+        storeName: widget.storeName,
+        storeSubtitle: widget.storeSubtitle,
+        heroImagePath: widget.heroImagePath,
+        fallback: widget.preset,
+      );
 
   @override
   void initState() {
@@ -154,6 +220,52 @@ class _StoreDetailPageState extends State<StoreDetailPage>
       }
     }
     return stores.first;
+  }
+
+  List<NaruMenu> _remoteMenusForPreset(StoreDetailPreset preset) {
+    if (_remoteMenus.isEmpty) return const [];
+    if (preset != StoreDetailPreset.cafe) return _remoteMenus;
+
+    return _remoteMenus.where(_isCafeMenu).toList();
+  }
+
+  bool _isCafeMenu(NaruMenu menu) {
+    final value =
+        '${menu.name} ${menu.description} ${menu.imageUrl ?? ''}'.toLowerCase();
+    if (_containsAnyText(value, const [
+      'pizza',
+      'pepperoni',
+      'domino',
+      'tteokbokki',
+      'ddukbokki',
+      'jokbal',
+      'bossam',
+      'chicken',
+      'burger',
+      'jjukkumi',
+    ])) {
+      return false;
+    }
+
+    return _containsAnyText(value, const [
+      'coffee',
+      'americano',
+      'latte',
+      'ade',
+      'tea',
+      'mocha',
+      'espresso',
+      'cold brew',
+      'smoothie',
+      'frappe',
+      'milk tea',
+      'juice',
+      'dessert',
+      'cake',
+      'bread',
+      'cookie',
+      'croffle',
+    ]);
   }
 
   int get _reviewCountValue {
@@ -433,8 +545,10 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   Widget _buildPopularMenu() {
-    final menus = _remoteMenus.isNotEmpty
-        ? _remoteMenus.asMap().entries.map((entry) {
+    final effectivePreset = _effectivePreset;
+    final remoteMenus = _remoteMenusForPreset(effectivePreset);
+    final menus = remoteMenus.isNotEmpty
+        ? remoteMenus.asMap().entries.map((entry) {
             final menu = entry.value;
             return _MenuItem(
               menuId: menu.id,
@@ -447,7 +561,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
               allergyNotice: menu.allergyNotice,
             );
           }).toList()
-        : _menusForPreset(widget.preset);
+        : _menusForPreset(effectivePreset);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -614,6 +728,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
               'Extra shot: + ₩500',
             ],
             imagePath: 'assets/images/food_cafe.png',
+            price: 3500,
           ),
           _MenuItem(
             rank: 'Top 2',
@@ -625,6 +740,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
               'Oat milk: + ₩700',
             ],
             imagePath: 'assets/images/food_cafe.png',
+            price: 4500,
           ),
           _MenuItem(
             rank: 'Top 3',
@@ -636,6 +752,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
               'Extra fruit: + ₩800',
             ],
             imagePath: 'assets/images/food_cafe.png',
+            price: 5200,
           ),
         ];
       case StoreDetailPreset.jjukkumi:
@@ -837,8 +954,9 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   Widget _buildReviewSection() {
-    final reviewImage = _reviewImageForPreset(widget.preset);
-    final reviewTexts = _reviewTextsForPreset(widget.preset);
+    final effectivePreset = _effectivePreset;
+    final reviewImage = _reviewImageForPreset(effectivePreset);
+    final reviewTexts = _reviewTextsForPreset(effectivePreset);
     final remoteReviews = _remoteReviews
         .where((review) => review.imageUrl?.trim().isNotEmpty ?? false)
         .take(3)

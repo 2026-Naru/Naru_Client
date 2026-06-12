@@ -12,6 +12,8 @@ import '../../../../shared/widgets/main_tab_page.dart';
 import '../../../cart/presentation/pages/cart_list_page.dart';
 import '../../../likes/presentation/pages/store_detail_page.dart';
 import '../../../likes/presentation/providers/favorites_provider.dart';
+import '../../../lists/data/models/order_history_model.dart';
+import '../../../lists/presentation/providers/orders_provider.dart';
 import '../../data/category_dummy_data.dart';
 import '../../data/store_service.dart';
 import '../../domain/category_model.dart';
@@ -135,6 +137,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     _initStores();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FavoritesProvider>().fetch();
+      context.read<OrdersProvider>().fetchAll();
     });
     _bannerTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted ||
@@ -182,6 +185,7 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
     if (_mainTabNotifier?.value == 0) {
       _loadLocationLabel(forceRefresh: true);
       _loadStores();
+      context.read<OrdersProvider>().fetchAll();
     }
   }
 
@@ -259,24 +263,24 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      SvgPicture.asset(
-                        'assets/images/ic_search_header.svg',
-                        width: 24,
-                        height: 24,
-                      ),
-                      const SizedBox(width: 6),
-                      GestureDetector(
-                        onTap: () => Navigator.push(
+                      const SizedBox(width: 8),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
+                        onPressed: () => Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => const CartListPage(),
                           ),
                         ),
-                        child: SvgPicture.asset(
-                          'assets/images/ic_cart.svg',
-                          width: 24,
-                          height: 24,
+                        icon: const Icon(
+                          Icons.shopping_cart_outlined,
+                          size: 24,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ],
@@ -388,9 +392,13 @@ class _HomeDeliveryPageState extends State<HomeDeliveryPage>
               const SizedBox(height: 20),
               SizedBox(
                 height: 250,
-                child: _StoreRail(
-                  stores: _stores,
-                  isLoading: _isLoadingStores,
+                child: Consumer<OrdersProvider>(
+                  builder: (context, ordersProvider, _) {
+                    return _RecentOrderRail(
+                      orders: ordersProvider.all,
+                      isLoading: ordersProvider.isLoading,
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 20),
@@ -1054,6 +1062,90 @@ class _StoreRail extends StatelessWidget {
   ];
 }
 
+class _RecentOrderRail extends StatelessWidget {
+  final List<OrderHistoryModel> orders;
+  final bool isLoading;
+
+  const _RecentOrderRail({
+    required this.orders,
+    required this.isLoading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final recentStores = _recentStoresFromOrders(orders);
+
+    if (isLoading && recentStores.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (recentStores.isEmpty) {
+      return const Center(
+        child: Text(
+          'No recent orders yet',
+          style: TextStyle(
+            fontFamily: 'Pretendard',
+            fontSize: 14,
+            color: AppColors.textMuted,
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: recentStores.length,
+      separatorBuilder: (_, __) => const SizedBox(width: 14),
+      itemBuilder: (_, index) {
+        return _StoreCard.fromStore(
+          recentStores[index],
+          tags: const ['recent order', 'reorder'],
+        );
+      },
+    );
+  }
+
+  List<NaruStore> _recentStoresFromOrders(List<OrderHistoryModel> orders) {
+    final seen = <String>{};
+    final stores = <NaruStore>[];
+
+    for (final order in orders) {
+      final storeName = order.storeName.trim();
+      if (!_hasUsefulStoreName(storeName)) continue;
+
+      final key = order.storeId != null
+          ? 'id:${order.storeId}'
+          : 'name:${storeName.toLowerCase()}';
+      if (!seen.add(key)) continue;
+
+      stores.add(
+        NaruStore(
+          id: order.storeId ?? 0,
+          name: storeName,
+          description: order.itemSummary,
+          imageUrl: order.displayStoreImageUrl,
+          rating: 5.0,
+          reviewCount: 0,
+          categoryName: 'Recent',
+          deliveryTime: 'Reorder',
+        ),
+      );
+
+      if (stores.length >= 6) break;
+    }
+
+    return stores;
+  }
+
+  bool _hasUsefulStoreName(String value) {
+    final normalized = value.trim().toLowerCase();
+    return normalized.isNotEmpty &&
+        normalized != 'delivery order' &&
+        normalized != '알 수 없는 가게';
+  }
+}
+
 class _FreeDeliveryRail extends StatelessWidget {
   final List<NaruStore> stores;
   final bool isLoading;
@@ -1242,6 +1334,13 @@ class _StoreCard extends StatelessWidget {
 
 StoreDetailPreset _presetForStore(NaruStore store) {
   final value = '${store.name} ${store.categoryName ?? ''}'.toLowerCase();
+  if (value.contains('ediya') ||
+      value.contains('coffee') ||
+      value.contains('cafe') ||
+      value.contains('bombom') ||
+      value.contains('bback')) {
+    return StoreDetailPreset.cafe;
+  }
   if (value.contains('tteok') || value.contains('ddukbokki')) {
     return StoreDetailPreset.tteokbokki;
   }
@@ -1249,9 +1348,6 @@ StoreDetailPreset _presetForStore(NaruStore store) {
   if (value.contains('pizza')) return StoreDetailPreset.pizza;
   if (value.contains('burger') || value.contains('lotteria')) {
     return StoreDetailPreset.burger;
-  }
-  if (value.contains('coffee') || value.contains('cafe')) {
-    return StoreDetailPreset.cafe;
   }
   if (value.contains('jjukkumi')) return StoreDetailPreset.jjukkumi;
   return StoreDetailPreset.jokbal;
@@ -1332,27 +1428,25 @@ class _FreeDeliveryCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: _StoreImage(
-                    imagePath: data.displayImage,
+                  child: SizedBox(
                     width: 198,
                     height: 129,
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  bottom: 0,
-                  right: 0,
-                  child: SizedBox(
-                    height: 22,
-                    width: 198,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    child: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        Expanded(
+                        _StoreImage(
+                          imagePath: data.displayImage,
+                          width: 198,
+                          height: 129,
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
                           child: Container(
                             height: 22,
                             color: AppColors.brandOrange,
-                            padding: const EdgeInsets.only(left: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
                             alignment: Alignment.centerLeft,
                             child: const Text(
                               'No fee for delivery',
@@ -1366,8 +1460,6 @@ class _FreeDeliveryCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SvgPicture.asset('assets/images/ic_tag_arrow.svg',
-                            height: 22, width: 22),
                       ],
                     ),
                   ),

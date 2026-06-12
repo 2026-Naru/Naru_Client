@@ -68,14 +68,47 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
     _Option('Fanta', '+ ₩1,000', 1000),
   ];
 
+  static const _cafeTemperatures = [
+    _Option('Iced', '+ ₩0', 0),
+    _Option('Hot', '+ ₩0', 0),
+  ];
+
+  static const _cafeAddOns = [
+    _Option('No extra', '+ ₩0', 0),
+    _Option('Extra shot', '+ ₩500', 500),
+    _Option('Oat milk', '+ ₩700', 700),
+  ];
+
+  bool get _isCafeMenu {
+    final value =
+        '${widget.storeName ?? ''} ${widget.menuName} ${widget.imagePath}'
+            .toLowerCase();
+    return value.contains('ediya') ||
+        value.contains('coffee') ||
+        value.contains('cafe') ||
+        value.contains('americano') ||
+        value.contains('latte') ||
+        value.contains('ade') ||
+        value.contains('tea');
+  }
+
+  List<_Option> get _secondaryOptions =>
+      _isCafeMenu ? _cafeTemperatures : _jokbals;
+
+  List<_Option> get _tertiaryOptions => _isCafeMenu ? _cafeAddOns : _drinks;
+
+  String get _secondaryTitle => _isCafeMenu ? 'Temperature' : 'Choose Jokbal';
+
+  String get _tertiaryTitle => _isCafeMenu ? 'Add option' : 'Choose Drink';
+
   int get _totalPrice {
     final priceOptions = _priceOptions;
     final selectedSize =
         _selectedSize >= priceOptions.length ? 0 : _selectedSize;
     final base = priceOptions[selectedSize].price;
-    final jokbalAdd = _jokbals[_selectedJokbal].price;
-    final drinkAdd = _drinks[_selectedDrink].price;
-    return (base + jokbalAdd + drinkAdd) * _quantity;
+    final secondaryAdd = _secondaryOptions[_selectedJokbal].price;
+    final tertiaryAdd = _tertiaryOptions[_selectedDrink].price;
+    return (base + secondaryAdd + tertiaryAdd) * _quantity;
   }
 
   String get _orderLabel {
@@ -87,8 +120,8 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
     final selectedSize =
         _selectedSize >= priceOptions.length ? 0 : _selectedSize;
     final unitPrice = priceOptions[selectedSize].price +
-        _jokbals[_selectedJokbal].price +
-        _drinks[_selectedDrink].price;
+        _secondaryOptions[_selectedJokbal].price +
+        _tertiaryOptions[_selectedDrink].price;
 
     context.read<CartProvider>().addItem(
           menuId: widget.menuId,
@@ -97,9 +130,9 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
           storeImagePath: widget.storeImagePath,
           menuName: widget.menuName,
           imagePath: widget.imagePath,
-          selectedSize: _sizes[_selectedSize].label,
-          selectedJokbal: _jokbals[_selectedJokbal].label,
-          selectedDrink: _drinks[_selectedDrink].label,
+          selectedSize: priceOptions[selectedSize].label,
+          selectedJokbal: _secondaryOptions[_selectedJokbal].label,
+          selectedDrink: _tertiaryOptions[_selectedDrink].label,
           unitPrice: unitPrice,
           quantity: _quantity,
         );
@@ -205,8 +238,8 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
                         const Divider(height: 1, color: Color(0xFFEEEEEE)),
                         const SizedBox(height: 20),
                         _OptionSection(
-                          title: 'Choose Jokbal',
-                          options: _jokbals,
+                          title: _secondaryTitle,
+                          options: _secondaryOptions,
                           selectedIndex: _selectedJokbal,
                           onChanged: (i) => setState(() => _selectedJokbal = i),
                         ),
@@ -214,8 +247,8 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
                         const Divider(height: 1, color: Color(0xFFEEEEEE)),
                         const SizedBox(height: 20),
                         _OptionSection(
-                          title: 'Choose Drink',
-                          options: _drinks,
+                          title: _tertiaryTitle,
+                          options: _tertiaryOptions,
                           selectedIndex: _selectedDrink,
                           onChanged: (i) => setState(() => _selectedDrink = i),
                         ),
@@ -250,8 +283,8 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
                               ? 0
                               : _selectedSize]
                       .label,
-                  selectedJokbal: _jokbals[_selectedJokbal].label,
-                  selectedDrink: 'Drink Choice 500ml',
+                  selectedJokbal: _secondaryOptions[_selectedJokbal].label,
+                  selectedDrink: _tertiaryOptions[_selectedDrink].label,
                   totalPrice: _totalPrice,
                   quantity: _quantity,
                   menuImagePath: widget.imagePath,

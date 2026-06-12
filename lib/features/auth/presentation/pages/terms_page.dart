@@ -27,6 +27,7 @@ class _TermsPageState extends State<TermsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final allAgreed = _locationAccess && _offersUpdates;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -66,7 +67,10 @@ class _TermsPageState extends State<TermsPage> {
                             bottom: 0,
                             left: 0,
                             right: 0,
-                            child: Divider(color: AppColors.border, thickness: 1, height: 1),
+                            child: Divider(
+                                color: AppColors.border,
+                                thickness: 1,
+                                height: 1),
                           ),
                           Positioned(
                             left: 0,
@@ -77,15 +81,7 @@ class _TermsPageState extends State<TermsPage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  SvgPicture.asset(
-                                    'assets/images/ic_check_all.svg',
-                                    width: 22,
-                                    height: 22,
-                                    colorFilter: const ColorFilter.mode(
-                                      AppColors.primary,
-                                      BlendMode.srcIn,
-                                    ),
-                                  ),
+                                  _TermsCheckButton(checked: allAgreed),
                                   const SizedBox(width: 6),
                                   const Text(
                                     'Agree to All',
@@ -104,7 +100,8 @@ class _TermsPageState extends State<TermsPage> {
                     // Location Access 체크박스
                     _TermsRow(
                       checked: _locationAccess,
-                      onTap: () => setState(() => _locationAccess = !_locationAccess),
+                      onTap: () =>
+                          setState(() => _locationAccess = !_locationAccess),
                       label: 'Enable Location Access (Required)',
                     ),
 
@@ -113,7 +110,8 @@ class _TermsPageState extends State<TermsPage> {
                     // Offers 체크박스
                     _TermsRow(
                       checked: _offersUpdates,
-                      onTap: () => setState(() => _offersUpdates = !_offersUpdates),
+                      onTap: () =>
+                          setState(() => _offersUpdates = !_offersUpdates),
                       label: 'Receive Offers & Updates (Optional)',
                       sublabel: 'Get the latest deals and special offers.',
                     ),
@@ -182,26 +180,7 @@ class _TermsRow extends StatelessWidget {
             ? CrossAxisAlignment.start
             : CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: checked ? const Color(0xFF262626) : Colors.white,
-              borderRadius: BorderRadius.circular(4),
-              border: checked ? null : Border.all(color: const Color(0xFF626262)),
-            ),
-            child: Center(
-              child: SvgPicture.asset(
-                'assets/images/checkbox_on.svg',
-                width: 13,
-                height: 10,
-                colorFilter: ColorFilter.mode(
-                  checked ? Colors.white : Colors.transparent,
-                  BlendMode.srcIn,
-                ),
-              ),
-            ),
-          ),
+          _TermsCheckButton(checked: checked),
           const SizedBox(width: 6),
           Expanded(
             child: Column(
@@ -221,6 +200,36 @@ class _TermsRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TermsCheckButton extends StatelessWidget {
+  final bool checked;
+
+  const _TermsCheckButton({required this.checked});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        color: checked ? const Color(0xFF262626) : Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        border: checked ? null : Border.all(color: const Color(0xFF626262)),
+      ),
+      child: Center(
+        child: SvgPicture.asset(
+          'assets/images/checkbox_on.svg',
+          width: 13,
+          height: 10,
+          colorFilter: ColorFilter.mode(
+            checked ? Colors.white : Colors.transparent,
+            BlendMode.srcIn,
+          ),
+        ),
       ),
     );
   }
