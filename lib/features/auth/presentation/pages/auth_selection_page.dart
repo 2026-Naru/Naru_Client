@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import 'login_page.dart';
 import 'signup_page.dart';
@@ -26,13 +27,13 @@ class AuthSelectionPage extends StatelessWidget {
               _SocialBtn(
                 image: 'assets/images/social_apple.png',
                 label: 'Apple',
-                onTap: () {},
+                onTap: () => _openDemoLogin(context),
               ),
               const SizedBox(width: 12),
               _SocialBtn(
                 image: 'assets/images/social_google.png',
                 label: 'Google',
-                onTap: () {},
+                onTap: () => _openDemoLogin(context),
               ),
             ],
           ),
@@ -93,6 +94,19 @@ class AuthSelectionPage extends StatelessWidget {
 
           const Spacer(),
         ],
+      ),
+    );
+  }
+
+  void _openDemoLogin(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const LoginPage(
+          autoLogin: true,
+          initialEmail: AppStrings.demoLoginEmail,
+          initialPassword: AppStrings.demoLoginPassword,
+        ),
       ),
     );
   }
