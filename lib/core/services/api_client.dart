@@ -55,7 +55,7 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.get(path, queryParameters: queryParameters);
-      return response.data as Map<String, dynamic>;
+      return _responseMap(response.data);
     } on DioException catch (e) {
       throw _mapError(e);
     }
@@ -67,7 +67,7 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.post(path, data: data);
-      return response.data as Map<String, dynamic>;
+      return _responseMap(response.data);
     } on DioException catch (e) {
       throw _mapError(e);
     }
@@ -79,7 +79,7 @@ class ApiClient {
   }) async {
     try {
       final response = await _dio.patch(path, data: data);
-      return response.data as Map<String, dynamic>;
+      return _responseMap(response.data);
     } on DioException catch (e) {
       throw _mapError(e);
     }
@@ -88,10 +88,19 @@ class ApiClient {
   Future<Map<String, dynamic>> delete(String path) async {
     try {
       final response = await _dio.delete(path);
-      return response.data as Map<String, dynamic>;
+      return _responseMap(response.data);
     } on DioException catch (e) {
       throw _mapError(e);
     }
+  }
+
+  Map<String, dynamic> _responseMap(dynamic data) {
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    if (data is String && data.trim().isNotEmpty) {
+      return {'message': data.trim()};
+    }
+    return {'data': data};
   }
 
   AppException _mapError(DioException e) {
@@ -102,10 +111,22 @@ class ApiClient {
       return const NetworkException();
     }
     final statusCode = e.response?.statusCode;
-    final message = (e.response?.data as Map<String, dynamic>?)?['message']
-            as String? ??
-        e.message ??
-        '오류가 발생했습니다.';
+    final message =
+        _messageFromResponse(e.response?.data) ?? e.message ?? '오류가 발생했습니다.';
     return AppException(message, statusCode: statusCode);
+  }
+
+  String? _messageFromResponse(dynamic data) {
+    if (data is Map) {
+      final message = data['message'] ?? data['error'];
+      if (message is String && message.trim().isNotEmpty) {
+        return message.trim();
+      }
+      if (message != null) return message.toString();
+    }
+    if (data is String && data.trim().isNotEmpty) {
+      return data.trim();
+    }
+    return null;
   }
 }
