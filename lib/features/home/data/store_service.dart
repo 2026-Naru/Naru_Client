@@ -137,7 +137,28 @@ class NaruMenu {
     );
   }
 
-  String get displayImage => imageUrl ?? 'assets/images/food_jokbal.png';
+  String get displayImage {
+    final image = imageUrl?.trim();
+    if (image != null && image.isNotEmpty) return image;
+
+    final lower = name.toLowerCase();
+    if (lower.contains('coffee') ||
+        lower.contains('americano') ||
+        lower.contains('latte') ||
+        lower.contains('ade') ||
+        lower.contains('tea') ||
+        lower.contains('mocha') ||
+        lower.contains('espresso')) {
+      return 'assets/images/food_cafe.png';
+    }
+    if (lower.contains('tteokbokki') || lower.contains('ddukbokki')) {
+      return 'assets/images/food_tteokbokki.png';
+    }
+    if (lower.contains('chicken')) return 'assets/images/franchise_nene_bg.png';
+    if (lower.contains('pizza')) return 'assets/images/franchise_domino_bg.png';
+
+    return 'assets/images/food_jokbal.png';
+  }
 }
 
 class NaruReview {

@@ -152,7 +152,7 @@ class _MapSearchPill extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Search name of place',
+              'Search your destination',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.caption.copyWith(

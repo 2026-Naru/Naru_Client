@@ -228,7 +228,7 @@ class NavigationPage extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 8.5),
                                   Text(
-                                    'Search name of place',
+                                    'Search your destination',
                                     style: AppTextStyles.body.copyWith(
                                       fontSize: 14,
                                       color: AppColors.textMuted,

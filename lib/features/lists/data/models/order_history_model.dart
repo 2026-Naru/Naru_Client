@@ -1,6 +1,7 @@
 class OrderHistoryModel {
   final int id;
   final String status;
+  final int? storeId;
   final String storeName;
   final String? storeImageUrl;
   final int totalAmount;
@@ -11,6 +12,7 @@ class OrderHistoryModel {
   const OrderHistoryModel({
     required this.id,
     required this.status,
+    this.storeId,
     required this.storeName,
     this.storeImageUrl,
     required this.totalAmount,
@@ -22,6 +24,7 @@ class OrderHistoryModel {
   OrderHistoryModel copyWith({
     int? id,
     String? status,
+    int? storeId,
     String? storeName,
     String? storeImageUrl,
     int? totalAmount,
@@ -32,6 +35,7 @@ class OrderHistoryModel {
     return OrderHistoryModel(
       id: id ?? this.id,
       status: status ?? this.status,
+      storeId: storeId ?? this.storeId,
       storeName: storeName ?? this.storeName,
       storeImageUrl: storeImageUrl ?? this.storeImageUrl,
       totalAmount: totalAmount ?? this.totalAmount,
@@ -47,6 +51,9 @@ class OrderHistoryModel {
     return OrderHistoryModel(
       id: (json['id'] as num?)?.toInt() ?? 0,
       status: json['status'] as String? ?? 'UNKNOWN',
+      storeId: (store?['id'] as num?)?.toInt() ??
+          (json['store_id'] as num?)?.toInt() ??
+          (json['storeId'] as num?)?.toInt(),
       storeName: _stringFrom(store?['name']) ??
           _stringFrom(json['store_name']) ??
           _stringFrom(json['storeName']) ??
@@ -73,6 +80,7 @@ class OrderHistoryModel {
     return OrderHistoryModel(
       id: json['id'] as int? ?? 0,
       status: json['status'] as String? ?? 'PAID',
+      storeId: (json['storeId'] as num?)?.toInt(),
       storeName: json['storeName'] as String? ?? 'Delivery order',
       storeImageUrl: json['storeImageUrl'] as String?,
       totalAmount: (json['totalAmount'] as num?)?.toInt() ?? 0,
@@ -89,6 +97,7 @@ class OrderHistoryModel {
     return {
       'id': id,
       'status': status,
+      'storeId': storeId,
       'storeName': storeName,
       'storeImageUrl': storeImageUrl,
       'totalAmount': totalAmount,
@@ -165,21 +174,32 @@ String? _stringFrom(dynamic value) {
 }
 
 class OrderHistoryItemModel {
+  final int? menuId;
   final String name;
   final String? imageUrl;
   final int quantity;
   final int unitPrice;
+  final String? selectedSize;
+  final String? selectedJokbal;
+  final String? selectedDrink;
 
   const OrderHistoryItemModel({
+    this.menuId,
     required this.name,
     this.imageUrl,
     required this.quantity,
     required this.unitPrice,
+    this.selectedSize,
+    this.selectedJokbal,
+    this.selectedDrink,
   });
 
   factory OrderHistoryItemModel.fromJson(Map<String, dynamic> json) {
     final menu = json['menus'] as Map<String, dynamic>?;
     return OrderHistoryItemModel(
+      menuId: (json['menu_id'] as num?)?.toInt() ??
+          (json['menuId'] as num?)?.toInt() ??
+          (menu?['id'] as num?)?.toInt(),
       name: json['menu_name'] as String? ??
           json['menuName'] as String? ??
           json['name'] as String? ??
@@ -194,26 +214,40 @@ class OrderHistoryItemModel {
       unitPrice: (json['unit_price'] as num?)?.toInt() ??
           (json['price'] as num?)?.toInt() ??
           0,
+      selectedSize: _stringFrom(json['selected_size']) ??
+          _stringFrom(json['selectedSize']),
+      selectedJokbal: _stringFrom(json['selected_jokbal']) ??
+          _stringFrom(json['selectedJokbal']),
+      selectedDrink: _stringFrom(json['selected_drink']) ??
+          _stringFrom(json['selectedDrink']),
     );
   }
 
   factory OrderHistoryItemModel.fromLocalJson(Map<String, dynamic> json) {
     return OrderHistoryItemModel(
+      menuId: (json['menuId'] as num?)?.toInt(),
       name: json['name'] as String? ?? 'Ordered item',
       imageUrl: json['imageUrl'] as String? ??
           json['image_url'] as String? ??
           json['menu_image'] as String?,
       quantity: (json['quantity'] as num?)?.toInt() ?? 1,
       unitPrice: (json['unitPrice'] as num?)?.toInt() ?? 0,
+      selectedSize: _stringFrom(json['selectedSize']),
+      selectedJokbal: _stringFrom(json['selectedJokbal']),
+      selectedDrink: _stringFrom(json['selectedDrink']),
     );
   }
 
   Map<String, dynamic> toLocalJson() {
     return {
+      'menuId': menuId,
       'name': name,
       'imageUrl': imageUrl,
       'quantity': quantity,
       'unitPrice': unitPrice,
+      'selectedSize': selectedSize,
+      'selectedJokbal': selectedJokbal,
+      'selectedDrink': selectedDrink,
     };
   }
 
