@@ -437,11 +437,21 @@ _StoreDetailData _storeDetailForItem(CategoryItemModel item) {
   } else if (_containsAny(normalizedName, normalizedImage,
       ['cafe', 'coffee', 'bombom', 'bback', 'ediya'])) {
     preset = StoreDetailPreset.cafe;
+  } else if (_containsAny(normalizedName, normalizedImage, ['jjukkumi'])) {
+    preset = StoreDetailPreset.jjukkumi;
+  } else if (_containsAny(normalizedName, normalizedImage, [
+    'healthy',
+    'bibim',
+    'bowl',
+    'salad',
+    'light plate',
+    'yookhoe',
+    'barun',
+  ])) {
+    preset = StoreDetailPreset.healthy;
   } else if (_containsAny(
       normalizedName, normalizedImage, ['pizza', 'domino'])) {
     preset = StoreDetailPreset.pizza;
-  } else if (_containsAny(normalizedName, normalizedImage, ['jjukkumi'])) {
-    preset = StoreDetailPreset.jjukkumi;
   }
 
   final rating = '4.${item.name.length % 4 + 6}';
