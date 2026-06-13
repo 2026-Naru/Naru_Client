@@ -71,6 +71,7 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
   void _handleMainTabChanged() {
     if (_mainTabNotifier?.value == 4) {
       _loadAddress();
+      context.read<UserProvider>().fetch();
       context.read<OrdersProvider>().fetchAll();
     }
   }
@@ -90,11 +91,13 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<UserProvider>().user;
+    final userProvider = context.watch<UserProvider>();
+    final user = userProvider.user;
     final favoritesProvider = context.watch<FavoritesProvider>();
     final ordersProvider = context.watch<OrdersProvider>();
     final favCount = favoritesProvider.count;
     final orderCount = ordersProvider.all.length;
+    final couponCount = userProvider.couponCount;
     final favoritePreviewStores = favoritesProvider.favorites.take(3).toList();
     return Scaffold(
       backgroundColor: AppColors.bgLight,
@@ -211,16 +214,16 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const _InfoCard(
+                    _InfoCard(
                       child: Column(
                         children: [
-                          _InfoRow(label: 'Coupon Box', value: '0'),
-                          Divider(
+                          _InfoRow(label: 'Coupon Box', value: '$couponCount'),
+                          const Divider(
                             color: AppColors.border,
                             height: 14,
                             thickness: 1,
                           ),
-                          _InfoRow(label: 'Point', value: '0'),
+                          const _InfoRow(label: 'Point', value: '0'),
                         ],
                       ),
                     ),

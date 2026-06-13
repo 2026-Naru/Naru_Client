@@ -7,10 +7,12 @@ class UserProvider extends ChangeNotifier {
   UserService? _service;
 
   UserModel? _user;
+  int _couponCount = 0;
   bool _isLoading = false;
   String? _error;
 
   UserModel? get user => _user;
+  int get couponCount => _couponCount;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -27,6 +29,7 @@ class UserProvider extends ChangeNotifier {
 
     try {
       _user = await _service!.fetchMe();
+      _couponCount = await _service!.fetchCouponCount();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -37,6 +40,7 @@ class UserProvider extends ChangeNotifier {
 
   void clear() {
     _user = null;
+    _couponCount = 0;
     notifyListeners();
   }
 }

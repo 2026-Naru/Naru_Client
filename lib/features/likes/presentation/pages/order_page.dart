@@ -7,6 +7,7 @@ import '../../../cart/domain/cart_item.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../../lists/data/models/order_history_model.dart';
 import '../../../lists/presentation/providers/orders_provider.dart';
+import '../../data/coupon_service.dart';
 import '../../../order/data/order_service.dart';
 import 'payment_success_page.dart';
 
@@ -51,6 +52,10 @@ class _OrderPageState extends State<OrderPage> {
   bool _noUtensils = true;
   bool _isOrdering = false;
   OrderService? _orderService;
+  CouponService? _couponService;
+  List<UserCoupon> _coupons = const [];
+  UserCoupon? _selectedCoupon;
+  bool _isLoadingCoupons = false;
 
   static const _paymentMethods = [
     'Credit',
@@ -76,6 +81,14 @@ class _OrderPageState extends State<OrderPage> {
   ];
 
   bool get _isPickupOrder => _selectedMethod == 1;
+  int get _couponDiscount {
+    final coupon = _selectedCoupon;
+    if (coupon == null) return 0;
+    return coupon.discountAmount.clamp(0, widget.totalPrice).toInt();
+  }
+
+  int get _paymentTotal =>
+      (widget.totalPrice - _couponDiscount).clamp(0, widget.totalPrice).toInt();
 
   String _formatPrice(int price) => CurrencyFormatter.formatKrw(price);
 
@@ -83,13 +96,33 @@ class _OrderPageState extends State<OrderPage> {
   void initState() {
     super.initState();
     _selectedMethod = widget.isPickup ? 1 : 0;
-    _initOrderService();
+    _initServices();
   }
 
-  Future<void> _initOrderService() async {
+  Future<void> _initServices() async {
     final api = await ApiClient.getInstance();
     if (mounted) {
-      setState(() => _orderService = OrderService(api));
+      setState(() {
+        _orderService = OrderService(api);
+        _couponService = CouponService(api);
+      });
+    }
+    await _loadCoupons();
+  }
+
+  Future<void> _loadCoupons() async {
+    final service = _couponService;
+    if (service == null || _isLoadingCoupons) return;
+    setState(() => _isLoadingCoupons = true);
+    try {
+      final coupons = await service.fetchCoupons();
+      if (!mounted) return;
+      setState(() => _coupons = coupons);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _coupons = const []);
+    } finally {
+      if (mounted) setState(() => _isLoadingCoupons = false);
     }
   }
 
@@ -133,8 +166,9 @@ class _OrderPageState extends State<OrderPage> {
             ];
       final remoteOrder = await _orderService?.createOrder(
         type: type,
-        totalAmount: widget.totalPrice,
+        totalAmount: _paymentTotal,
         items: directItems,
+        couponId: _selectedCoupon?.id,
       );
       remoteOrderId = (remoteOrder?['id'] as num?)?.toInt();
     } catch (_) {
@@ -149,7 +183,7 @@ class _OrderPageState extends State<OrderPage> {
       storeId: widget.storeId,
       storeName: _displayStoreName,
       storeImageUrl: _displayStoreImage,
-      totalAmount: widget.totalPrice,
+      totalAmount: _paymentTotal,
       items: orderItems,
     );
     if (widget.cartItems != null) {
@@ -161,7 +195,7 @@ class _OrderPageState extends State<OrderPage> {
       context,
       MaterialPageRoute(
         builder: (_) => PaymentSuccessPage(
-          totalPrice: widget.totalPrice,
+          totalPrice: _paymentTotal,
           isPickup: _isPickupOrder,
           orderId: recordedOrder.id,
         ),
@@ -731,6 +765,15 @@ class _OrderPageState extends State<OrderPage> {
   }
 
   Widget _buildCouponCard() {
+    final selectedCoupon = _selectedCoupon;
+    final couponText = selectedCoupon == null
+        ? (_isLoadingCoupons
+            ? 'Loading coupons...'
+            : _coupons.isEmpty
+                ? 'No coupon is available'
+                : '${_coupons.length} coupon${_coupons.length == 1 ? '' : 's'} available')
+        : '${selectedCoupon.name}  -${_formatPrice(_couponDiscount)}';
+
     return _Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -745,27 +788,44 @@ class _OrderPageState extends State<OrderPage> {
             ),
           ),
           const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
-            ),
-            child: const Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'No coupon is available',
-                    style: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
+          GestureDetector(
+            onTap: _isLoadingCoupons ? null : _showCouponSheet,
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      couponText,
+                      style: TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 13,
+                        color: selectedCoupon == null
+                            ? AppColors.textSecondary
+                            : AppColors.textPrimary,
+                        fontWeight: selectedCoupon == null
+                            ? FontWeight.w400
+                            : FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-                Icon(Icons.chevron_right,
-                    size: 20, color: AppColors.textSecondary),
-              ],
+                  if (selectedCoupon != null) ...[
+                    GestureDetector(
+                      onTap: () => setState(() => _selectedCoupon = null),
+                      child: const Icon(Icons.close,
+                          size: 18, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  const Icon(Icons.chevron_right,
+                      size: 20, color: AppColors.textSecondary),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -800,6 +860,83 @@ class _OrderPageState extends State<OrderPage> {
     );
   }
 
+  void _showCouponSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.bgWhite,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Select coupon',
+                  style: TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                if (_coupons.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No coupon is available',
+                        style: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  )
+                else ...[
+                  _CouponSheetRow(
+                    title: 'Do not use coupon',
+                    subtitle: 'Pay without a discount',
+                    selected: _selectedCoupon == null,
+                    onTap: () {
+                      setState(() => _selectedCoupon = null);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  ..._coupons.map((coupon) {
+                    final discount = coupon.discountAmount
+                        .clamp(0, widget.totalPrice)
+                        .toInt();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _CouponSheetRow(
+                        title: coupon.name,
+                        subtitle: '-${_formatPrice(discount)}',
+                        selected: _selectedCoupon?.id == coupon.id,
+                        onTap: () {
+                          setState(() => _selectedCoupon = coupon);
+                          Navigator.pop(context);
+                        },
+                      ),
+                    );
+                  }),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildPaymentSummary() {
     return _Card(
       child: Column(
@@ -825,6 +962,34 @@ class _OrderPageState extends State<OrderPage> {
               ),
             ],
           ),
+          if (_couponDiscount > 0) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(height: 1, color: Color(0xFFEEEEEE)),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Coupon discount',
+                  style: TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  '-${_formatPrice(_couponDiscount)}',
+                  style: const TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 14,
+                    color: AppColors.brandOrange,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ],
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(height: 1, color: Color(0xFFEEEEEE)),
@@ -842,7 +1007,7 @@ class _OrderPageState extends State<OrderPage> {
                 ),
               ),
               Text(
-                _formatPrice(widget.totalPrice),
+                _formatPrice(_paymentTotal),
                 style: const TextStyle(
                   fontFamily: 'Pretendard',
                   fontSize: 15,
@@ -920,6 +1085,81 @@ class _Card extends StatelessWidget {
         border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
       ),
       child: child,
+    );
+  }
+}
+
+class _CouponSheetRow extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _CouponSheetRow({
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? AppColors.brandOrange : const Color(0xFFDDDDDD),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected
+                      ? AppColors.brandOrange
+                      : const Color(0xFFCCCCCC),
+                  width: selected ? 6 : 1.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
