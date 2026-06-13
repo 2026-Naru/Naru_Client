@@ -97,6 +97,8 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
 
   List<_Option> get _tertiaryOptions => _isCafeMenu ? _cafeAddOns : _drinks;
 
+  bool get _showSecondaryOptions => _isCafeMenu;
+
   String get _secondaryTitle => _isCafeMenu ? 'Temperature' : 'Choose Jokbal';
 
   String get _tertiaryTitle => _isCafeMenu ? 'Add option' : 'Choose Drink';
@@ -106,7 +108,8 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
     final selectedSize =
         _selectedSize >= priceOptions.length ? 0 : _selectedSize;
     final base = priceOptions[selectedSize].price;
-    final secondaryAdd = _secondaryOptions[_selectedJokbal].price;
+    final secondaryAdd =
+        _showSecondaryOptions ? _secondaryOptions[_selectedJokbal].price : 0;
     final tertiaryAdd = _tertiaryOptions[_selectedDrink].price;
     return (base + secondaryAdd + tertiaryAdd) * _quantity;
   }
@@ -120,7 +123,7 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
     final selectedSize =
         _selectedSize >= priceOptions.length ? 0 : _selectedSize;
     final unitPrice = priceOptions[selectedSize].price +
-        _secondaryOptions[_selectedJokbal].price +
+        (_showSecondaryOptions ? _secondaryOptions[_selectedJokbal].price : 0) +
         _tertiaryOptions[_selectedDrink].price;
 
     context.read<CartProvider>().addItem(
@@ -131,7 +134,9 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
           menuName: widget.menuName,
           imagePath: widget.imagePath,
           selectedSize: priceOptions[selectedSize].label,
-          selectedJokbal: _secondaryOptions[_selectedJokbal].label,
+          selectedJokbal: _showSecondaryOptions
+              ? _secondaryOptions[_selectedJokbal].label
+              : '',
           selectedDrink: _tertiaryOptions[_selectedDrink].label,
           unitPrice: unitPrice,
           quantity: _quantity,
@@ -237,15 +242,18 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
                         const SizedBox(height: 20),
                         const Divider(height: 1, color: Color(0xFFEEEEEE)),
                         const SizedBox(height: 20),
-                        _OptionSection(
-                          title: _secondaryTitle,
-                          options: _secondaryOptions,
-                          selectedIndex: _selectedJokbal,
-                          onChanged: (i) => setState(() => _selectedJokbal = i),
-                        ),
-                        const SizedBox(height: 20),
-                        const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                        const SizedBox(height: 20),
+                        if (_showSecondaryOptions) ...[
+                          _OptionSection(
+                            title: _secondaryTitle,
+                            options: _secondaryOptions,
+                            selectedIndex: _selectedJokbal,
+                            onChanged: (i) =>
+                                setState(() => _selectedJokbal = i),
+                          ),
+                          const SizedBox(height: 20),
+                          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                          const SizedBox(height: 20),
+                        ],
                         _OptionSection(
                           title: _tertiaryTitle,
                           options: _tertiaryOptions,
@@ -283,7 +291,9 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
                               ? 0
                               : _selectedSize]
                       .label,
-                  selectedJokbal: _secondaryOptions[_selectedJokbal].label,
+                  selectedJokbal: _showSecondaryOptions
+                      ? _secondaryOptions[_selectedJokbal].label
+                      : '',
                   selectedDrink: _tertiaryOptions[_selectedDrink].label,
                   totalPrice: _totalPrice,
                   quantity: _quantity,
