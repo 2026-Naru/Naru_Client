@@ -156,6 +156,12 @@ class NaruMenu {
     }
     if (lower.contains('chicken')) return 'assets/images/franchise_nene_bg.png';
     if (lower.contains('pizza')) return 'assets/images/franchise_domino_bg.png';
+    if (lower.contains('bibim') ||
+        lower.contains('bowl') ||
+        lower.contains('salad') ||
+        lower.contains('yookhoe')) {
+      return 'assets/images/cat_healthy.png';
+    }
 
     return 'assets/images/food_jokbal.png';
   }
