@@ -8,6 +8,47 @@ import '../providers/favorites_provider.dart';
 import '../../data/models/favorite_store_model.dart';
 import 'store_detail_page.dart';
 
+const _dummyLikedStores = [
+  FavoriteStoreModel(
+    storeId: 1,
+    name: 'Simin Jokbal Bossam Sillim',
+    imageUrl: 'assets/images/food_jokbal.png',
+    rating: 5.0,
+    reviewCount: 2002,
+    categoryName: 'Korean',
+    syncRemote: false,
+  ),
+  FavoriteStoreModel(
+    storeId: 2,
+    name: 'Yupki Ddukbokki Sillim',
+    imageUrl: 'assets/images/food_tteokbokki.png',
+    rating: 4.8,
+    reviewCount: 132,
+    categoryName: 'Street',
+    syncRemote: false,
+  ),
+  FavoriteStoreModel(
+    storeId: 3,
+    name: 'Nene Chicken',
+    imageUrl: 'assets/images/franchise_nene_bg.png',
+    rating: 4.7,
+    reviewCount: 905,
+    categoryName: 'Chicken',
+    syncRemote: false,
+  ),
+];
+
+List<FavoriteStoreModel> _likedStoresWithDummies(
+  List<FavoriteStoreModel> favorites,
+) {
+  final favoriteStoreIds = favorites.map((store) => store.storeId).toSet();
+  return [
+    ...favorites,
+    ..._dummyLikedStores
+        .where((store) => !favoriteStoreIds.contains(store.storeId)),
+  ];
+}
+
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
 
@@ -94,25 +135,15 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   if (provider.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if (provider.favorites.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No liked stores yet',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 14,
-                          color: AppColors.textMuted,
-                        ),
-                      ),
-                    );
-                  }
+                  final stores = _likedStoresWithDummies(provider.favorites);
+
                   return SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Total ${provider.count} Shop',
+                          'Total ${stores.length} Shop',
                           style: const TextStyle(
                             fontFamily: 'Pretendard',
                             fontSize: 14,
@@ -122,10 +153,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
                           ),
                         ),
                         const SizedBox(height: 14),
-                        ...provider.favorites.map(
+                        ...stores.map(
                           (store) => Padding(
                             padding: const EdgeInsets.only(bottom: 16),
-                            child: _FavoriteStoreCard(store: store),
+                            child: _FavoriteStoreCard(
+                              store: store,
+                              canRemove: provider.isFavorite(store.storeId),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -147,7 +181,12 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
 class _FavoriteStoreCard extends StatelessWidget {
   final FavoriteStoreModel store;
-  const _FavoriteStoreCard({required this.store});
+  final bool canRemove;
+
+  const _FavoriteStoreCard({
+    required this.store,
+    required this.canRemove,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -218,11 +257,23 @@ class _FavoriteStoreCard extends StatelessWidget {
               ),
             ),
             GestureDetector(
-              onTap: () => context
-                  .read<FavoritesProvider>()
-                  .remove(store.storeId, syncRemote: store.syncRemote),
-              child: const Icon(Icons.favorite,
-                  color: AppColors.accentOrange, size: 22),
+              onTap: canRemove
+                  ? () => context
+                      .read<FavoritesProvider>()
+                      .remove(store.storeId, syncRemote: store.syncRemote)
+                  : null,
+              behavior: HitTestBehavior.opaque,
+              child: const SizedBox(
+                width: 32,
+                height: 32,
+                child: Center(
+                  child: Icon(
+                    Icons.favorite,
+                    color: AppColors.accentOrange,
+                    size: 22,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

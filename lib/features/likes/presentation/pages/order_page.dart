@@ -289,8 +289,6 @@ class _OrderPageState extends State<OrderPage> {
                   children: [
                     _buildMenuCard(),
                     const SizedBox(height: 12),
-                    _buildStoreCard(),
-                    const SizedBox(height: 12),
                     _buildOrderMethodCard(),
                     const SizedBox(height: 12),
                     _buildRequirementCard(),
@@ -437,67 +435,6 @@ class _OrderPageState extends State<OrderPage> {
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStoreCard() {
-    return _Card(
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE4E6E8), width: 1),
-            ),
-            child: _OrderImage(imagePath: _displayStoreImage),
-          ),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Simin Jokbal Bossam Sillim',
-                  style: TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Sillim-dong, Gwanak-gu, Seoul',
-                  style: TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFDDDDDD)),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Text(
-              'copy',
-              style: TextStyle(
-                fontFamily: 'Pretendard',
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
             ),
           ),
         ],
