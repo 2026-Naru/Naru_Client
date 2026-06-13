@@ -19,6 +19,7 @@ enum StoreDetailPreset {
   pizza,
   cafe,
   jjukkumi,
+  healthy,
 }
 
 StoreDetailPreset _presetForStoreIdentity({
@@ -57,9 +58,6 @@ StoreDetailPreset _presetForStoreIdentity({
   ])) {
     return StoreDetailPreset.chicken;
   }
-  if (_containsAnyText(value, const ['pizza', 'domino'])) {
-    return StoreDetailPreset.pizza;
-  }
   if (_containsAnyText(value, const [
     'coffee',
     'cafe',
@@ -71,6 +69,20 @@ StoreDetailPreset _presetForStoreIdentity({
   }
   if (_containsAnyText(value, const ['jjukkumi'])) {
     return StoreDetailPreset.jjukkumi;
+  }
+  if (_containsAnyText(value, const [
+    'healthy',
+    'bibim',
+    'bowl',
+    'salad',
+    'light plate',
+    'yookhoe',
+    'barun',
+  ])) {
+    return StoreDetailPreset.healthy;
+  }
+  if (_containsAnyText(value, const ['pizza', 'domino'])) {
+    return StoreDetailPreset.pizza;
   }
 
   return fallback;
@@ -791,6 +803,45 @@ class _StoreDetailPageState extends State<StoreDetailPage>
             imagePath: 'assets/images/banner_food.png',
           ),
         ];
+      case StoreDetailPreset.healthy:
+        return const [
+          _MenuItem(
+            rank: 'Top 1',
+            name: 'Fresh Bibim Bowl',
+            description: 'Mixed greens + Rice + Gochujang sesame sauce',
+            options: [
+              'Regular bowl: ₩12,900',
+              'Protein bowl: ₩15,900',
+              'Avocado bowl: ₩17,900',
+            ],
+            imagePath: 'assets/images/cat_healthy.png',
+            price: 12900,
+          ),
+          _MenuItem(
+            rank: 'Top 2',
+            name: 'Chicken Salad Bowl',
+            description: 'Grilled chicken + Seasonal vegetables + Egg',
+            options: [
+              'Regular: ₩11,900',
+              'Double chicken: ₩14,900',
+              'No rice: ₩10,900',
+            ],
+            imagePath: 'assets/images/cat_healthy.png',
+            price: 11900,
+          ),
+          _MenuItem(
+            rank: 'Top 3',
+            name: 'Tofu Protein Salad',
+            description: 'Tofu + Mixed greens + Sesame soy dressing',
+            options: [
+              'Regular: ₩10,900',
+              'Large: ₩13,900',
+              'Add avocado: + ₩2,000',
+            ],
+            imagePath: 'assets/images/cat_healthy.png',
+            price: 10900,
+          ),
+        ];
       case StoreDetailPreset.tteokbokki:
         return const [
           _MenuItem(
@@ -1126,6 +1177,8 @@ class _StoreDetailPageState extends State<StoreDetailPage>
         return 'assets/images/food_cafe.png';
       case StoreDetailPreset.jjukkumi:
         return 'assets/images/banner_food.png';
+      case StoreDetailPreset.healthy:
+        return 'assets/images/cat_healthy.png';
     }
   }
 
@@ -1165,6 +1218,11 @@ class _StoreDetailPageState extends State<StoreDetailPage>
         return const [
           'The jjukkumi was spicy in the best way, and the portion was generous. It paired perfectly with rice.',
           'Fresh, bold, and full of flavor. The sauce was rich and everything arrived hot.',
+        ];
+      case StoreDetailPreset.healthy:
+        return const [
+          'The bowl tasted fresh and balanced, with plenty of vegetables and a clean sesame flavor.',
+          'Light but filling. The ingredients felt fresh, and it was easy to order again.',
         ];
     }
   }
