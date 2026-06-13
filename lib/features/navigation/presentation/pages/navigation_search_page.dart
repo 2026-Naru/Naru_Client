@@ -12,54 +12,107 @@ class NavigationSearchPage extends StatefulWidget {
 }
 
 class _NavigationSearchPageState extends State<NavigationSearchPage> {
-  _LandmarkSuggestion? _selectedFrom;
-  _LandmarkSuggestion? _selectedTo;
+  _NavigationSuggestion? _selectedFrom;
+  _NavigationSuggestion? _selectedTo;
   bool _selectingFrom = true;
 
-  static const _suggestions = <_LandmarkSuggestion>[
-    _LandmarkSuggestion(
+  static const _placeSuggestions = <_NavigationSuggestion>[
+    _NavigationSuggestion(
       name: 'Seoul Forest',
+      subtitle: 'Park · walkable picnic route',
       imagePath: 'assets/images/landmarks/seoul_forest.jpg',
+      icon: Icons.place_outlined,
     ),
-    _LandmarkSuggestion(
+    _NavigationSuggestion(
       name: 'Seongsu',
+      subtitle: 'Cafe street · design shops',
       imagePath: 'assets/images/landmarks/seongsu.jpg',
+      icon: Icons.place_outlined,
     ),
-    _LandmarkSuggestion(
+    _NavigationSuggestion(
       name: 'Myeongdong',
+      subtitle: 'Shopping · street food',
       imagePath: 'assets/images/landmarks/myeongdong.jpg',
+      icon: Icons.place_outlined,
     ),
-    _LandmarkSuggestion(
+    _NavigationSuggestion(
       name: 'Gyeongbokgung Palace',
+      subtitle: 'Palace · photo route',
       imagePath: 'assets/images/landmarks/gyeongbokgung_palace.jpg',
+      icon: Icons.place_outlined,
     ),
-    _LandmarkSuggestion(
+    _NavigationSuggestion(
       name: 'Lotte World',
+      subtitle: 'Theme park · indoor date',
       imagePath: 'assets/images/landmarks/lotte_world.jpg',
+      icon: Icons.place_outlined,
     ),
-    _LandmarkSuggestion(
+    _NavigationSuggestion(
       name: 'N Seoul Tower',
+      subtitle: 'Night view · landmark',
       imagePath: 'assets/images/landmarks/n_seoul_tower.jpg',
+      icon: Icons.place_outlined,
     ),
-    _LandmarkSuggestion(
+    _NavigationSuggestion(
       name: 'Hangang Park',
+      subtitle: 'River park · evening walk',
       imagePath: 'assets/images/landmarks/hangang_park.jpg',
+      icon: Icons.place_outlined,
     ),
-    _LandmarkSuggestion(
+    _NavigationSuggestion(
       name: 'Bukchon Hanok Village',
+      subtitle: 'Hanok street · quiet walk',
       imagePath: 'assets/images/landmarks/bukchon_hanok_village.jpg',
+      icon: Icons.place_outlined,
     ),
-    _LandmarkSuggestion(
+    _NavigationSuggestion(
       name: 'Dongdaemun Design Plaza',
+      subtitle: 'DDP · late open spots',
       imagePath: 'assets/images/landmarks/ddp.jpg',
+      icon: Icons.place_outlined,
     ),
-    _LandmarkSuggestion(
+    _NavigationSuggestion(
       name: 'Gwanghwamun Square',
+      subtitle: 'Square · central route',
       imagePath: 'assets/images/landmarks/gwanghwamun_square.jpg',
+      icon: Icons.place_outlined,
     ),
   ];
 
-  void _selectSuggestion(_LandmarkSuggestion val) {
+  static const _menuSuggestions = <_NavigationSuggestion>[
+    _NavigationSuggestion(
+      name: 'Cafe Latte in Seongsu',
+      subtitle: 'Menu · cafe/dessert route',
+      imagePath: 'assets/images/food_cafe.png',
+      icon: Icons.restaurant_menu_rounded,
+    ),
+    _NavigationSuggestion(
+      name: 'Myeongdong Street Tteokbokki',
+      subtitle: 'Menu · street food',
+      imagePath: 'assets/images/food_tteokbokki.png',
+      icon: Icons.restaurant_menu_rounded,
+    ),
+    _NavigationSuggestion(
+      name: 'N Seoul Tower BBQ Dinner',
+      subtitle: 'Menu · dinner with night view',
+      imagePath: 'assets/images/food_jokbal.png',
+      icon: Icons.restaurant_menu_rounded,
+    ),
+    _NavigationSuggestion(
+      name: 'Hangang Chicken Picnic',
+      subtitle: 'Menu · chicken by the river',
+      imagePath: 'assets/images/Spicyseasoned.png',
+      icon: Icons.restaurant_menu_rounded,
+    ),
+    _NavigationSuggestion(
+      name: 'DDP Late Night Dessert',
+      subtitle: 'Menu · open-now sweet stop',
+      imagePath: 'assets/navigation/cafe3.png',
+      icon: Icons.restaurant_menu_rounded,
+    ),
+  ];
+
+  void _selectSuggestion(_NavigationSuggestion val) {
     setState(() {
       if (_selectingFrom) {
         _selectedFrom = _selectedFrom == val ? null : val;
@@ -140,48 +193,155 @@ class _NavigationSearchPageState extends State<NavigationSearchPage> {
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: ListView.builder(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                itemCount: _suggestions.length,
-                itemBuilder: (_, i) {
-                  final s = _suggestions[i];
-                  final isSelected = _selectedFrom == s || _selectedTo == s;
-                  return InkWell(
-                    onTap: () => _selectSuggestion(s),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 11, horizontal: 4),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isSelected
-                                ? Icons.check_circle_rounded
-                                : Icons.north_west_rounded,
-                            size: 15,
-                            color: isSelected
-                                ? AppColors.primary
-                                : const Color(0xFFBBBBBB),
-                          ),
-                          const SizedBox(width: 14),
-                          Text(
-                            s.name,
-                            style: TextStyle(
-                              fontFamily: 'Pretendard',
-                              fontSize: 15,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                children: [
+                  _SuggestionSection(
+                    title: 'Places',
+                    items: _placeSuggestions,
+                    selectedFrom: _selectedFrom,
+                    selectedTo: _selectedTo,
+                    onTap: _selectSuggestion,
+                  ),
+                  const SizedBox(height: 20),
+                  _SuggestionSection(
+                    title: 'Menus',
+                    items: _menuSuggestions,
+                    selectedFrom: _selectedFrom,
+                    selectedTo: _selectedTo,
+                    onTap: _selectSuggestion,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SuggestionSection extends StatelessWidget {
+  final String title;
+  final List<_NavigationSuggestion> items;
+  final _NavigationSuggestion? selectedFrom;
+  final _NavigationSuggestion? selectedTo;
+  final ValueChanged<_NavigationSuggestion> onTap;
+
+  const _SuggestionSection({
+    required this.title,
+    required this.items,
+    required this.selectedFrom,
+    required this.selectedTo,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        ...items.map((item) {
+          final isSelected = selectedFrom == item || selectedTo == item;
+          return _SuggestionTile(
+            item: item,
+            selected: isSelected,
+            onTap: () => onTap(item),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _SuggestionTile extends StatelessWidget {
+  final _NavigationSuggestion item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SuggestionTile({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFF2F2F2),
+                border: Border.all(
+                  color: selected ? AppColors.primary : const Color(0xFFE7E7E7),
+                ),
+              ),
+              child: Image.asset(
+                item.imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Icon(
+                  item.icon,
+                  size: 18,
+                  color: selected ? AppColors.primary : const Color(0xFFBBBBBB),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              selected ? Icons.check_circle_rounded : item.icon,
+              size: 16,
+              color: selected ? AppColors.primary : const Color(0xFFBBBBBB),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                      color:
+                          selected ? AppColors.primary : AppColors.textPrimary,
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    item.subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -219,8 +379,8 @@ class _RoundBackButton extends StatelessWidget {
 }
 
 class _SearchPill extends StatelessWidget {
-  final _LandmarkSuggestion? selectedFrom;
-  final _LandmarkSuggestion? selectedTo;
+  final _NavigationSuggestion? selectedFrom;
+  final _NavigationSuggestion? selectedTo;
   final bool selectingFrom;
   final VoidCallback onSelectFrom;
   final VoidCallback onSelectTo;
@@ -296,13 +456,17 @@ class _SearchPill extends StatelessWidget {
   }
 }
 
-class _LandmarkSuggestion {
+class _NavigationSuggestion {
   final String name;
+  final String subtitle;
   final String imagePath;
+  final IconData icon;
 
-  const _LandmarkSuggestion({
+  const _NavigationSuggestion({
     required this.name,
+    required this.subtitle,
     required this.imagePath,
+    required this.icon,
   });
 }
 

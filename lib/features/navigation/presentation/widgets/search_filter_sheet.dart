@@ -3,27 +3,46 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 
 class SearchFilterSheet extends StatefulWidget {
-  const SearchFilterSheet({super.key});
+  final List<String> options;
+  final Set<String> initialSelected;
+  final String title;
+  final String fieldPlaceholder;
+  final String sectionTitle;
+  final String applyLabel;
+
+  const SearchFilterSheet({
+    super.key,
+    this.options = const [
+      '서울숲',
+      '성수',
+      '명동',
+      '경복궁',
+      '롯데월드',
+      '남산타워',
+      '한강공원',
+      '북촌한옥마을',
+      '동대문디자인플라자',
+      '광화문광장',
+    ],
+    this.initialSelected = const {},
+    this.title = 'Filter',
+    this.fieldPlaceholder = '서울 관광지를 선택하세요',
+    this.sectionTitle = 'Seoul Landmarks',
+    this.applyLabel = 'Apply',
+  });
 
   @override
   State<SearchFilterSheet> createState() => _SearchFilterSheetState();
 }
 
 class _SearchFilterSheetState extends State<SearchFilterSheet> {
-  final Set<String> _selectedPlaces = {};
+  late final Set<String> _selectedPlaces;
 
-  static const _seoulLandmarks = [
-    '서울숲',
-    '성수',
-    '명동',
-    '경복궁',
-    '롯데월드',
-    '남산타워',
-    '한강공원',
-    '북촌한옥마을',
-    '동대문디자인플라자',
-    '광화문광장',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _selectedPlaces = {...widget.initialSelected};
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,16 +56,16 @@ class _SearchFilterSheetState extends State<SearchFilterSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Filter', style: AppTextStyles.h3),
+          Text(widget.title, style: AppTextStyles.h3),
           const SizedBox(height: 16),
           _buildPlaceField(),
           const SizedBox(height: 18),
-          const Text('Seoul Landmarks', style: AppTextStyles.title),
+          Text(widget.sectionTitle, style: AppTextStyles.title),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 10,
-            children: _seoulLandmarks.map(_buildPlaceChip).toList(),
+            children: widget.options.map(_buildPlaceChip).toList(),
           ),
           if (_selectedPlaces.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -58,6 +77,50 @@ class _SearchFilterSheetState extends State<SearchFilterSheet> {
               ),
             ),
           ],
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _clearSelectedPlaces,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  child: const Text(
+                    'Clear',
+                    style: TextStyle(fontFamily: 'Pretendard'),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context, _selectedPlaces),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.brandOrange,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  child: Text(
+                    widget.applyLabel,
+                    style: const TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -65,8 +128,9 @@ class _SearchFilterSheetState extends State<SearchFilterSheet> {
 
   Widget _buildPlaceField() {
     final hasSelectedPlaces = _selectedPlaces.isNotEmpty;
-    final fieldText =
-        hasSelectedPlaces ? _selectedPlaces.join(', ') : '서울 관광지를 선택하세요';
+    final fieldText = hasSelectedPlaces
+        ? _selectedPlaces.join(', ')
+        : widget.fieldPlaceholder;
 
     return Container(
       height: 44,
