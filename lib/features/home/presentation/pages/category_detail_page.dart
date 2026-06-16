@@ -5,18 +5,6 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../../likes/presentation/pages/store_detail_page.dart';
 import '../../domain/category_model.dart';
 
-// Derives the transparent-background version of a cat_*.png asset path.
-// Falls back to the original path if the image is not a cat_ image.
-String _transparentAsset(String assetPath) {
-  final uri = Uri.parse(assetPath);
-  final filename = uri.pathSegments.last;
-  if (!filename.startsWith('cat_') || !filename.endsWith('.png')) {
-    return assetPath;
-  }
-  final stem = filename.substring(0, filename.length - 4); // strip .png
-  return 'assets/images/category_transparent/${stem}_transparent.png';
-}
-
 class CategoryDetailPage extends StatelessWidget {
   final CategoryModel category;
 
@@ -164,16 +152,10 @@ class _HeroBanner extends StatelessWidget {
             child: Opacity(
               opacity: 0.35,
               child: Image.asset(
-                _transparentAsset(category.image),
+                category.image,
                 width: 210,
                 height: 210,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Image.asset(
-                  category.image,
-                  width: 210,
-                  height: 210,
-                  fit: BoxFit.contain,
-                ),
               ),
             ),
           ),
@@ -250,9 +232,8 @@ class _CategoryBadge extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(9),
       child: Image.asset(
-        _transparentAsset(image),
+        image,
         fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => Image.asset(image, fit: BoxFit.contain),
       ),
     );
   }
