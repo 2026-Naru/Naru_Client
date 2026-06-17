@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
+
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
@@ -143,11 +145,17 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                                 ),
                               ],
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Image.asset(
-                                'assets/images/mypage_profile.png',
-                                fit: BoxFit.contain,
+                            child: Center(
+                              child: Transform.translate(
+                                offset: const Offset(2, 0),
+                                child: Image.asset(
+                                  'assets/images/mypage_profile.png',
+                                  width: 58,
+                                  height: 58,
+                                  fit: BoxFit.contain,
+                                  alignment: Alignment.center,
+                                  filterQuality: FilterQuality.high,
+                                ),
                               ),
                             ),
                           ),
@@ -180,7 +188,7 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                             padding: EdgeInsets.only(top: 1),
                             child: Icon(
                               Icons.location_on_outlined,
-                              size: 17,
+                              size: 22,
                               color: AppColors.brandOrange,
                             ),
                           ),
@@ -192,8 +200,8 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                                 Text(
                                   _address.title,
                                   style: AppTextStyles.caption.copyWith(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
                                     color: AppColors.textPrimary,
                                     height: 1.25,
                                   ),
@@ -202,7 +210,8 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                                 Text(
                                   _address.subtitle,
                                   style: AppTextStyles.caption.copyWith(
-                                    fontSize: 10.5,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w400,
                                     color: AppColors.textSecondary,
                                     height: 1.25,
                                   ),
@@ -275,19 +284,15 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                     ),
                     const SizedBox(height: 14),
                     Container(
-                      height: 94,
+                      height: 104,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2B2B2B),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF1A1A1A)),
+                        color: const Color(0xFF282828),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFF161616)),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 18, 16),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
                             child: Column(
@@ -300,20 +305,21 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTextStyles.caption.copyWith(
                                     color: Colors.white,
-                                    fontSize: 9,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w400,
                                     height: 1.2,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 8),
                                 Text(
                                   'Order Right Now and',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTextStyles.caption.copyWith(
                                     color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    height: 1.2,
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.12,
                                   ),
                                 ),
                                 Text(
@@ -322,21 +328,16 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
                                   overflow: TextOverflow.ellipsis,
                                   style: AppTextStyles.caption.copyWith(
                                     color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    height: 1.2,
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.12,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Image.asset(
-                            'assets/images/delivery_mascot.png',
-                            width: 74,
-                            height: 74,
-                            fit: BoxFit.contain,
-                          ),
+                          const _MoneyHandPromoImage(),
                         ],
                       ),
                     ),
@@ -349,6 +350,38 @@ class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
         ),
       ),
       bottomNavigationBar: const NaruBottomNavBar(currentIndex: 4),
+    );
+  }
+}
+
+class _MoneyHandPromoImage extends StatelessWidget {
+  const _MoneyHandPromoImage();
+
+  static Future<ImageProvider> _loadImage() async {
+    final svg = await rootBundle.loadString('assets/images/money_h.svg');
+    final match = RegExp(r'base64,([^"\s]+)').firstMatch(svg);
+    if (match == null) {
+      throw StateError('money_h.svg does not contain an embedded image.');
+    }
+    return MemoryImage(base64Decode(match.group(1)!));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 118,
+      height: 78,
+      child: FutureBuilder<ImageProvider>(
+        future: _loadImage(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const SizedBox.shrink();
+          return Image(
+            image: snapshot.data!,
+            fit: BoxFit.contain,
+            gaplessPlayback: true,
+          );
+        },
+      ),
     );
   }
 }

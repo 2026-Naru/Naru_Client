@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -53,7 +56,7 @@ StoreDetailPreset _presetForStoreIdentity({
     'bbq',
     'nene',
     'goobne',
-    'gupne',
+    'goobne',
     'puradak',
   ])) {
     return StoreDetailPreset.chicken;
@@ -373,8 +376,11 @@ class _StoreDetailPageState extends State<StoreDetailPage>
   }
 
   Widget _storeHeroImage(String imagePath) {
+    if (_isBbackAsset(imagePath, widget.storeName)) {
+      return const _BbackHeroImage();
+    }
     if (imagePath.startsWith('assets/')) {
-      return Image.asset(imagePath, fit: BoxFit.cover);
+      return _DetailImage(imagePath: imagePath, fit: BoxFit.cover);
     }
     return Image.network(
       imagePath,
@@ -1588,28 +1594,115 @@ class _MenuItem {
   });
 }
 
+bool _isBbackAsset(String imagePath, String storeName) {
+  final value = '$imagePath $storeName'.toLowerCase();
+  return value.contains('bdb') ||
+      value.contains('bback') ||
+      value.contains('bbak') ||
+      value.contains('dabang');
+}
+
+Future<ImageProvider?> _embeddedSvgPng(String assetPath) async {
+  final svg = await rootBundle.loadString(assetPath);
+  final match = RegExp(r'data:image/[^;]+;base64,([^"]+)').firstMatch(svg);
+  if (match == null) return null;
+  return MemoryImage(base64Decode(match.group(1)!));
+}
+
+class _BbackHeroImage extends StatelessWidget {
+  const _BbackHeroImage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          'assets/images/food_cafe.png',
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.high,
+        ),
+        Container(color: Colors.black.withValues(alpha: 0.18)),
+        Align(
+          alignment: Alignment.center,
+          child: Container(
+            width: 176,
+            height: 176,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.9),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(22),
+            child: const _DetailImage(
+              imagePath: 'assets/images/bdb.svg',
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _DetailImage extends StatelessWidget {
   final String imagePath;
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
 
   const _DetailImage({
     required this.imagePath,
-    required this.width,
-    required this.height,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
   });
 
   @override
   Widget build(BuildContext context) {
     if (imagePath.startsWith('assets/')) {
-      return Image.asset(imagePath,
-          width: width, height: height, fit: BoxFit.cover);
+      if (imagePath.toLowerCase().endsWith('.svg')) {
+        return FutureBuilder<ImageProvider?>(
+          future: _embeddedSvgPng(imagePath),
+          builder: (context, snapshot) {
+            final imageProvider = snapshot.data;
+            if (imageProvider != null) {
+              return Image(
+                image: imageProvider,
+                width: width,
+                height: height,
+                fit: fit,
+                filterQuality: FilterQuality.high,
+              );
+            }
+            return SvgPicture.asset(
+              imagePath,
+              width: width,
+              height: height,
+              fit: fit,
+            );
+          },
+        );
+      }
+      return Image.asset(
+        imagePath,
+        width: width,
+        height: height,
+        fit: fit,
+        filterQuality: FilterQuality.high,
+      );
     }
     return Image.network(
       imagePath,
       width: width,
       height: height,
-      fit: BoxFit.cover,
+      fit: fit,
       errorBuilder: (_, __, ___) => Container(
         width: width,
         height: height,

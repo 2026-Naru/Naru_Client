@@ -1344,8 +1344,9 @@ class _TrendingCard extends StatelessWidget {
                       item.distance,
                       style: AppTextStyles.caption.copyWith(
                         color: Colors.white.withValues(alpha: 0.88),
-                        fontSize: 10,
-                        height: 1.2,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        height: 1.25,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1355,8 +1356,9 @@ class _TrendingCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.caption.copyWith(
                         color: Colors.white.withValues(alpha: 0.80),
-                        fontSize: 9,
-                        height: 1.2,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        height: 1.25,
                       ),
                     ),
                   ],
@@ -1401,7 +1403,7 @@ class _PickCard extends StatelessWidget {
               Container(
                 width: double.infinity,
                 color: const Color(0xFF1C1C1E),
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1411,10 +1413,10 @@ class _PickCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontFamily: 'Pretendard',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
                         color: Colors.white,
-                        height: 1.2,
+                        height: 1.15,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -1424,9 +1426,9 @@ class _PickCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: 'Pretendard',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.82),
                         height: 1.2,
                       ),
                     ),
@@ -1437,8 +1439,8 @@ class _PickCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontFamily: 'Pretendard',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
                         height: 1.2,
                       ),
@@ -1553,9 +1555,9 @@ class _SharingSpotCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 8,
-              right: 8,
-              bottom: 6,
+              left: 10,
+              right: 10,
+              bottom: 8,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1565,8 +1567,9 @@ class _SharingSpotCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.captionMedium.copyWith(
                       color: Colors.white,
-                      fontSize: 9,
-                      height: 1.2,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      height: 1.15,
                     ),
                   ),
                   Text(
@@ -1575,8 +1578,9 @@ class _SharingSpotCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.caption.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 8,
-                      height: 1.2,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      height: 1.15,
                     ),
                   ),
                 ],

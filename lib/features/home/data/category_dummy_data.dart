@@ -133,7 +133,7 @@ const List<CategoryModel> categoryDummyData = [
       ),
       CategoryItemModel(
         name: 'Bback Dabang',
-        image: 'assets/images/cat_Bback.png',
+        image: 'assets/images/bdb.svg',
         description: 'Cafe drinks and easy desserts near you.',
       ),
       CategoryItemModel(
@@ -162,7 +162,7 @@ const List<CategoryModel> categoryDummyData = [
       ),
       CategoryItemModel(
         name: 'Bback Dabang',
-        image: 'assets/images/cat_Bback.png',
+        image: 'assets/images/bdb.svg',
         description: 'Large coffees and dessert drinks at friendly prices.',
       ),
     ],
