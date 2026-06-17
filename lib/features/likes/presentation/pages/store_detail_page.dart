@@ -574,7 +574,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
               name: menu.name,
               description: menu.description,
               options: ['Menu price: ₩${menu.price}'],
-              imagePath: menu.displayImage,
+              imagePath: _menuImagePath(menu.displayImage),
               price: menu.price,
               allergyNotice: menu.allergyNotice,
             );
@@ -624,9 +624,62 @@ class _StoreDetailPageState extends State<StoreDetailPage>
     );
   }
 
+  String _menuImagePath(String imagePath) {
+    if (widget.storeName.toLowerCase().contains('bongus')) {
+      return 'assets/images/bongus.svg';
+    }
+    if (widget.storeName.toLowerCase().contains('bbq')) {
+      return 'assets/images/bbq.svg';
+    }
+    if (widget.storeName.toLowerCase().contains('goobne')) {
+      return 'assets/images/goobne.svg';
+    }
+    if (widget.storeName.toLowerCase().contains('puradak')) {
+      return 'assets/images/puradak.svg';
+    }
+    return imagePath;
+  }
+
   List<_MenuItem> _menusForPreset(StoreDetailPreset preset) {
     switch (preset) {
       case StoreDetailPreset.burger:
+        if (widget.storeName.toLowerCase().contains('bongus')) {
+          return const [
+            _MenuItem(
+              rank: 'Top 1',
+              name: 'Bongus Rice Burger',
+              description: 'Warm rice burger + savory filling',
+              options: [
+                'Single: ₩4,900',
+                'Set: ₩7,900',
+                'Double filling: ₩8,900',
+              ],
+              imagePath: 'assets/images/bongus.svg',
+            ),
+            _MenuItem(
+              rank: 'Top 2',
+              name: 'Bulgogi Rice Burger',
+              description: 'Bulgogi + Rice + Seaweed',
+              options: [
+                'Single: ₩5,400',
+                'Set: ₩8,400',
+                'Large set: ₩9,400',
+              ],
+              imagePath: 'assets/images/bongus.svg',
+            ),
+            _MenuItem(
+              rank: 'Top 3',
+              name: 'Chicken Mayo Rice Burger',
+              description: 'Chicken mayo + Rice + Crispy garnish',
+              options: [
+                'Single: ₩5,200',
+                'Set: ₩8,200',
+                'Large set: ₩9,200',
+              ],
+              imagePath: 'assets/images/bongus.svg',
+            ),
+          ];
+        }
         return const [
           _MenuItem(
             rank: 'Top 1',
@@ -663,6 +716,117 @@ class _StoreDetailPageState extends State<StoreDetailPage>
           ),
         ];
       case StoreDetailPreset.chicken:
+        if (widget.storeName.toLowerCase().contains('bbq')) {
+          return const [
+            _MenuItem(
+              rank: 'Top 1',
+              name: 'BBQ Golden Olive Chicken',
+              description: 'Golden olive chicken + Pickled radish',
+              options: [
+                'Half chicken: ₩13,000',
+                'Whole chicken: ₩22,000',
+                'Boneless: ₩24,000',
+              ],
+              imagePath: 'assets/images/bbq.svg',
+            ),
+            _MenuItem(
+              rank: 'Top 2',
+              name: 'BBQ Spicy Chicken',
+              description: 'Crispy chicken + Bold spicy sauce',
+              options: [
+                'Half chicken: ₩13,000',
+                'Whole chicken: ₩22,000',
+                'Boneless: ₩24,000',
+              ],
+              imagePath: 'assets/images/bbq.svg',
+            ),
+            _MenuItem(
+              rank: 'Top 3',
+              name: 'BBQ Soy Garlic Chicken',
+              description: 'Crispy chicken + Soy garlic glaze',
+              options: [
+                'Half chicken: ₩13,000',
+                'Whole chicken: ₩22,000',
+                'Boneless: ₩24,000',
+              ],
+              imagePath: 'assets/images/bbq.svg',
+            ),
+          ];
+        }
+        if (widget.storeName.toLowerCase().contains('goobne')) {
+          return const [
+            _MenuItem(
+              rank: 'Top 1',
+              name: 'Goobne Original Chicken',
+              description: 'Oven-roasted chicken + Pickled radish',
+              options: [
+                'Half chicken: ₩13,000',
+                'Whole chicken: ₩22,000',
+                'Boneless: ₩24,000',
+              ],
+              imagePath: 'assets/images/goobne.svg',
+            ),
+            _MenuItem(
+              rank: 'Top 2',
+              name: 'Goobne Volcano Chicken',
+              description: 'Oven-roasted chicken + Spicy volcano sauce',
+              options: [
+                'Half chicken: ₩13,000',
+                'Whole chicken: ₩22,000',
+                'Boneless: ₩24,000',
+              ],
+              imagePath: 'assets/images/goobne.svg',
+            ),
+            _MenuItem(
+              rank: 'Top 3',
+              name: 'Goobne Soy Garlic Chicken',
+              description: 'Oven-roasted chicken + Soy garlic glaze',
+              options: [
+                'Half chicken: ₩13,000',
+                'Whole chicken: ₩22,000',
+                'Boneless: ₩24,000',
+              ],
+              imagePath: 'assets/images/goobne.svg',
+            ),
+          ];
+        }
+        if (widget.storeName.toLowerCase().contains('puradak')) {
+          return const [
+            _MenuItem(
+              rank: 'Top 1',
+              name: 'Puradak Black Chicken',
+              description: 'Signature black sauce chicken + Pickled radish',
+              options: [
+                'Half chicken: ₩13,000',
+                'Whole chicken: ₩22,000',
+                'Boneless: ₩24,000',
+              ],
+              imagePath: 'assets/images/puradak.svg',
+            ),
+            _MenuItem(
+              rank: 'Top 2',
+              name: 'Puradak Garlic Chicken',
+              description: 'Premium fried chicken + Garlic glaze',
+              options: [
+                'Half chicken: ₩13,000',
+                'Whole chicken: ₩22,000',
+                'Boneless: ₩24,000',
+              ],
+              imagePath: 'assets/images/puradak.svg',
+            ),
+            _MenuItem(
+              rank: 'Top 3',
+              name: 'Puradak Spicy Chicken',
+              description: 'Crispy chicken + Spicy sauce',
+              options: [
+                'Half chicken: ₩13,000',
+                'Whole chicken: ₩22,000',
+                'Boneless: ₩24,000',
+              ],
+              imagePath: 'assets/images/puradak.svg',
+            ),
+          ];
+        }
         return const [
           _MenuItem(
             rank: 'Top 1',
@@ -1174,8 +1338,20 @@ class _StoreDetailPageState extends State<StoreDetailPage>
       case StoreDetailPreset.tteokbokki:
         return 'assets/images/food_tteokbokki.png';
       case StoreDetailPreset.burger:
+        if (widget.storeName.toLowerCase().contains('bongus')) {
+          return 'assets/images/bongus.svg';
+        }
         return 'assets/images/franchise_lotteria_bg.png';
       case StoreDetailPreset.chicken:
+        if (widget.storeName.toLowerCase().contains('bbq')) {
+          return 'assets/images/bbq.svg';
+        }
+        if (widget.storeName.toLowerCase().contains('goobne')) {
+          return 'assets/images/goobne.svg';
+        }
+        if (widget.storeName.toLowerCase().contains('puradak')) {
+          return 'assets/images/puradak.svg';
+        }
         return 'assets/images/franchise_nene_bg.png';
       case StoreDetailPreset.pizza:
         return 'assets/images/franchise_domino_bg.png';
@@ -1667,6 +1843,15 @@ class _DetailImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imagePath.startsWith('assets/')) {
+      if (imagePath == 'assets/images/bongus.svg') {
+        return Image.asset(
+          imagePath,
+          width: width,
+          height: height,
+          fit: fit,
+          filterQuality: FilterQuality.high,
+        );
+      }
       if (imagePath.toLowerCase().endsWith('.svg')) {
         return FutureBuilder<ImageProvider?>(
           future: _embeddedSvgPng(imagePath),

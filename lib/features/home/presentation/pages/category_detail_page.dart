@@ -14,7 +14,9 @@ import '../../domain/category_model.dart';
 String _transparentAsset(String assetPath) {
   final uri = Uri.parse(assetPath);
   final filename = uri.pathSegments.last;
-  if (!filename.startsWith('cat_') || !filename.endsWith('.png')) {
+  if (uri.pathSegments.contains('category_transparent') ||
+      !filename.startsWith('cat_') ||
+      !filename.endsWith('.png')) {
     return assetPath;
   }
   final stem = filename.substring(0, filename.length - 4); // strip .png
@@ -38,9 +40,23 @@ class _AssetImageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (assetPath.toLowerCase().endsWith('.svg')) {
+    final displayAssetPath = _transparentAsset(assetPath);
+
+    if (displayAssetPath == 'assets/images/bongus.svg') {
+      return Image.asset(
+        displayAssetPath,
+        fit: fit,
+        alignment: Alignment.center,
+        errorBuilder: (_, __, ___) => Container(
+          color: AppColors.bgInput,
+          alignment: Alignment.center,
+          child: const Icon(Icons.restaurant, color: AppColors.textMuted),
+        ),
+      );
+    }
+    if (displayAssetPath.toLowerCase().endsWith('.svg')) {
       return FutureBuilder<ImageProvider?>(
-        future: _loadEmbeddedImage(assetPath),
+        future: _loadEmbeddedImage(displayAssetPath),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return Image(
@@ -51,7 +67,7 @@ class _AssetImageView extends StatelessWidget {
             );
           }
           return SvgPicture.asset(
-            assetPath,
+            displayAssetPath,
             fit: fit,
             alignment: Alignment.center,
           );
@@ -59,7 +75,7 @@ class _AssetImageView extends StatelessWidget {
       );
     }
     return Image.asset(
-      assetPath,
+      displayAssetPath,
       fit: fit,
       alignment: Alignment.center,
       errorBuilder: (_, __, ___) => Container(

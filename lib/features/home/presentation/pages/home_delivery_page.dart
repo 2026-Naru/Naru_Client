@@ -634,68 +634,68 @@ class _PickupBrandGrid extends StatelessWidget {
   static const _items = [
     _PickupBrandData(
       label: 'BHC',
-      imagePath: 'assets/images/cat_bhc.png',
+      imagePath: 'assets/images/bhc.svg',
       description: 'Pickup-ready BHC chicken stores near your current area.',
       items: [
         CategoryItemModel(
           name: 'BHC Chicken Sillim',
-          image: 'assets/images/cat_bhc.png',
+          image: 'assets/images/bhc.svg',
           description: 'Crispy chicken sets prepared quickly for pick up.',
         ),
         CategoryItemModel(
           name: 'BHC Hot Chicken',
-          image: 'assets/images/cat_bhc.png',
+          image: 'assets/images/bhc.svg',
           description: 'Spicy fried chicken and shareable sides.',
         ),
       ],
     ),
     _PickupBrandData(
       label: 'BBQ',
-      imagePath: 'assets/images/cat_bbq.png',
+      imagePath: 'assets/images/bbq.svg',
       description: 'Golden olive chicken and BBQ favorites for pick up.',
       items: [
         CategoryItemModel(
           name: 'BBQ Chicken Sillim',
-          image: 'assets/images/cat_bbq.png',
+          image: 'assets/images/bbq.svg',
           description: 'Golden olive chicken packed for easy pickup.',
         ),
         CategoryItemModel(
           name: 'BBQ Spicy Chicken',
-          image: 'assets/images/cat_bbq.png',
+          image: 'assets/images/bbq.svg',
           description: 'Bold seasoned chicken with crispy texture.',
         ),
       ],
     ),
     _PickupBrandData(
-      label: 'Gupne',
-      imagePath: 'assets/images/cat_goobne.png',
+      label: 'Goobne',
+      imagePath: 'assets/images/goobne.svg',
       description: 'Oven-roasted chicken options available for pick up.',
       items: [
         CategoryItemModel(
           name: 'Goobne Chicken Sillim',
-          image: 'assets/images/cat_goobne.png',
+          image: 'assets/images/goobne.svg',
           description: 'Oven-roasted chicken with lighter flavor.',
         ),
         CategoryItemModel(
           name: 'Goobne Volcano Chicken',
-          image: 'assets/images/cat_goobne.png',
+          image: 'assets/images/goobne.svg',
           description: 'A spicy roasted chicken favorite.',
         ),
       ],
     ),
     _PickupBrandData(
       label: 'Bongus',
-      imagePath: 'assets/images/cat_bongus.png',
+      imagePath: 'assets/images/bongus.svg',
       description: 'Rice burgers and quick meals you can grab nearby.',
       items: [
         CategoryItemModel(
           name: 'Bongus Rice Burger',
-          image: 'assets/images/cat_bongus.png',
+          image: 'assets/images/bongus.svg',
           description: 'Warm rice burgers for a quick pickup meal.',
         ),
         CategoryItemModel(
           name: 'Bongus Bulgogi Burger',
-          image: 'assets/images/cat_bongus.png',
+          image: 'assets/images/bongus.svg',
           description: 'Savory rice burger with bulgogi flavor.',
         ),
       ],
@@ -719,51 +719,51 @@ class _PickupBrandGrid extends StatelessWidget {
     ),
     _PickupBrandData(
       label: 'Bombom',
-      imagePath: 'assets/images/cat_bombom.png',
+      imagePath: 'assets/images/bombom.svg',
       description: 'Sweet cafe drinks and fruit beverages for pick up.',
       items: [
         CategoryItemModel(
           name: 'Cafe Bombom Sillim',
-          image: 'assets/images/cat_bombom.png',
+          image: 'assets/images/bombom.svg',
           description: 'Fruit drinks, lattes, and sweet cafe favorites.',
         ),
         CategoryItemModel(
           name: 'Cafe Bombom Dessert',
-          image: 'assets/images/cat_bombom.png',
+          image: 'assets/images/bombom.svg',
           description: 'Refreshing drinks with easy dessert cups.',
         ),
       ],
     ),
     _PickupBrandData(
       label: 'Puradak',
-      imagePath: 'assets/images/cat_puradak.png',
+      imagePath: 'assets/images/puradak.svg',
       description: 'Premium chicken menus available for nearby pickup.',
       items: [
         CategoryItemModel(
           name: 'Puradak Chicken Sillim',
-          image: 'assets/images/cat_puradak.png',
+          image: 'assets/images/puradak.svg',
           description: 'Premium chicken with rich sauces.',
         ),
         CategoryItemModel(
           name: 'Puradak Black Chicken',
-          image: 'assets/images/cat_puradak.png',
+          image: 'assets/images/puradak.svg',
           description: 'Signature black sauce chicken for pick up.',
         ),
       ],
     ),
     _PickupBrandData(
       label: 'Ediya',
-      imagePath: 'assets/images/cat_ediya.png',
+      imagePath: 'assets/images/ediya.svg',
       description: 'Reliable coffee and tea from Ediya locations nearby.',
       items: [
         CategoryItemModel(
           name: 'Ediya Coffee Sillim',
-          image: 'assets/images/cat_ediya.png',
+          image: 'assets/images/ediya.svg',
           description: 'Iced coffee and tea prepared for pick up.',
         ),
         CategoryItemModel(
           name: 'Ediya Coffee Dessert',
-          image: 'assets/images/cat_ediya.png',
+          image: 'assets/images/ediya.svg',
           description: 'Cafe drinks with simple dessert menus.',
         ),
       ],
@@ -878,8 +878,8 @@ class _PickupNearMeItem extends StatelessWidget {
           border: Border.all(color: AppColors.primary),
         ),
         clipBehavior: Clip.hardEdge,
-        child: Image.asset(
-          'assets/images/cat_near_me.png',
+        child: const _HomeAssetImage(
+          assetPath: 'assets/images/cat_near_me.png',
           fit: BoxFit.cover,
         ),
       ),
@@ -1355,6 +1355,18 @@ StoreDetailPreset _presetForStore(NaruStore store) {
   return StoreDetailPreset.jokbal;
 }
 
+String _transparentCategoryAsset(String assetPath) {
+  final uri = Uri.parse(assetPath);
+  final filename = uri.pathSegments.last;
+  if (uri.pathSegments.contains('category_transparent') ||
+      !filename.startsWith('cat_') ||
+      !filename.endsWith('.png')) {
+    return assetPath;
+  }
+  final stem = filename.substring(0, filename.length - 4);
+  return 'assets/images/category_transparent/${stem}_transparent.png';
+}
+
 class _HomeAssetImage extends StatelessWidget {
   final String assetPath;
   final double? width;
@@ -1377,12 +1389,23 @@ class _HomeAssetImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (assetPath.toLowerCase().endsWith('.svg')) {
+    final displayAssetPath = _transparentCategoryAsset(assetPath);
+
+    if (displayAssetPath == 'assets/images/bongus.svg') {
+      return Image.asset(
+        displayAssetPath,
+        width: width,
+        height: height,
+        fit: fit,
+        alignment: Alignment.center,
+      );
+    }
+    if (displayAssetPath.toLowerCase().endsWith('.svg')) {
       return SizedBox(
         width: width,
         height: height,
         child: FutureBuilder<ImageProvider?>(
-          future: _loadEmbeddedImage(assetPath),
+          future: _loadEmbeddedImage(displayAssetPath),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return Image(
@@ -1393,7 +1416,7 @@ class _HomeAssetImage extends StatelessWidget {
               );
             }
             return SvgPicture.asset(
-              assetPath,
+              displayAssetPath,
               fit: fit,
               alignment: Alignment.center,
             );
@@ -1402,7 +1425,7 @@ class _HomeAssetImage extends StatelessWidget {
       );
     }
     return Image.asset(
-      assetPath,
+      displayAssetPath,
       width: width,
       height: height,
       fit: fit,

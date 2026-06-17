@@ -39,12 +39,12 @@ const List<CategoryModel> categoryDummyData = [
       ),
       CategoryItemModel(
         name: 'BHC Chicken',
-        image: 'assets/images/cat_bhc.png',
+        image: 'assets/images/bhc.svg',
         description: 'Popular chicken sets with shareable portions.',
       ),
       CategoryItemModel(
         name: 'BBQ Chicken',
-        image: 'assets/images/cat_bbq.png',
+        image: 'assets/images/bbq.svg',
         description: 'Golden olive chicken and bold seasoned menus.',
       ),
     ],
@@ -138,7 +138,7 @@ const List<CategoryModel> categoryDummyData = [
       ),
       CategoryItemModel(
         name: 'Bongus Rice Burger',
-        image: 'assets/images/cat_bongus.png',
+        image: 'assets/images/bongus.svg',
         description: 'A simple sweet-and-savory snack stop.',
       ),
     ],
@@ -152,12 +152,12 @@ const List<CategoryModel> categoryDummyData = [
     items: [
       CategoryItemModel(
         name: 'Ediya Coffee Sillim',
-        image: 'assets/images/cat_ediya.png',
+        image: 'assets/images/ediya.svg',
         description: 'Reliable iced coffee and quick cafe delivery.',
       ),
       CategoryItemModel(
         name: 'Cafe Bombom',
-        image: 'assets/images/cat_bombom.png',
+        image: 'assets/images/bombom.svg',
         description: 'Fruit drinks, lattes, and sweet cafe favorites.',
       ),
       CategoryItemModel(
