@@ -229,21 +229,6 @@ class _HeroBanner extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Positioned(
-            right: -24,
-            bottom: -12,
-            child: Opacity(
-              opacity: 0.35,
-              child: SizedBox(
-                width: 210,
-                height: 210,
-                child: _AssetImageView(
-                  assetPath: _transparentAsset(category.image),
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
             left: 24,
             right: 24,
             bottom: 28,

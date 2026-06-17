@@ -50,7 +50,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
     'Ready for Pickup',
   ];
 
-  static const _stepDurations = [5, 8, 10]; // seconds between steps
+  static const _stepDuration = Duration(seconds: 3);
 
   List<String> get _steps => widget.isPickup ? _pickupSteps : _deliverySteps;
 
@@ -89,7 +89,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
     int stepIndex = 0;
     void scheduleNext() {
       if (stepIndex >= _steps.length - 1) return;
-      _progressTimer = Timer(Duration(seconds: _stepDurations[stepIndex]), () {
+      _progressTimer = Timer(_stepDuration, () {
         if (!mounted) return;
         final nextStep = stepIndex + 1;
         setState(() => _currentStep = nextStep);
