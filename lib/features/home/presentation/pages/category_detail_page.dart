@@ -1,9 +1,75 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../likes/presentation/pages/store_detail_page.dart';
 import '../../domain/category_model.dart';
+
+// Derives the transparent-background version of a cat_*.png asset path.
+// Falls back to the original path if the image is not a cat_ image.
+String _transparentAsset(String assetPath) {
+  final uri = Uri.parse(assetPath);
+  final filename = uri.pathSegments.last;
+  if (!filename.startsWith('cat_') || !filename.endsWith('.png')) {
+    return assetPath;
+  }
+  final stem = filename.substring(0, filename.length - 4); // strip .png
+  return 'assets/images/category_transparent/${stem}_transparent.png';
+}
+
+class _AssetImageView extends StatelessWidget {
+  final String assetPath;
+  final BoxFit fit;
+  const _AssetImageView({
+    required this.assetPath,
+    required this.fit,
+  });
+
+  static Future<ImageProvider?> _loadEmbeddedImage(String assetPath) async {
+    final svg = await rootBundle.loadString(assetPath);
+    final match = RegExp(r'base64,([^"\s]+)').firstMatch(svg);
+    if (match == null) return null;
+    return MemoryImage(base64Decode(match.group(1)!));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (assetPath.toLowerCase().endsWith('.svg')) {
+      return FutureBuilder<ImageProvider?>(
+        future: _loadEmbeddedImage(assetPath),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Image(
+              image: snapshot.data!,
+              fit: fit,
+              alignment: Alignment.center,
+              gaplessPlayback: true,
+            );
+          }
+          return SvgPicture.asset(
+            assetPath,
+            fit: fit,
+            alignment: Alignment.center,
+          );
+        },
+      );
+    }
+    return Image.asset(
+      assetPath,
+      fit: fit,
+      alignment: Alignment.center,
+      errorBuilder: (_, __, ___) => Container(
+        color: AppColors.bgInput,
+        alignment: Alignment.center,
+        child: const Icon(Icons.restaurant, color: AppColors.textMuted),
+      ),
+    );
+  }
+}
 
 class CategoryDetailPage extends StatelessWidget {
   final CategoryModel category;
@@ -151,11 +217,13 @@ class _HeroBanner extends StatelessWidget {
             bottom: -12,
             child: Opacity(
               opacity: 0.35,
-              child: Image.asset(
-                category.image,
+              child: SizedBox(
                 width: 210,
                 height: 210,
-                fit: BoxFit.contain,
+                child: _AssetImageView(
+                  assetPath: _transparentAsset(category.image),
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
@@ -231,8 +299,8 @@ class _CategoryBadge extends StatelessWidget {
         ],
       ),
       padding: const EdgeInsets.all(9),
-      child: Image.asset(
-        image,
+      child: _AssetImageView(
+        assetPath: _transparentAsset(image),
         fit: BoxFit.contain,
       ),
     );
@@ -318,15 +386,9 @@ class _CategoryPlaceCard extends StatelessWidget {
             SizedBox(
               width: 116,
               height: 116,
-              child: Image.asset(
-                item.image,
+              child: _AssetImageView(
+                assetPath: item.image,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: AppColors.bgInput,
-                  alignment: Alignment.center,
-                  child:
-                      const Icon(Icons.restaurant, color: AppColors.textMuted),
-                ),
               ),
             ),
             Expanded(
@@ -413,7 +475,7 @@ _StoreDetailData _storeDetailForItem(CategoryItemModel item) {
       normalizedName, normalizedImage, ['burger', 'lotteria', 'bongus'])) {
     preset = StoreDetailPreset.burger;
   } else if (_containsAny(normalizedName, normalizedImage,
-      ['chicken', 'bhc', 'bbq', 'nene', 'goobne', 'gupne', 'puradak'])) {
+      ['chicken', 'bhc', 'bbq', 'nene', 'goobne', 'goobne', 'puradak'])) {
     preset = StoreDetailPreset.chicken;
   } else if (_containsAny(normalizedName, normalizedImage,
       ['cafe', 'coffee', 'bombom', 'bback', 'ediya'])) {

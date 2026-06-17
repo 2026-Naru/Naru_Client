@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
@@ -700,17 +702,17 @@ class _PickupBrandGrid extends StatelessWidget {
     ),
     _PickupBrandData(
       label: 'Bback',
-      imagePath: 'assets/images/cat_Bback.png',
+      imagePath: 'assets/images/bdb.svg',
       description: 'Coffee and bakery drinks ready on your route.',
       items: [
         CategoryItemModel(
           name: 'Bback Dabang Sillim',
-          image: 'assets/images/cat_Bback.png',
+          image: 'assets/images/bdb.svg',
           description: 'Large coffees and cafe drinks for pick up.',
         ),
         CategoryItemModel(
           name: 'Bback Dabang Bakery',
-          image: 'assets/images/cat_Bback.png',
+          image: 'assets/images/bdb.svg',
           description: 'Coffee with simple bakery menus.',
         ),
       ],
@@ -913,10 +915,9 @@ class _PickupBrandItem extends StatelessWidget {
               clipBehavior: Clip.hardEdge,
               child: Padding(
                 padding: const EdgeInsets.all(10),
-                child: Image.asset(
-                  category.image,
+                child: _HomeAssetImage(
+                  assetPath: category.image,
                   fit: BoxFit.contain,
-                  alignment: Alignment.center,
                 ),
               ),
             ),
@@ -967,10 +968,9 @@ class _CategoryItem extends StatelessWidget {
               clipBehavior: Clip.hardEdge,
               child: Padding(
                 padding: const EdgeInsets.all(6),
-                child: Image.asset(
-                  category.image,
+                child: _HomeAssetImage(
+                  assetPath: category.image,
                   fit: BoxFit.contain,
-                  alignment: Alignment.center,
                 ),
               ),
             ),
@@ -1355,6 +1355,62 @@ StoreDetailPreset _presetForStore(NaruStore store) {
   return StoreDetailPreset.jokbal;
 }
 
+class _HomeAssetImage extends StatelessWidget {
+  final String assetPath;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+
+  const _HomeAssetImage({
+    required this.assetPath,
+    this.width,
+    this.height,
+    required this.fit,
+  });
+
+  static Future<ImageProvider?> _loadEmbeddedImage(String assetPath) async {
+    final svg = await rootBundle.loadString(assetPath);
+    final match = RegExp(r'base64,([^"\s]+)').firstMatch(svg);
+    if (match == null) return null;
+    return MemoryImage(base64Decode(match.group(1)!));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (assetPath.toLowerCase().endsWith('.svg')) {
+      return SizedBox(
+        width: width,
+        height: height,
+        child: FutureBuilder<ImageProvider?>(
+          future: _loadEmbeddedImage(assetPath),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Image(
+                image: snapshot.data!,
+                fit: fit,
+                alignment: Alignment.center,
+                gaplessPlayback: true,
+              );
+            }
+            return SvgPicture.asset(
+              assetPath,
+              fit: fit,
+              alignment: Alignment.center,
+            );
+          },
+        ),
+      );
+    }
+    return Image.asset(
+      assetPath,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: Alignment.center,
+    );
+  }
+}
+
 class _StoreImage extends StatelessWidget {
   final String imagePath;
   final double width;
@@ -1369,8 +1425,12 @@ class _StoreImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imagePath.startsWith('assets/')) {
-      return Image.asset(imagePath,
-          width: width, height: height, fit: BoxFit.cover);
+      return _HomeAssetImage(
+        assetPath: imagePath,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+      );
     }
     return Image.network(
       imagePath,
