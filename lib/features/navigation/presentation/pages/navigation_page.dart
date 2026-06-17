@@ -1530,7 +1530,7 @@ class _SharingSpotCard extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(15),
         child: Stack(
           children: [
             SizedBox(
