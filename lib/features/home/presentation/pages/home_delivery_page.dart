@@ -532,7 +532,7 @@ class _BannerCard extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            right: 0,
+            right: -30,
             top: 3,
             child: Image.asset(
               'assets/images/banner_food.png',
@@ -578,7 +578,7 @@ class _BannerCard extends StatelessWidget {
                 'View More',
                 style: TextStyle(
                   fontFamily: 'Pretendard',
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                 ),
@@ -628,6 +628,7 @@ class _PickupBrandGrid extends StatelessWidget {
   static const _columns = 5;
   static const _columnGap = 10.0;
   static const _rowGap = 16.0;
+  static const _nearMeAspectRatio = 1.65;
   static const _items = [
     _PickupBrandData(
       label: 'BHC',
@@ -775,6 +776,7 @@ class _PickupBrandGrid extends StatelessWidget {
             (constraints.maxWidth - (_columnGap * (_columns - 1))) / _columns;
         final itemWidth = rawItemWidth > 0 ? rawItemWidth : 0.0;
         final nearMeWidth = (itemWidth * 2) + _columnGap;
+        final nearMeHeight = nearMeWidth / _nearMeAspectRatio;
 
         return Wrap(
           spacing: _columnGap,
@@ -783,7 +785,7 @@ class _PickupBrandGrid extends StatelessWidget {
             SizedBox(
               width: nearMeWidth,
               child: _PickupNearMeItem(
-                height: itemWidth,
+                height: nearMeHeight,
                 category: _nearMeCategory,
               ),
             ),
@@ -860,7 +862,7 @@ class _PickupNearMeItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(15),
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
@@ -870,7 +872,7 @@ class _PickupNearMeItem extends StatelessWidget {
       child: Container(
         height: height,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(15),
           border: Border.all(color: AppColors.primary),
         ),
         clipBehavior: Clip.hardEdge,
