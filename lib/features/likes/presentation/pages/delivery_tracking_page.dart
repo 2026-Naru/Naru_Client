@@ -50,7 +50,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
     'Ready for Pickup',
   ];
 
-  static const _stepDuration = Duration(seconds: 3);
+  static const _stepDuration = Duration(milliseconds: 700);
 
   List<String> get _steps => widget.isPickup ? _pickupSteps : _deliverySteps;
 

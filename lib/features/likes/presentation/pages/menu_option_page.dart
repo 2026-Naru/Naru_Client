@@ -1,8 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -280,7 +276,7 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
 
   SliverAppBar _buildAppBar(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 260,
+      expandedHeight: 72,
       pinned: true,
       backgroundColor: AppColors.bgWhite,
       elevation: 0,
@@ -296,62 +292,8 @@ class _MenuOptionPageState extends State<MenuOptionPage> {
               size: 16, color: AppColors.textPrimary),
         ),
       ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: _MenuOptionImage(imagePath: widget.imagePath),
-      ),
-    );
-  }
-}
-
-class _MenuOptionImage extends StatelessWidget {
-  final String imagePath;
-
-  const _MenuOptionImage({required this.imagePath});
-
-  static Future<ImageProvider?> _loadEmbeddedImage(String assetPath) async {
-    final svg = await rootBundle.loadString(assetPath);
-    final match = RegExp(r'base64,([^"\s]+)').firstMatch(svg);
-    if (match == null) return null;
-    return MemoryImage(base64Decode(match.group(1)!));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (imagePath.startsWith('assets/')) {
-      if (imagePath == 'assets/images/bongus.svg') {
-        return Image.asset(
-          imagePath,
-          fit: BoxFit.cover,
-          gaplessPlayback: true,
-          filterQuality: FilterQuality.high,
-        );
-      }
-      if (imagePath.toLowerCase().endsWith('.svg')) {
-        return FutureBuilder<ImageProvider?>(
-          future: _loadEmbeddedImage(imagePath),
-          builder: (context, snapshot) {
-            final imageProvider = snapshot.data;
-            if (imageProvider != null) {
-              return Image(
-                image: imageProvider,
-                fit: BoxFit.cover,
-                gaplessPlayback: true,
-                filterQuality: FilterQuality.high,
-              );
-            }
-            return SvgPicture.asset(imagePath, fit: BoxFit.cover);
-          },
-        );
-      }
-      return Image.asset(imagePath, fit: BoxFit.cover);
-    }
-    return Image.network(
-      imagePath,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        color: AppColors.bgLight,
-        alignment: Alignment.center,
-        child: const Icon(Icons.fastfood, color: AppColors.textMuted),
+      flexibleSpace: const FlexibleSpaceBar(
+        background: ColoredBox(color: AppColors.bgWhite),
       ),
     );
   }

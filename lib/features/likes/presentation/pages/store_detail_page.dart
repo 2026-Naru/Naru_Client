@@ -380,7 +380,7 @@ class _StoreDetailPageState extends State<StoreDetailPage>
       return const _BbackHeroImage();
     }
     if (imagePath.startsWith('assets/')) {
-      return _DetailImage(imagePath: imagePath, fit: BoxFit.cover);
+      return _DetailImage(imagePath: imagePath);
     }
     return Image.network(
       imagePath,
@@ -1818,7 +1818,6 @@ class _BbackHeroImage extends StatelessWidget {
             padding: const EdgeInsets.all(22),
             child: const _DetailImage(
               imagePath: 'assets/images/bdb.svg',
-              fit: BoxFit.contain,
             ),
           ),
         ),
@@ -1831,13 +1830,11 @@ class _DetailImage extends StatelessWidget {
   final String imagePath;
   final double? width;
   final double? height;
-  final BoxFit fit;
 
   const _DetailImage({
     required this.imagePath,
     this.width,
     this.height,
-    this.fit = BoxFit.cover,
   });
 
   @override
@@ -1848,7 +1845,7 @@ class _DetailImage extends StatelessWidget {
           imagePath,
           width: width,
           height: height,
-          fit: fit,
+          fit: BoxFit.cover,
           filterQuality: FilterQuality.high,
         );
       }
@@ -1862,7 +1859,7 @@ class _DetailImage extends StatelessWidget {
                 image: imageProvider,
                 width: width,
                 height: height,
-                fit: fit,
+                fit: BoxFit.cover,
                 filterQuality: FilterQuality.high,
               );
             }
@@ -1870,7 +1867,7 @@ class _DetailImage extends StatelessWidget {
               imagePath,
               width: width,
               height: height,
-              fit: fit,
+              fit: BoxFit.cover,
             );
           },
         );
@@ -1879,7 +1876,7 @@ class _DetailImage extends StatelessWidget {
         imagePath,
         width: width,
         height: height,
-        fit: fit,
+        fit: BoxFit.cover,
         filterQuality: FilterQuality.high,
       );
     }
@@ -1887,7 +1884,7 @@ class _DetailImage extends StatelessWidget {
       imagePath,
       width: width,
       height: height,
-      fit: fit,
+      fit: BoxFit.cover,
       errorBuilder: (_, __, ___) => Container(
         width: width,
         height: height,
