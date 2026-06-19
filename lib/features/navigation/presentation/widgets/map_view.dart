@@ -422,16 +422,16 @@ class _MapViewState extends State<MapView> with WidgetsBindingObserver {
       compassEnabled: false,
       myLocationEnabled:
           widget.variant == MapViewVariant.selectLocation && _myLocationEnabled,
-      tiltGesturesEnabled: false,
-      rotateGesturesEnabled: false,
-      scrollGesturesEnabled: false,
-      zoomGesturesEnabled: false,
+      tiltGesturesEnabled: true,
+      rotateGesturesEnabled: true,
+      scrollGesturesEnabled: true,
+      zoomGesturesEnabled: true,
       trafficEnabled: false,
       buildingsEnabled: false,
       indoorViewEnabled: false,
       padding: EdgeInsets.zero,
       gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-        Factory<TapGestureRecognizer>(() => TapGestureRecognizer()),
+        Factory<EagerGestureRecognizer>(() => EagerGestureRecognizer()),
       },
       onMapCreated: (controller) {
         _mapController = controller;
