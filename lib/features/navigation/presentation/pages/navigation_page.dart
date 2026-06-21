@@ -1502,6 +1502,8 @@ class _FriendPromoBanner extends StatelessWidget {
                 ],
               ),
             ),
+
+            
             Padding(
               padding: const EdgeInsets.only(right: 30),
               child: Image.asset(
